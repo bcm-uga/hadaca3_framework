@@ -32,22 +32,24 @@ source("scr/teamF_Source_prior_known_features.R")
 Takes as input a multimodal .txt.gz, outputs a multimodal txt.gz
 
 ```{r}
-program_blockPP <- function(mix_rna=NULL, ref_bulkRNA=NULL, 
-                    mix_met=NULL, ref_met=NULL, ref_scRNA=NULL) {
+program_blockPP <- function(mix = NULL, ref = NULL, 
+                    ...) {
 
    # Normalize input matrices
-  if (normalisation)
-  {
-    ref_bulkRNA = normalize_matrix(ref_bulkRNA)
-    ref_met = normalize_matrix(ref_met)
-  }
-  
+
+    ref$ref_bulkRNA = normalize_matrix(ref$ref_bulkRNA)
+    ref$ref_met = normalize_matrix(ref$ref_met)
+
 
   
-  return() # MAG : je ne sais pas quoi sortir 
+ multi_data = list(mix = mix,
+             ref = ref)
+  
+  return(multi_data) 
 }
 
-
+PP_data = program_blockPP(mix = mix,
+                          ref = ref)
 ```
 
 # Block Feature selection (FS)
@@ -55,92 +57,74 @@ program_blockPP <- function(mix_rna=NULL, ref_bulkRNA=NULL,
 Takes as input a multimodal .txt.gz, outputs a multimodal txt.gz
 
 ```{r}
-program_blockFS <- function(mix_rna=NULL, ref_bulkRNA=NULL, 
-                    mix_met=NULL, ref_met=NULL, ref_scRNA=NULL) {
 
-     ## Drop all 0 references
-  drop_null_ref_cols <- function(ref_matrix){
+program_blockFS <- function(multi_data) {
+   
+   drop_null_ref_cols <- function(ref_matrix){
     non_null_rows = apply(ref_matrix != 0,MARGIN = 1, FUN = any, simplify = TRUE)
     return(ref_matrix[non_null_rows,])
-  }
-  ref_bulkRNA <- drop_null_ref_cols(ref_bulkRNA)
+   }
+
+  ref_matrix = multi_data$ref$ref_bulkRNA
+  multi_data$ref$ref_bulkRNA <- drop_null_ref_cols(ref_matrix)
   
-  return() # MAG : je ne sais pas quoi sortir 
+  return(multi_data) 
 }
 
-
+FS_data = program_blockFS(multi_data = PP_data)
 ```
 
-# Block Deconvolution (D)
+# Block SPLIT (SP)
+
+```{r}
+
+program_blockSP <- function(multi_data) {
+   
+   uni_data_RNA = list(mix = multi_data$mix$mix_rna,
+                       ref = list(bulk = multi_data$ref$ref_bulkRNA,
+                                  scRNA =  multi_data$ref$ref_scRNA))
+   
+      
+   uni_data_met = list(mix = multi_data$mix$mix_met,
+                       ref = list(bulk = multi_data$ref$ref_met))
+   
+  uni_data = list(RNA =  uni_data_RNA,
+                  met = uni_data_met)
+  return(uni_data) 
+}
+
+SP_data = program_blockSP(multi_data = FS_data)
+```
+
+
+# Block Deconvolution (DE)
 
 Takes as input a multimodal mix.txt.gz and a ref.txt.gz, output a prediction.txt.gz
 
-MAG : question -> comment on gère ici qu'on va faire de la déconvolution sur chaque omique avant l'intégration tardive ?
 
 ```{r}
-program_blockD <- function(mix_rna=NULL, ref_bulkRNA=NULL, 
-                    mix_met=NULL, ref_met=NULL, ref_scRNA=NULL) {
+uni_data = SP_data$RNA
+
+program_blockDE <- function(uni_data) {
 
     ## RNA:
-  if ( !( is.null(x = mix_rna) ) ) {
+  #if ( !( is.null(x = mix_rna) ) ) {
     
-    idx_feat = intersect(rownames(mix_rna), rownames(ref_bulkRNA))
-    mix_rna = mix_rna[idx_feat,]
-    ref_bulkRNA = ref_bulkRNA[idx_feat,]
-    
-    # Compute gene weights for Poisson like regression
-    bulkRNA_weights <- if (weight) get_weights_poisson(ref_bulkRNA) else NULL
-    
-    if (rna_method == 'nnls')
-    {
-      if (weight) warning("bulk RNA reweighting not availaible for nnls, use lmw or rlr. Weights will be used only for late RMSE fusion.")
-      prop_rna = get_prop_nnls(mix_rna, ref_bulkRNA)
-    }
-    else if(rna_method == 'lmw'){
-      prop_rna = get_prop_lm(mix_rna, ref_bulkRNA, bulkRNA_weights)  
-    }
-    else if (rna_method == 'rlr')
-    {
-      prop_rna = get_prop_rlr(mix_rna, ref_bulkRNA, bulkRNA_weights)
-    }
-    else
-    {
-      print("Parametrisation error : you have to indicate which method to use for bulk RNA.")
-      prop_rna = NULL
-    }
-  }
-  
-  ## Methylation:
-  if ( !( is.null(mix_met) ) ) {
-    
-    idx_feat = intersect(rownames(mix_met), rownames(ref_met))
-    mix_met = mix_met[idx_feat,]
-    ref_met = ref_met[idx_feat,]
-    
-    if (met_method == 'nnls')
-    {
-      prop_met = get_prop_nnls(mix_met, ref_met)
-    }
-    else if (met_method == 'rlr')
-    {
-      ## with robust linear regression approach ----
-      prop_met = get_prop_rlr(mix_met, ref_met)
-    }
-    else
-    {
-      print("Parametrisation error : you have to indicate which method to use for methylation.")
-      prop_met = NULL
-    }
-    
-  }
-  
+    idx_feat = intersect(rownames(uni_data$mix), rownames(uni_data$ref$bulk))
+    uni_data$mix = uni_data$mix[idx_feat,]
+    uni_data$ref$bulk = uni_data$ref$bulk[idx_feat,]
+     uni_pred = get_prop_nnls(uni_data$mix,  uni_data$ref$bulk)
+     
+
   
 
   
-  return() # MAG : je ne sais pas quoi sortir 
+  return(uni_pred) # MAG : je ne sais pas quoi sortir 
 }
 
 
+pred_RNA = program_blockDE(uni_data = SP_data$RNA)
+pred_met = program_blockDE(uni_data = SP_data$met)
 ```
 
 # Block Late integration (LI)
@@ -151,64 +135,15 @@ Takes as input a a multimodal prediction.txt.gz, outputs an integrated predictio
 
 
 ```{r}
-program_blockLI <- function(mix_rna=NULL, ref_bulkRNA=NULL, 
-                    mix_met=NULL, ref_met=NULL, ref_scRNA=NULL) { # MAG : je ne sais pas quoi mettre en entrée qui cooresponde à la sortie de la déconvolution
+program_blockLI <- function(pred1, pred2) { 
 
-   if ( !is.null(x = mix_met) ) {
-    if ( !is.null(x = mix_rna) ) {
-      
-      stopifnot( identical(x = dim(prop_rna), y = dim(prop_met)) ) # stop if not same number of cell type or samples
-      
-      if (integration == 'rmse')
-      {
-        ## compute RMSE for rna and methylation estimation
-        rmse_rna = rmse_mat(Y = as.matrix(mix_rna),
-                            Y_estimate = ref_bulkRNA %*% prop_rna,
-                            weights = bulkRNA_weights)
-        rmse_met = rmse_mat(as.matrix(mix_met), ref_met %*% prop_met)
-        
-        ## initialize with basic values we will modify
-        prop <- (prop_rna + prop_met) / 2
-        for (i in 1:length(rmse_met))
-        {
-          prop_val = (prop_rna[,i] / rmse_rna[i] + prop_met[,i] / rmse_met[i]) / (1 / rmse_rna[i] + 1 / rmse_met[i])
-          prop[,i] = prop_val
-        }
-      }
-      else if (integration == 'EnsDeconv') {
-        source("baselines/attachement/teamF_CTS_EnsDeconv_LS.R")
-        list_proportions <- list("RNA" = t(prop_rna),
-                                 "Met" = t(prop_met))
-        
-        prop <- t(CTS_EnsDeconv_LS(What = list_proportions, maxit = 1000)$W)
-      }
-      
-      else
-      {
-        prop <- (prop_rna + prop_met) / 2
-      }
-      
-    } else {
-      prop <- prop_met
-    }
-  } else {
-    prop <- prop_rna
-  }
-  
-  if (any(colSums(prop) != 1)) { # Sum To One 
-    prop <- sapply(
-      1:ncol(prop), 
-      function(col_i) { prop[,col_i] / sum(prop[,col_i]) }
-    )
-  }
+        multi_pred <- (pred1 + pred2) / 2
 
   
-
-  
-  return(prop) # MAG : je ne sais pas quoi sortir 
+  return(multi_pred) # MAG : je ne sais pas quoi sortir 
 }
 
-
+final_pred = program_blockLI(pred_RNA, pred_met)
 ```
 
 # Session Information
