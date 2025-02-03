@@ -4,18 +4,17 @@ A framework to collectively develop multi-omic deconvolution methods.
 
 The framework contains several blocks
 
-- **pre-processing** : takes as input a multimodal .txt.gz, outputs a multimodal txt.gz
+- **pre-processing** : 
 
 
-- **feature_selection** : takes as input a multimodal .txt.gz, outputs a multimodal txt.gz
+- **feature_selection** :
+- **split** : 
+- **deconvolution** :
+- **early_int** : 
 
-- **deconvolution** : takes as input a multimodal mix.txt.gz and a ref.txt.gz, output a prediction.txt.gz
+- **late_int** : 
 
-- **early_int** : takes as input a multimodal mix.txt.gz and a ref.txt.gz, outputs an integrated mix.txt.gz and a ref.txt.gz
-
-- **late_int** : takes as input a a multimodal prediction.txt.gz, outputs an integrated prediction
-
-- **intermediate_int** : takes as input a multimodal mix.txt.gz and a ref.txt.gz, outputs an integrated prediction
+- **intermediate_int** : 
 
 To run the demo, execute 
 ```
