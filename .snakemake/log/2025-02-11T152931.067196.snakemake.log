@@ -1,0 +1,39 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job         count
+--------  -------
+gen_data        1
+total           1
+
+Select jobs to execute...
+
+[Tue Feb 11 15:29:31 2025]
+rule gen_data:
+    output: data/test_dataset.gz
+    log: logs/05_metaanalysis.Rout
+    jobid: 0
+    reason: Missing output files: data/test_dataset.gz
+    resources: tmpdir=/tmp
+
+
+python 01_data_TODO.py 'data/test_dataset.gz'
+
+[Tue Feb 11 15:29:31 2025]
+Error in rule gen_data:
+    jobid: 0
+    output: data/test_dataset.gz
+    log: logs/05_metaanalysis.Rout (check log file(s) for error details)
+    shell:
+        
+python 01_data_TODO.py 'data/test_dataset.gz'
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job gen_data since they might be corrupted:
+data/test_dataset.gz
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2025-02-11T152931.067196.snakemake.log

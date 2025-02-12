@@ -1,0 +1,33 @@
+host: gricad-nh
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+all                   1
+pre_processing        1
+total                 2
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Feb 12 17:13:46 2025]
+Job 1: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/mixes_test_dataset_normalize.gz; Code has changed since last execution
+
+
+mkdir -p output/pre-processing/
+RCODE="mixes_file='data/mixes_test_dataset.rds'; reference_file='data/reference_pdac.rds'';   output_file='output/pre-processing/mixes_test_dataset_normalize.gz''; script_file='pre-processing/normalize.R';  source('02_Pre_process.R'));"
+Rscript -e $RCODE
+
+
+Waiting at most 5 seconds for missing files.
+MissingOutputException in rule pre_processing in file /home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py, line 54:
+Job 1  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+output/pre-processing/mixes_test_dataset_normalize.gz (missing locally, parent dir contents: reference_pdac_normalize.gz)
+Terminating processes on user request, this might take some time.
+Complete log: .snakemake/log/2025-02-12T171345.860363.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

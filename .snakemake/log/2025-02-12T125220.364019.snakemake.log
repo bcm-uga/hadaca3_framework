@@ -1,0 +1,169 @@
+host: gricad-nh
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                              count
+-----------------------------  -------
+all                                  1
+features_selection                   1
+late_integration                     4
+pre_processing                       1
+prediction_split_decovolution        4
+total                               11
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+Job 1: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/mixes_test_dataset_normalize.gz
+
+
+mkdir -p output/pre-processing/
+echo  data/mixes_test_dataset.rds output/pre-processing/mixes_test_dataset_normalize.gz
+touch output/pre-processing/mixes_test_dataset_normalize.gz
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 1.
+1 of 11 steps (9%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+Job 2: -- Processing features selections Block -- 
+Reason: Missing output files: output/feature_selection/mixes_test_dataset_normalize_fs.gz; Input files updated by another job: output/pre-processing/mixes_test_dataset_normalize.gz
+
+
+mkdir -p output/features_selection/
+echo  output/pre-processing/mixes_test_dataset_normalize.gz output/feature_selection/mixes_test_dataset_normalize_fs.gz
+touch output/feature_selection/mixes_test_dataset_normalize_fs.gz
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 2.
+2 of 11 steps (18%) done
+Select jobs to execute...
+Execute 4 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+Job 6: -- Processing splitted decovolution Block, Pipeline A -- 
+Reason: Missing output files: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz; Input files updated by another job: output/feature_selection/mixes_test_dataset_normalize_fs.gz
+
+
+mkdir -p output/split_decovolution/
+echo  output/feature_selection/mixes_test_dataset_normalize_fs.gz output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz
+touch output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz
+
+
+[Wed Feb 12 12:52:20 2025]
+Job 5: -- Processing splitted decovolution Block, Pipeline A -- 
+Reason: Missing output files: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz; Input files updated by another job: output/feature_selection/mixes_test_dataset_normalize_fs.gz
+
+
+mkdir -p output/split_decovolution/
+echo  output/feature_selection/mixes_test_dataset_normalize_fs.gz output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz
+touch output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz
+
+
+[Wed Feb 12 12:52:20 2025]
+Job 4: -- Processing splitted decovolution Block, Pipeline A -- 
+Reason: Missing output files: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz; Input files updated by another job: output/feature_selection/mixes_test_dataset_normalize_fs.gz
+
+
+mkdir -p output/split_decovolution/
+echo  output/feature_selection/mixes_test_dataset_normalize_fs.gz output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz
+touch output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz
+
+
+[Wed Feb 12 12:52:20 2025]
+Job 3: -- Processing splitted decovolution Block, Pipeline A -- 
+Reason: Missing output files: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz; Input files updated by another job: output/feature_selection/mixes_test_dataset_normalize_fs.gz
+
+
+mkdir -p output/split_decovolution/
+echo  output/feature_selection/mixes_test_dataset_normalize_fs.gz output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz
+touch output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 6.
+3 of 11 steps (27%) done
+[Wed Feb 12 12:52:20 2025]
+Finished job 5.
+4 of 11 steps (36%) done
+Select jobs to execute...
+Execute 2 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+Job 10: -- Processing splitted decovolution late ingration Block, Pipeline A -- 
+Reason: Missing output files: output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R_avg.gz; Input files updated by another job: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz
+
+
+mkdir -p output/prediction/
+echo  output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R_avg.gz
+touch output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R_avg.gz
+
+
+[Wed Feb 12 12:52:20 2025]
+Job 9: -- Processing splitted decovolution late ingration Block, Pipeline A -- 
+Reason: Missing output files: output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R_avg.gz; Input files updated by another job: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz
+
+
+mkdir -p output/prediction/
+echo  output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R_avg.gz
+touch output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R_avg.gz
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 4.
+5 of 11 steps (45%) done
+[Wed Feb 12 12:52:20 2025]
+Finished job 3.
+6 of 11 steps (55%) done
+Select jobs to execute...
+Execute 2 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+Job 8: -- Processing splitted decovolution late ingration Block, Pipeline A -- 
+Reason: Missing output files: output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R_avg.gz; Input files updated by another job: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz
+
+
+mkdir -p output/prediction/
+echo  output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R_avg.gz
+touch output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R_avg.gz
+
+
+[Wed Feb 12 12:52:20 2025]
+Job 7: -- Processing splitted decovolution late ingration Block, Pipeline A -- 
+Reason: Missing output files: output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R_avg.gz; Input files updated by another job: output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz
+
+
+mkdir -p output/prediction/
+echo  output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R_avg.gz
+touch output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R_avg.gz
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 10.
+7 of 11 steps (64%) done
+[Wed Feb 12 12:52:20 2025]
+Finished job 9.
+8 of 11 steps (73%) done
+[Wed Feb 12 12:52:20 2025]
+Finished job 8.
+9 of 11 steps (82%) done
+[Wed Feb 12 12:52:20 2025]
+Finished job 7.
+10 of 11 steps (91%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Feb 12 12:52:20 2025]
+localrule all:
+    input: data/mixes_test_dataset.rds, output/pre-processing/mixes_test_dataset_normalize.gz, output/feature_selection/mixes_test_dataset_normalize_fs.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R_avg.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R_avg.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R_avg.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R_avg.gz
+    jobid: 0
+    reason: Input files updated by another job: output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R_avg.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-nnls.R.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-lm.R_avg.gz, output/feature_selection/mixes_test_dataset_normalize_fs.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-nnls.R_met-lm.R_avg.gz, output/split_decovolution/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R.gz, output/pre-processing/mixes_test_dataset_normalize.gz, output/prediction/mixes_test_dataset_normalize_fs_split_rna-lm.R_met-nnls.R_avg.gz
+    resources: tmpdir=/tmp
+
+[Wed Feb 12 12:52:20 2025]
+Finished job 0.
+11 of 11 steps (100%) done
+Complete log: .snakemake/log/2025-02-12T125220.364019.snakemake.log

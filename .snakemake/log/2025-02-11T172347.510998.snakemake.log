@@ -1,0 +1,80 @@
+host: gricad-nh
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+all                   1
+pre_processing        4
+total                 5
+
+Select jobs to execute...
+Execute 4 jobs...
+
+[Tue Feb 11 17:23:47 2025]
+Job 4: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/test_dataset_test.R.gz
+
+
+mkdir -p output/pre-processing/
+echo  data/test_dataset.rds output/pre-processing/test_dataset_test.R.gz
+touch output/pre-processing/test_dataset_test.R.gz
+
+
+[Tue Feb 11 17:23:47 2025]
+Job 7: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/ref_test.R.gz
+
+
+mkdir -p output/pre-processing/
+echo  data/ref.rds output/pre-processing/ref_test.R.gz
+touch output/pre-processing/ref_test.R.gz
+
+
+[Tue Feb 11 17:23:47 2025]
+Job 5: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/test_dataset_Test.py.gz
+
+
+mkdir -p output/pre-processing/
+echo  data/test_dataset.rds output/pre-processing/test_dataset_Test.py.gz
+touch output/pre-processing/test_dataset_Test.py.gz
+
+
+[Tue Feb 11 17:23:47 2025]
+Job 8: -- Processing Pre processing Block -- 
+Reason: Missing output files: output/pre-processing/ref_Test.py.gz
+
+
+mkdir -p output/pre-processing/
+echo  data/ref.rds output/pre-processing/ref_Test.py.gz
+touch output/pre-processing/ref_Test.py.gz
+
+[Tue Feb 11 17:23:47 2025]
+Finished job 4.
+1 of 5 steps (20%) done
+[Tue Feb 11 17:23:47 2025]
+Finished job 7.
+2 of 5 steps (40%) done
+[Tue Feb 11 17:23:47 2025]
+Finished job 5.
+3 of 5 steps (60%) done
+[Tue Feb 11 17:23:47 2025]
+Finished job 8.
+4 of 5 steps (80%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Tue Feb 11 17:23:47 2025]
+localrule all:
+    input: data/test_dataset.gz, data/ref.gz, output/pre-processing/test_dataset_normalize.R.gz, output/pre-processing/test_dataset_test.R.gz, output/pre-processing/test_dataset_Test.py.gz, output/pre-processing/ref_normalize.R.gz, output/pre-processing/ref_test.R.gz, output/pre-processing/ref_Test.py.gz
+    jobid: 0
+    reason: Input files updated by another job: output/pre-processing/test_dataset_Test.py.gz, output/pre-processing/test_dataset_test.R.gz, output/pre-processing/ref_Test.py.gz, output/pre-processing/ref_test.R.gz
+    resources: tmpdir=/tmp
+
+[Tue Feb 11 17:23:47 2025]
+Finished job 0.
+5 of 5 steps (100%) done
+Complete log: .snakemake/log/2025-02-11T172347.510998.snakemake.log
