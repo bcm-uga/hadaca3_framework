@@ -1,0 +1,11 @@
+host: gricad-nh
+Building DAG of jobs...
+InputFunctionException in rule features_selection in file /home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py, line 68:
+Error:
+  KeyError: 'normalize'
+Wildcards:
+  dataset=mixes_test_dataset
+  pp=normalize
+  fs=fs
+Traceback:
+  File "/home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py", line 76, in <lambda> (rule features_selection, line 98, /home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py)

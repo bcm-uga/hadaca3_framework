@@ -1,0 +1,16 @@
+# Aggregated and atomic scores per method
+---
+title: "HADACA3 Framework - Generate data for data challenge hadaca"
+subtitle: "Meta analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document
+---
+
+# META
+```{r}
+
+print("Hello this will be beautiful")
+
+```

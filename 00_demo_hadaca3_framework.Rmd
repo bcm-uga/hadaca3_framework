@@ -22,8 +22,8 @@ Demo adapted from baseline_teamF and teamF_Source_prior_known_feature (attachmen
 Data were downloaded from the HADACA3 challenge starting kit. 
 
 ```{r}
-ref = readRDS("00_demo_data/data/reference_pdac.rds")
-mix = readRDS("00_demo_data/data/mixes1_SBN5_pdac.rds")
+ref = readRDS("data/reference_pdac.rds")
+mix = readRDS("data/mixes_test_dataset.rds")
 source("scr/teamF_Source_prior_known_features.R")
 ```
 
@@ -110,14 +110,10 @@ program_blockDE <- function(uni_data) {
     ## RNA:
   #if ( !( is.null(x = mix_rna) ) ) {
     
-    idx_feat = intersect(rownames(uni_data$mix), rownames(uni_data$ref$bulk))
-    uni_data$mix = uni_data$mix[idx_feat,]
-    uni_data$ref$bulk = uni_data$ref$bulk[idx_feat,]
-     uni_pred = get_prop_nnls(uni_data$mix,  uni_data$ref$bulk)
-     
-
-  
-
+  idx_feat = intersect(rownames(uni_data$mix), rownames(uni_data$ref$bulk))
+  uni_data$mix = uni_data$mix[idx_feat,]
+  uni_data$ref$bulk = uni_data$ref$bulk[idx_feat,]
+  uni_pred = get_prop_nnls(uni_data$mix,  uni_data$ref$bulk)
   
   return(uni_pred) # MAG : je ne sais pas quoi sortir 
 }
@@ -137,9 +133,8 @@ Takes as input a a multimodal prediction.txt.gz, outputs an integrated predictio
 ```{r}
 program_blockLI <- function(pred1, pred2) { 
 
-        multi_pred <- (pred1 + pred2) / 2
+    multi_pred <- (pred1 + pred2) / 2
 
-  
   return(multi_pred) # MAG : je ne sais pas quoi sortir 
 }
 

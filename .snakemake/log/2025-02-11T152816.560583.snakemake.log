@@ -1,0 +1,2 @@
+SyntaxError in file /home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py, line 46:
+Unexpected keyword datasetes_files in rule definition (00_run_pipeline.py, line 46)
