@@ -4,13 +4,13 @@ import csv
 ## read csv parameters files to import blocks to compute
 DATASETS                 = {row[0].strip(): row[1].strip() for row in csv.reader(open("datasets.csv")) if not row[0].startswith("#")}
 REFERENCE                = ["data/reference_pdac.rds"]
-PRE_PROC                 = {row[0].strip(): row[1].strip() for row in csv.reader(open("pre-processing.csv")) if not row[0].startswith("#")} 
-FEATURES_SELECTION       = {row[0].strip(): row[1].strip() for row in csv.reader(open("feature_selection.csv")) if not row[0].startswith("#")} 
-EALRY_INTEGRATION        = {row[0].strip(): row[1].strip() for row in csv.reader(open("early_integration.csv")) if not row[0].startswith("#")} 
-INTERMEDIATE_INTEGRATION = {row[0].strip(): row[1].strip() for row in csv.reader(open("intermediate_integration.csv")) if not row[0].startswith("#")} 
-LATE_INTEGRATION         = {row[0].strip(): row[1].strip() for row in csv.reader(open("late_integration.csv")) if not row[0].startswith("#")} 
-DECOVOLUTION             = {row[0].strip(): row[1].strip() for row in csv.reader(open("decovolution.csv")) if not row[0].startswith("#")} 
-SPLIT                    = {row[0].strip(): row[1].strip() for row in csv.reader(open("split.csv")) if not row[0].startswith("#")} 
+PRE_PROC                 = {row[0].strip(): row[1:] for row in csv.reader(open("pre-processing.csv")) if not row[0].startswith("#")} 
+FEATURES_SELECTION       = {row[0].strip(): row[1:] for row in csv.reader(open("feature_selection.csv")) if not row[0].startswith("#")} 
+EALRY_INTEGRATION        = {row[0].strip(): row[1:] for row in csv.reader(open("early_integration.csv")) if not row[0].startswith("#")} 
+INTERMEDIATE_INTEGRATION = {row[0].strip(): row[1:] for row in csv.reader(open("intermediate_integration.csv")) if not row[0].startswith("#")} 
+LATE_INTEGRATION         = {row[0].strip(): row[1:] for row in csv.reader(open("late_integration.csv")) if not row[0].startswith("#")} 
+DECOVOLUTION             = {row[0].strip(): row[1:] for row in csv.reader(open("decovolution.csv")) if not row[0].startswith("#")} 
+SPLIT                    = {row[0].strip(): row[1:] for row in csv.reader(open("split.csv")) if not row[0].startswith("#")} 
 
 
 
@@ -21,11 +21,13 @@ rule all:
         expand("output/pre-processing/{dataset}_{pp}.rds",dataset= DATASETS.keys(),pp =PRE_PROC.keys()),
         expand("output/feature_selection/{dataset}_{pp}_{fs}.rds",dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys()),
         
-        ##Pipeline A
-        expand("output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}.rds",
-            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de1=DECOVOLUTION.keys(),de2=DECOVOLUTION.keys()),
+        ##Pipeline A bis
+        expand("output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de}.rds",
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de=DECOVOLUTION.keys()),
+        expand("output/split_decovolution/{dataset}_{pp}_{fs}_{split}_met-{de}.rds",
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de=DECOVOLUTION.keys()),
         expand("output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.rds",
-            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de1=DECOVOLUTION.keys(),de2=DECOVOLUTION.keys(),li=LATE_INTEGRATION.keys()),
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de1=DECOVOLUTION.keys(),de2=DECOVOLUTION.keys(),li=LATE_INTEGRATION.keys())
         
         # ##Pipeline B
         # expand("output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds",
@@ -36,7 +38,6 @@ rule all:
         # ##Pipeline C
         # expand("output/prediction/{dataset}_{pp}_{fs}_{it}.rds",
         #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),it=INTERMEDIATE_INTEGRATION.keys()),
-
 
 
 # rule generate_data:
@@ -60,7 +61,7 @@ rule pre_processing:
     output: 
         "output/pre-processing/{dataset}_{pp}.rds"
     params:
-      script = lambda wildcards: PRE_PROC[wildcards.pp]  # get_script
+      script = lambda wildcards: PRE_PROC[wildcards.pp][0].strip()  # get_script
     # log: file = "logs/05_metaanalysis.Rout"
     shell:"""
 mkdir -p output/pre-processing/
@@ -77,7 +78,7 @@ rule features_selection:
     output: 
         "output/feature_selection/{dataset}_{pp}_{fs}.rds"
     params:
-      script = lambda wildcards: FEATURES_SELECTION[wildcards.fs]  # get_script
+      script = lambda wildcards: FEATURES_SELECTION[wildcards.fs][0].strip()  # get_script
 
     # log: file = "logs/05_metaanalysis.Rout"
     shell:"""
@@ -87,40 +88,66 @@ echo $RCODE | Rscript -
 """
 
 
-# ### Pipeline A ####
+# ### Pipeline A####
 
-rule prediction_split_decovolution:
+rule prediction_split_decovolution_rna:
     threads: 1
-    message: "-- Processing splitted decovolution Block, Pipeline A -- "
+    message: "-- Processing splitted rna decovolution Block, Pipeline A -- "
     input: 
         "output/feature_selection/{dataset}_{pp}_{fs}.rds"
     output: 
-        "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}.rds"
+        "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de}.rds"
     # log: file = "logs/05_metaanalysis.Rout"
     params:
-      script_de1 = lambda wildcards: DECOVOLUTION[wildcards.de1], 
-      script_de2 = lambda wildcards: DECOVOLUTION[wildcards.de2] ,
-      script_split = lambda wildcards: DECOVOLUTION[wildcards.split] 
+      script_de = lambda wildcards: DECOVOLUTION[wildcards.de][0].strip(), 
+    #   script_de2 = lambda wildcards: DECOVOLUTION[wildcards.de2] ,
+      script_split = lambda wildcards: SPLIT[wildcards.split][0].strip()
     shell:"""
 mkdir -p output/split_decovolution/
 RCODE="input_file='{input}';   output_file='{output}'; script_split='{params.script_split}'; 
-script_de_rna='{params.script_de1}';script_de_met='{params.script_de2}';  source('pipeline_A.R');"
+script_de_rna='{params.script_de}' ;  source('pipeline_A_split.R');"
 echo $RCODE | Rscript -
 """
+
+rule prediction_split_decovolution_met:
+    threads: 1
+    message: "-- Processing splitted met decovolution Block, Pipeline A -- "
+    input: 
+        "output/feature_selection/{dataset}_{pp}_{fs}.rds"
+    output: 
+        "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_met-{de}.rds"
+    # log: file = "logs/05_metaanalysis.Rout"
+    params:
+      script_de = lambda wildcards: DECOVOLUTION[wildcards.de][0].strip(), 
+    #   script_de2 = lambda wildcards: DECOVOLUTION[wildcards.de2] ,
+      script_split = lambda wildcards: SPLIT[wildcards.split][0].strip() 
+    shell:"""
+mkdir -p output/split_decovolution/
+RCODE="input_file='{input}';   output_file='{output}'; script_split='{params.script_split}'; script_de_met='{params.script_de}';  source('pipeline_A_split.R');"
+echo $RCODE | Rscript -
+"""
+
 
 rule late_integration:
     threads: 1
     message: "-- Processing splitted decovolution late ingration Block, Pipeline A -- "
     input: 
-        "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}.rds"
+        input_file_rna= "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}.rds",
+        input_file_met = "output/split_decovolution/{dataset}_{pp}_{fs}_{split}_met-{de2}.rds"
     output: 
         "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.rds"
     # log: file = "logs/05_metaanalysis.Rout"
+    params:
+      script_li = lambda wildcards: LATE_INTEGRATION[wildcards.li][0].strip(), 
     shell:"""
 mkdir -p output/prediction/
-RCODE="input_file='{input}';   output_file='{output}'; script_file='{params.script}';  source('middle_man.R');"
+RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   output_file='{output}'; script_file='{params.script_li}'; source('pipeline_A_merge.R');
+
+ "
 echo $RCODE | Rscript -
 """
+
+
 
 
 
