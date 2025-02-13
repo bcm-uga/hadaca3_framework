@@ -1,3 +1,0 @@
-NameError in file /home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py, line 3:
-name 'csv' is not defined
-  File "/home/nicolashomberg/projects/hadaca3_framework/00_run_pipeline.py", line 3, in <module>

@@ -2,3 +2,5 @@
 
 *.html
 *.rds
+.snakemake/*
+.snakemake/metadata/

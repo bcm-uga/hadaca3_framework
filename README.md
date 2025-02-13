@@ -25,7 +25,7 @@ conda activate hadaca3framework_env
 mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat
 ```
 
-<!-- r-seurat r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
+<!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
 ## Retrieve data. 
 Download data from: 
@@ -51,8 +51,8 @@ mkdir 00_demo_data
 
 ### TODO 
 
-* Set a file format to use 
-  * feather, 
-  * parquest  ... 
-* Pre-processing retunr a multi data that contains ref and mix but only change ref. 
+* Set a file format to use : 
+  * feather ? 
+  * parquest  ? ... 
+* Pre-processing return a multi data that contains ref and mix but only change ref ?  
 * 
