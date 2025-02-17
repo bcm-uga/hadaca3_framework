@@ -1,2 +1,2 @@
-nnls, decovolution/nnls.R , 
-#lm, decovolution/lm.R , 
+nnls, decovolution/nnls.R , NNLS
+#lm, decovolution/lm.R , LINM

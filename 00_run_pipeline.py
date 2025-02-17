@@ -21,7 +21,7 @@ rule all:
         expand("output/pre-processing/{dataset}_{pp}.rds",dataset= DATASETS.keys(),pp =PRE_PROC.keys()),
         expand("output/feature_selection/{dataset}_{pp}_{fs}.rds",dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys()),
         
-        ##Pipeline A bis
+        ##Pipeline A => split and decovo
         expand("output/split_decovolution/{dataset}_{pp}_{fs}_{split}_rna-{de}.rds",
             dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de=DECOVOLUTION.keys()),
         expand("output/split_decovolution/{dataset}_{pp}_{fs}_{split}_met-{de}.rds",
@@ -29,15 +29,15 @@ rule all:
         expand("output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.rds",
             dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),split= SPLIT.keys(),  de1=DECOVOLUTION.keys(),de2=DECOVOLUTION.keys(),li=LATE_INTEGRATION.keys())
         
-        # ##Pipeline B
-        # expand("output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EALRY_INTEGRATION.keys()),
-        # expand("output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.rds",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EALRY_INTEGRATION.keys(), de=DECOVOLUTION.keys()),
+        ##Pipeline B  => early integrategration and decovo
+        expand("output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds",
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EALRY_INTEGRATION.keys()),
+        expand("output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.rds",
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EALRY_INTEGRATION.keys(), de=DECOVOLUTION.keys()),
         
-        # ##Pipeline C
-        # expand("output/prediction/{dataset}_{pp}_{fs}_{it}.rds",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),it=INTERMEDIATE_INTEGRATION.keys()),
+        ##Pipeline C  => intermediate decovo
+        expand("output/prediction/{dataset}_{pp}_{fs}_{it}.rds",
+            dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),it=INTERMEDIATE_INTEGRATION.keys()),
 
 
 # rule generate_data:
@@ -151,54 +151,54 @@ echo $RCODE | Rscript -
 
 
 
-# ### Pipeline B####
+### Pipeline B####
 
 
-# rule early_integration:
-#     threads: 1
-#     message: "-- Processing early integration  Block, Pipeline B -- "
-#     input: 
-#         "output/feature_selection/{dataset}_{pp}_{fs}.rds"
-#     output: 
-#         "output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds"
-#     # log: file = "logs/05_metaanalysis.Rout"
-#     shell:"""
-# mkdir -p output/early_integration/
-# echo  {input} {output}
-# touch {output}
-# """
+rule early_integration:
+    threads: 1
+    message: "-- Processing early integration  Block, Pipeline B -- "
+    input: 
+        "output/feature_selection/{dataset}_{pp}_{fs}.rds"
+    output: 
+        "output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds"
+    # log: file = "logs/05_metaanalysis.Rout"
+    shell:"""
+mkdir -p output/early_integration/
+echo  {input} {output}
+touch {output}
+"""
 
-# rule prediction_with_early_integration:
-#     threads: 1
-#     message: "-- Processing decovolution with early integration Block, Pipeline B -- "
-#     input: 
-#         "output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds"
-#     output: 
-#         "output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.rds"
-#     # log: file = "logs/05_metaanalysis.Rout"
-#     shell:"""
-# mkdir -p output/prediction/
-# echo  {input} {output}
-# touch {output}
-# """
+rule prediction_with_early_integration:
+    threads: 1
+    message: "-- Processing decovolution with early integration Block, Pipeline B -- "
+    input: 
+        "output/early_integration/{dataset}_{pp}_{fs}_{ei}.rds"
+    output: 
+        "output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.rds"
+    # log: file = "logs/05_metaanalysis.Rout"
+    shell:"""
+mkdir -p output/prediction/
+echo  {input} {output}
+touch {output}
+"""
 
 
 
-# ### Pipeline C ####
+### Pipeline C ####
 
-# rule intermediate_integration:
-#     threads: 1
-#     message: "-- Processing itermediate integration  Block, Pipeline C -- "
-#     input: 
-#         "output/feature_selection/{dataset}_{pp}_{fs}.gz"
-#     output: 
-#         "output/early_integration/{dataset}_{pp}_{fs}_{ei}.gz"
-#     # log: file = "logs/05_metaanalysis.Rout"
-#     shell:"""
-# mkdir -p output/early_integration/
-# echo  {input} {output}
-# touch {output}
-# """
+rule intermediate_integration:
+    threads: 1
+    message: "-- Processing itermediate integration  Block, Pipeline C -- "
+    input: 
+        "output/feature_selection/{dataset}_{pp}_{fs}.gz"
+    output: 
+        "output/early_integration/{dataset}_{pp}_{fs}_{ei}.gz"
+    # log: file = "logs/05_metaanalysis.Rout"
+    shell:"""
+mkdir -p output/early_integration/
+echo  {input} {output}
+touch {output}
+"""
 
 
 
