@@ -8,6 +8,7 @@
 # # print(mixes_file)
 # if (!exists("reference_file"))      {reference_file = "data/reference_pdac.rds"} 
 # if (!exists("mixes_file"))          {mixes_file = "data/mixes_test_dataset.rds"} 
+source("utils/data_processing.R")
 
 
 
@@ -15,7 +16,10 @@
 # mix = readRDS(mixes_file)
 # ref = readRDS(reference_file)
 
-data = readRDS(input_file)
+data = read_all_hdf5(input_file)
+
+
+
 
 source(script_file)
 
@@ -25,4 +29,4 @@ block = program_block(data)
 
 # library(arrow)
 
-saveRDS(block, output_file)
+write_all_hdf5(output_file,block)

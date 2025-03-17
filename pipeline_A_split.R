@@ -1,9 +1,10 @@
 
 
-
-multi_data = readRDS(input_file)
-
+source("utils/data_processing.R")
 source(script_split)
+
+
+multi_data = read_all_hdf5(input_file)
 split = program_blockSP(multi_data)
 
 if (!exists("script_de_rna")) {
@@ -18,12 +19,8 @@ if (!exists("script_de_rna")) {
 
 }
 
-
-
-
-
 # print(ppblock)
 
 # library(arrow)
 
-saveRDS(pred, output_file)
+write_global_hdf5(output_file,list(pred=pred))
