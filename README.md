@@ -53,6 +53,6 @@ mkdir 00_demo_data
 
 * Set a file format to use : 
   * feather ? 
-  * parquest  ? ... 
+  * parquest  ?
 * Pre-processing return a multi data that contains ref and mix but only change ref ?  
 * 
