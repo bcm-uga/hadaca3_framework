@@ -7,5 +7,10 @@
 #"insilicodirichletEMFA",  "SDE5"
 #"insilicodirichletEMFAImmuneLowProp",  "SDEL"
 #"insilicodirichletCopule" , "SDC5"
-"mixes_test_dataset" , "TEST" 
+# "mixes_test_dataset" , 
 #"reference_pdac", ""
+
+
+mix_test :  #must be a unique ID
+  path: data/mix_test.h5
+  short_name: TEST
