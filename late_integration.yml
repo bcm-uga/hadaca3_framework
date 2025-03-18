@@ -2,10 +2,3 @@
 avg :  #must be a unique ID
   path: late_integration/avg.R
   short_name: avg
-  input:
-    RNA: 0
-    MET: 0
-  output:
-    RNA: 0
-    MET: 0
-    scRNA: 0

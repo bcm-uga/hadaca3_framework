@@ -11,6 +11,6 @@
 #"reference_pdac", ""
 
 
-mix_test :  #must be a unique ID
-  path: data/mix_test.h5
+mixTest :  #must be a unique ID
+  path: data/mixTest.h5
   short_name: TEST

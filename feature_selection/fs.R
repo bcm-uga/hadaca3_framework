@@ -1,5 +1,5 @@
 
-program_block <- function(multi_data) {
+program_block_FS <- function(multi_data) {
    
    drop_null_ref_cols <- function(ref_matrix){
     non_null_rows = apply(ref_matrix != 0,MARGIN = 1, FUN = any, simplify = TRUE)

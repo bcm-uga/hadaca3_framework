@@ -4,3 +4,7 @@
 *.rds
 .snakemake/*
 .snakemake/metadata/
+
+data/*
+__pycache__/*
+tmp*

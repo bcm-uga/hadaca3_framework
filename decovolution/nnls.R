@@ -10,7 +10,7 @@ get_prop_nnls <- function(mix, ref) {
   return(prop)
 }
 
-program_block <- function(uni_data) {
+program_block_DE <- function(uni_data) {
 
 
 
@@ -20,6 +20,6 @@ program_block <- function(uni_data) {
   uni_data$ref$bulk = uni_data$ref$bulk[idx_feat,]
   uni_pred = get_prop_nnls(uni_data$mix,  uni_data$ref$bulk)
   
-  return(uni_pred) # MAG : je ne sais pas quoi sortir 
+  return(uni_pred) 
 }
 
