@@ -23,7 +23,7 @@ data = read_all_hdf5(input_file)
 
 source(script_file)
 
-block = program_block(data)
+block = program_block_FS(data)
 
 # print(ppblock)
 

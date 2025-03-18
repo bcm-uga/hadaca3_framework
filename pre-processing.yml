@@ -2,10 +2,10 @@ normalize :  #must be a unique ID
   path: pre-processing/normalize.R
   short_name: norm
   input:  [RNA,MET]
-    # MET: 0
-    # scRNA: 0
+  output: [RNA,MET]
 
-  output:
-    RNA: 1
-    MET: 1
-    scRNA: 0
+ppID :  #must be a unique ID
+  path: pre-processing/ID.R
+  short_name: ID
+  input:  ANY
+  output: ANY

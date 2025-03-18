@@ -2,10 +2,11 @@
 nnls :  #must be a unique ID
   path: decovolution/nnls.R
   short_name: NNLS
-  input:
-    RNA: 0
-    MET: 0
-  output:
-    RNA: 0
-    MET: 0
-    scRNA: 0
+  # input: [ANY]
+  # output: [ANY] 
+
+lm :  #must be a unique ID
+  path: decovolution/lm.R
+  short_name: LM
+  # input: [ANY]
+  # output: [ANY]

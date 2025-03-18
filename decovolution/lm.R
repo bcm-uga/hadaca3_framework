@@ -3,15 +3,18 @@
 # pred_RNA = program_blockDE(uni_data = SP_data$RNA)
 # pred_met = program_blockDE(uni_data = SP_data$met)
 
-program_block = function(uni_data) {
+program_block_DE = function(uni_data) {
 
   ##
   ## YOUR CODE BEGINS HERE
   ##
-  mix = uni_data$mix
-  ref = uni_data$ref
   # idx_feat corresponds to the intersection of features present in the references and in the mixtures.
+  
+  mix = uni_data$mix
+  ref = uni_data$ref$bulk
   idx_feat = intersect(rownames(mix), rownames(ref))
+
+
   
   # Estimation of proportions
   prop = apply(mix[idx_feat,], 2, function(b, A) {
