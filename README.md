@@ -30,7 +30,9 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 ## Retrieve data. 
 Download data from: 
 ```
-
+mkdir data
+rsync -auvP dahu.ciment:/bettik/hombergn/dattashare/data/*
+./data/  
 ```
 
 ## Execute the pipeline: 
