@@ -97,7 +97,7 @@ rule pre_processing:
     threads: 1
     message: "-- Processing pre processing Block -- "
     input: 
-        mix = "data/{dataset}.h5" ,
+        mix = "data/mixes1_{dataset}_pdac.h5" ,
         reference = REFERENCE[0]
     output: 
         "output/pre-processing/{dataset}_{pp}.h5"

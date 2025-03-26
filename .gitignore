@@ -8,3 +8,4 @@
 data/*
 __pycache__/*
 tmp*
+old_datasets/*

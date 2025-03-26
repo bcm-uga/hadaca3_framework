@@ -1,16 +1,20 @@
-#"invitro",  "VITR"
-#"invivo",  "VIVO"
-#"insilicopseudobulk",  "SBN5"
-#"insilicodirichletNoDep",  "SDN5"
-#"insilicodirichletNoDep4CTsource",  "SDN4"
-#"insilicodirichletNoDep6CTsource",  "SDN6"
-#"insilicodirichletEMFA",  "SDE5"
-#"insilicodirichletEMFAImmuneLowProp",  "SDEL"
-#"insilicodirichletCopule" , "SDC5"
-# "mixes_test_dataset" , 
-#"reference_pdac", ""
+invitro : 
+  short_name : VITR
+  path : data/mixe1_invitro_pdac.h5
+
+invivo : 
+  short_name : VIVO
+  path : data/mixe1_invivo_pdac.h5
+
+insilicopseudobulk : 
+  short_name : SBN5
+  path : data/mixe1_insilicopseudobulk_pdac.h5
+
+insilicodirichletEMFA : 
+  short_name : SDE5
+  path : data/mixe1_insilicodirichletEMFA_pdac.h5
 
 
-mixTest :  #must be a unique ID
-  path: data/mixTest.h5
-  short_name: TEST
+insilicodirichletCopule : 
+  short_name : SDC5
+  path : data/mixe1_insilicodirichletCopule_pdac.h5 
