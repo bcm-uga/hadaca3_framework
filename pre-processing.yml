@@ -1,11 +1,17 @@
 normalize :  #must be a unique ID
   path: pre-processing/normalize.R
   short_name: norm
-  input:  [RNA,MET]
+  # input:  [RNA,MET]
   output: [RNA,MET]
 
 ppID :  #must be a unique ID
   path: pre-processing/ID.R
   short_name: ID
-  input:  ANY
+  # input:  ANY
   output: ANY
+
+# scScale :  #must be a unique ID
+#   path: pre-processing/sc_scale.R
+#   short_name: ID
+#   # input:  ANY
+#   output: [scRNA]
