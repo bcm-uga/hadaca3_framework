@@ -2,9 +2,9 @@ source("utils/data_processing.R")
 
 domain = 'pdac'
 
-# l_datasets = c('invitro', 'invivo', 'insilicopseudobulk', 'insilicodirichletEMFA', 'insilicodirichletCopule')
+l_datasets = c('invitro', 'invivo', 'insilicopseudobulk', 'insilicodirichletEMFA', 'insilicodirichletCopule')
 
-l_datasets = c( 'insilicodirichletCopule')
+# l_datasets = c( 'insilicodirichletCopule')
 # l_datasets = c( 'insilicodirichletEMFA', 'insilicodirichletCopule')
 
 

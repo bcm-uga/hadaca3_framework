@@ -66,12 +66,17 @@ write_mix_hdf5 <- function(path, mix) {
 
   h5createGroup(path, "mix_rna")
   h5write(mix$mix_rna, file=path , name=paste0( "mix_rna/data"  ))
-  h5write(colnames(mix$mix_rna), file=path , name ="mix_rna/samples"   )
-  h5write(rownames(mix$mix_rna), file=path , name ="mix_rna/genes"   )
+
+  if(length(colnames(mix$mix_rna) )){
+    h5write(colnames(mix$mix_rna), file=path , name ="mix_rna/samples" )
+  }
+  h5write(rownames(mix$mix_rna), file=path , name ="mix_rna/genes" )
 
   h5createGroup(path, "mix_met")
   h5write(mix$mix_met, file=path , name=paste0( "mix_met/data"  ))
-  h5write(colnames(mix$mix_met), file=path , name ="mix_met/samples"   )
+  if(length(colnames(mix$mix_met) ) ){
+    h5write(colnames(mix$mix_met), file=path , name ="mix_met/samples"   )
+  }
   h5write(rownames(mix$mix_met), file=path , name ="mix_met/CpG_sites"   )
 
   return(NULL)
@@ -84,12 +89,17 @@ write_mix_hdf5 <- function(path, mix) {
 read_mix_hdf5 <- function(path) {
   # Read ref_bulkRNA data
   mix_rna <- h5read(path, "mix_rna/data")
-  colnames(mix_rna) <- h5read(path, "mix_rna/samples")
+  file_structure <- h5dump(path,load=FALSE)
+  if(!is.null(file_structure$mix_rna$samples)){
+    colnames(mix_rna) <- h5read(path, "mix_rna/samples")
+  }
   rownames(mix_rna) <- h5read(path, "mix_rna/genes")
 
   # Read ref_met data
   mix_met <- h5read(path, "mix_met/data")
-  colnames(mix_met) <- h5read(path, "mix_met/samples")
+  if(!is.null(file_structure$mix_met$samples)){
+    colnames(mix_met) <- h5read(path, "mix_met/samples")
+  }
   rownames(mix_met) <- h5read(path, "mix_met/CpG_sites")
 
   mix <- list(
@@ -183,18 +193,21 @@ write_global_hdf5 <- function(path, data_list) {
 
     # Write the data, column names, and row names to the HDF5 file
     h5write(data_list[[name]], file = path, name = paste0(name, "/data"))
-    h5write(colnames(data_list[[name]]), file = path, name = paste0(name, "/samples"))
+    if(length(colnames(data_list[[name]]))){
+      h5write(colnames(data_list[[name]]), file = path, name = paste0(name, "/samples"))
+    }
     h5write(rownames(data_list[[name]]), file = path, name = paste0(name, "/genes"))
   }
 }
 
 read_hdf5 <- function(path) {
   # Initialize a list to store the data
-  file_structure <- h5ls(path,recursive=FALSE)
+  # file_structure <- h5ls(path,recursive=FALSE)
+  file_structure <- h5dump(path,load=FALSE)
 
   # Extract unique group names (assuming groups end with "/data")
   # group_names <- unique(sub("/data$", "", grep("/data$", file_structure$name, value = TRUE)))
-  group_names= file_structure$name
+  group_names= names(file_structure)
 
   # Initialize a list to store the data
   data_list <- list()
@@ -203,15 +216,16 @@ read_hdf5 <- function(path) {
   for (name in group_names) {
     # Read the data, column names, and row names from the HDF5 file
     data <- h5read(file = path, name = paste0("/",name, "/data"))
-    samples <- h5read(file = path, name = paste0("/",name, "/samples"))
+    
+    if(!is.null(file_structure[[name]]$samples)){
+      samples <- h5read(file = path, name = paste0("/",name, "/samples"))
+      colnames(data) <- samples
+    }
     genes <- h5read(file = path, name = paste0("/",name, "/genes"))
-
-    # Assign column names and row names to the data
-    colnames(data) <- samples
     rownames(data) <- genes
 
-    # Store the data in the list with the group name
     data_list[[name]] <- data
+    # Store the data in the list with the group name
   }
 
   return(data_list)

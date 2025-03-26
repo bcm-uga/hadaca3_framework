@@ -1,20 +1,20 @@
 invitro : 
   short_name : VITR
-  path : data/mixe1_invitro_pdac.h5
+  path : data/mixes1_invitro_pdac.h5
 
 invivo : 
   short_name : VIVO
-  path : data/mixe1_invivo_pdac.h5
+  path : data/mixes1_invivo_pdac.h5
 
 insilicopseudobulk : 
   short_name : SBN5
-  path : data/mixe1_insilicopseudobulk_pdac.h5
+  path : data/mixes1_insilicopseudobulk_pdac.h5
 
 insilicodirichletEMFA : 
   short_name : SDE5
-  path : data/mixe1_insilicodirichletEMFA_pdac.h5
+  path : data/mixes1_insilicodirichletEMFA_pdac.h5
 
 
 insilicodirichletCopule : 
   short_name : SDC5
-  path : data/mixe1_insilicodirichletCopule_pdac.h5 
+  path : data/mixes1_insilicodirichletCopule_pdac.h5 
