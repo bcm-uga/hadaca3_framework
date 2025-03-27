@@ -6,7 +6,7 @@ A framework to collectively develop multi-omic deconvolution methods.
 
 The framework contains several blocks
 
-- **pre-processing**
+- **preprocessing**
 - **feature_selection**
 - **split**
 - **deconvolution**
