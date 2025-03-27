@@ -36,8 +36,12 @@ The section describes which data are needed to execute the entire pipeline and p
 
 ```
 mkdir data
-# TODO: explicit here exhausivemly needed files
-rsync -auvP dahu.ciment:/bettik/hombergn/dattashare/data/* ./data/.  
+
+# TODO (everyone who need to add data in the pipeline): explicit here exhausivemly needed files
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/... data/.
+
+# TODO (Florent)
+wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
 ```
 
 ## Execute the pipeline: 
