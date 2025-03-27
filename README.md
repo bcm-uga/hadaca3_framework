@@ -30,8 +30,10 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
-## Retrieve data. 
-Download data from: 
+## Getting otiginal data
+
+The section describes which data are needed to execute the entire pipeline and provide the code to download it.
+
 ```
 mkdir data
 # TODO: explicit here exhausivemly needed files
