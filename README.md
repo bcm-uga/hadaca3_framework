@@ -1,23 +1,26 @@
 # hadaca3_framework
 
+## Purpose
+
 A framework to collectively develop multi-omic deconvolution methods.
 
 The framework contains several blocks
 
-- **pre-processing** : 
-- **feature_selection** :
-- **split** : 
-- **deconvolution** :
-- **early_int** : 
-- **late_int** : 
-- **intermediate_int** : 
+- **pre-processing**
+- **feature_selection**
+- **split**
+- **deconvolution**
+- **early_int**
+- **late_int**
+- **intermediate_int**
 
 
 
 
-## Environnement
+## Conda environement
 
 Set up your conda environement as follow:
+
 ```
 conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
