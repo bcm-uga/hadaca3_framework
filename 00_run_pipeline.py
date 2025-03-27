@@ -4,7 +4,7 @@ import yaml
 ##import blocks and datasets from yml files
 DATASETS                 = yaml.safe_load(open("datasets.yml")) 
 REFERENCE                = ["data/ref.h5"]
-PRE_PROC                 = yaml.safe_load(open("pre-processing.yml")) 
+PRE_PROC                 = yaml.safe_load(open("preprocessing.yml")) 
 FEATURES_SELECTION       = yaml.safe_load(open("feature_selection.yml")) 
 EALRY_INTEGRATION        = yaml.safe_load(open("early_integration.yml")) 
 INTERMEDIATE_INTEGRATION = yaml.safe_load(open("intermediate_integration.yml")) 
@@ -93,7 +93,7 @@ rule all:
 # """
 
 
-rule pre_processing:
+rule preprocessing:
     threads: 1
     message: "-- Processing pre processing Block -- "
     input: 
@@ -106,7 +106,7 @@ rule pre_processing:
     # log: file = "logs/05_metaanalysis.Rout"
     shell:"""
 mkdir -p output/pre-processing/
-RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{params.script}';  source('02_Pre_process.R');"
+RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{params.script}';  source('02_preprocess.R');"
 echo $RCODE | Rscript -
 """
 
