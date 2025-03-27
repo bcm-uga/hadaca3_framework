@@ -27,7 +27,7 @@ def add_h5(list_files):
 
 #Create combinaison for pipeline A. 
 datasets_files = [f'{dsv['path']}' for dsv in DATASETS.values() ]
-pp_files = [f'output/pre-processing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
+pp_files = [f'output/preprocessing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
 fs_files = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  last_file in pp_files  
             for fs,fsv in FEATURES_SELECTION.items() if compare_input_output(get_blockv(last_file,PRE_PROC),fsv) ]
 
@@ -59,7 +59,7 @@ rule all:
         
 
         # expand("data/{dataset}.h5",dataset= DATASETS.keys()),
-        # expand("output/pre-processing/{dataset}_{pp}.h5",dataset= DATASETS.keys(),pp =PRE_PROC.keys()),
+        # expand("output/preprocessing/{dataset}_{pp}.h5",dataset= DATASETS.keys(),pp =PRE_PROC.keys()),
         # expand("output/feature_selection/{dataset}_{pp}_{fs}.h5",dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys()),
         
         # ##Pipeline A => split and decovo
@@ -100,12 +100,12 @@ rule preprocessing:
         mix = "data/mixes1_{dataset}_pdac.h5" ,
         reference = REFERENCE[0]
     output: 
-        "output/pre-processing/{dataset}_{pp}.h5"
+        "output/preprocessing/{dataset}_{pp}.h5"
     params:
       script = lambda wildcard: PRE_PROC[wildcard.pp]['path'].strip()  # get_script
     # log: file = "logs/05_metaanalysis.Rout"
     shell:"""
-mkdir -p output/pre-processing/
+mkdir -p output/preprocessing/
 RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{params.script}';  source('02_preprocess.R');"
 echo $RCODE | Rscript -
 """
@@ -115,7 +115,7 @@ rule features_selection:
     threads: 1
     message: "-- Processing features selections Block -- "
     input: 
-        "output/pre-processing/{dataset}_{pp}.h5"
+        "output/preprocessing/{dataset}_{pp}.h5"
     output: 
         "output/feature_selection/{dataset}_{pp}_{fs}.h5"
     params:
