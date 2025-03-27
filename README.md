@@ -1,5 +1,7 @@
 # hadaca3_framework
 
+## Purpose
+
 A framework to collectively develop multi-omic deconvolution methods.
 
 The framework contains several blocks
@@ -18,10 +20,10 @@ The framework contains several blocks
 
 
 
-
-## Environnement
+## Conda environement
 
 Set up your conda environement as follow:
+
 ```
 conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
@@ -32,8 +34,10 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
-## Retrieve data. 
-Download data from: 
+## Getting otiginal data
+
+The section describes which data are needed to execute the entire pipeline and provide the code to download it.
+
 ```
 mkdir data
 cd data
@@ -49,6 +53,8 @@ rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
 
+# TODO (Florent)
+wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
 ```
 
 Add all files. 
@@ -71,20 +77,20 @@ In this hadaca3_framework project, Python and R libraries are provided to read a
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
 
 ## Execute the pipeline: 
-To run the pipeline: 
-1. Set the envionnement with the code above
-2. Retrieve the data 
-3. Execute order 66 ! (`snakemake --cores 4 -s 00_run_pipeline.py -p`)
+
+
+Execute order 66! 
 
 
 ```
-mkdir 00_demo_data
-#then copy in it starting_kit_phase2-3/data
+snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
 ```
 
-
-
-
+This pipeline can be visualised by generating its DAG:
+```
+snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
+```
 
 ### TODO 
 
