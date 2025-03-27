@@ -45,22 +45,23 @@ wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/da
 ```
 
 ## Execute the pipeline: 
-To run the pipeline: 
-1. Set the envionnement with the code above
-2. Retrieve the data 
-3. Execute order 66 ! (`snakemake --cores 4 -s 00_run_pipeline.py -p`)
 
+Execute order 66 ! 
 
 ```
-mkdir 00_demo_data
-#then copy in it starting_kit_phase2-3/data
+snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
+```
+
+This pipeline can be visualised by generating its DAG:
+
+```
+snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 ```
 
 
 
-
-
-### TODO 
+## TODO 
 
 * Set a file format to use : 
   * feather ? 
