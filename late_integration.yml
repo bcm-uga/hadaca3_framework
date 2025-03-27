@@ -1,4 +1,4 @@
 
-avg :  #must be a unique ID
+liavg :  #must be a unique ID
   path: late_integration/avg.R
   short_name: avg

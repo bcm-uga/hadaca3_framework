@@ -26,7 +26,7 @@ def add_h5(list_files):
 
 
 #Create combinaison for pipeline A. 
-datasets_files = [f'{dsv['path']}' for dsv in DATASETS.values() ]
+datasets_files = [ f'{dsv['path']}' for dsv in DATASETS.values() ]
 pp_files = [f'output/pre-processing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
 fs_files = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  last_file in pp_files  
             for fs,fsv in FEATURES_SELECTION.items() if compare_input_output(get_blockv(last_file,PRE_PROC),fsv) ]
