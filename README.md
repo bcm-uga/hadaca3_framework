@@ -46,7 +46,9 @@ wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/da
 
 ## Execute the pipeline: 
 
-Execute order 66 ! 
+
+Execute order 66! 
+
 
 ```
 snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
@@ -58,6 +60,3 @@ This pipeline can be visualised by generating its DAG:
 ```
 snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 ```
-
-
-
