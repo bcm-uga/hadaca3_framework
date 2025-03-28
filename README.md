@@ -6,7 +6,7 @@ A framework to collectively develop multi-omic deconvolution methods.
 
 The framework contains several blocks
 
-- **pre-processing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling.
+- **pre-processing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input a 
   
 - **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) from the dataset to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features.
   
@@ -14,10 +14,11 @@ The framework contains several blocks
 
 - **deconvolution** : This block contain the algorithm that deconvoluate, such as lm, rlr, nnls...
 
-- **early_int** : 
-- **late_int** : 
-- **intermediate_int** : 
-
+- **early_int** : This block involves combining multiple omics data types (e.g., RNA, MET) into a unified dataset before applying the deconvolution method. It is part of pipeline B. 
+  
+- **late_int** : This block focuses on integrating the results from multiple omics analyses into a single, cohesive prediction. It is part of pipeline A. 
+  
+- **intermediate_int** :  This block combines both integration and deconvolution processes from multiple omics data types. It is part of pipeline C.
 
 
 ## Conda environement
@@ -57,8 +58,6 @@ rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 
 wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
 ```
 
-Add all files. 
-
 
 ### HDF5 format. 
 
@@ -94,10 +93,7 @@ snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 
 ### TODO 
 
-* improve handling of hdf5 files to not rewrite unmodified data and 
-
+* improve handling of hdf5 files to not rewrite unmodified data
 * Remove completely  large files in .git 
-
 * Implemente scoring + metanalysis qui visualise une table des pipele (knitter table  => ktable). 
-
 * add script and input in snakemake rule ! 
