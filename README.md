@@ -2,7 +2,13 @@
 
 A framework to collectively develop multi-omic deconvolution methods.
 
+## Who to start?
 
+```
+cd ~/projects
+git clone git@github.com:bcm-uga/hadaca3_framework.git
+cd hadaca3_framework
+```
 ## Conda environement
 
 Set up your conda environement as follow:
