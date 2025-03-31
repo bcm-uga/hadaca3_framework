@@ -1,24 +1,6 @@
 # hadaca3_framework
 
-## Purpose
-
 A framework to collectively develop multi-omic deconvolution methods.
-
-The framework contains several blocks
-
-- **pre-processing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input a 
-  
-- **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) from the dataset to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features.
-  
-- **split** : This block only split multiomics (metylation and RNA) data to only metylation and only RNA.  
-
-- **deconvolution** : This block contain the algorithm that deconvoluate, such as lm, rlr, nnls...
-
-- **early_int** : This block involves combining multiple omics data types (e.g., RNA, MET) into a unified dataset before applying the deconvolution method. It is part of pipeline B. 
-  
-- **late_int** : This block focuses on integrating the results from multiple omics analyses into a single, cohesive prediction. It is part of pipeline A. 
-  
-- **intermediate_int** :  This block combines both integration and deconvolution processes from multiple omics data types. It is part of pipeline C.
 
 
 ## Conda environement
@@ -57,6 +39,61 @@ rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 
 # TODO (Florent)
 wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
 ```
+
+## Blocks description. 
+
+
+This framework contains several blocks
+
+- **pre-processing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input multi_data and return multi-data (see below for details).
+  
+- **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) from the dataset to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features. This block takes as input multi_data and return multi-data (see below for details).
+  
+- **deconvolution** : This block contain the algorithm that deconvoluate, such as lm, rlr, nnls...  This block takes as input uni-data and return a prediction (see below for details).
+  
+- **split** : This block only split multiomics (metylation and RNA) data to only metylation and only RNA.  This block takes as input multi_data and return sort of uni-data (see below for details).
+
+- **early_int** : This block involves combining multiple omics data types (e.g., RNA, MET) into a unified dataset before applying the deconvolution method. It is part of pipeline B. This block takes as input multi_data and return uni-data (see below for details).
+  
+- **late_int** : This block focuses on integrating the results from multiple omics analyses into a single, cohesive prediction. It is part of pipeline A. This block takes as input a list of several(2) predictions and return one prediction (see below for details).
+  
+- **intermediate_int** :  This block combines both integration and deconvolution processes from multiple omics data types. It is part of pipeline C. This block takes as input multi_data and return a prediction (see below for details).
+
+
+## Data types : 
+The input and output of each block  
+We have two types of data : 
+ * Multi_data :  This format contains several mulli-omics such as metylation mixes and rna mix. This data organisation looks like this : 
+```
+multi_data
+├── mix
+│   ├── mix_rna
+│   └── mix_met
+└── ref
+    ├── ref_bulkRNA
+    ├── ref_met
+    └── ref_scRNA
+        ├── ref_sc_peng
+        ├── ref_sc_baron
+        └── ref_sc_raghavan
+```
+ * Uni-data : contains only one type of omics. 
+```
+uni_data
+├── mix
+└── ref
+    ├── ref_bulkRNA
+    ├── ref_met
+    └── ref_scRNA
+        ├── ref_sc_peng
+        ├── ref_sc_baron
+        └── ref_sc_raghavan
+```
+* prediction : contains only the prediction table. 
+
+## Snakemake shenanigan. 
+
+
 
 
 ### HDF5 format. 

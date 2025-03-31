@@ -120,7 +120,7 @@ rule prediction_deconvolution_rna:
     threads: 1
     message: "-- Processing splitted rna deconvolution Block, Pipeline A -- "
     input: 
-       split_wrapper = "pipeline_A_split.R" ,
+       split_wrapper = "04_pipeline_A_split.R" ,
        script_de = lambda wildcard: DECONVOLUTION[wildcard.de]['path'].strip(), 
        script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(),
        file_input= "output/feature_selection/{dataset}_{pp}_{fs}.h5"
@@ -137,7 +137,7 @@ rule prediction_deconvolution_met:
     threads: 1
     message: "-- Processing splitted met deconvolution Block, Pipeline A -- "
     input: 
-        split_wrapper = "pipeline_A_split.R" , 
+        split_wrapper = "04_pipeline_A_split.R" , 
         script_de = lambda wildcard: DECONVOLUTION[wildcard.de]['path'].strip(),
         script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(), 
         file_input= "output/feature_selection/{dataset}_{pp}_{fs}.h5"
@@ -157,7 +157,7 @@ rule late_integration:
     threads: 1
     message: "-- Processing splitted deconvolution late ingration Block, Pipeline A -- "
     input: 
-        merge_wrapper = 'pipeline_A_merge.R',
+        merge_wrapper = '04_pipeline_A_merge.R',
         script_li = lambda wildcard: LATE_INTEGRATION[wildcard.li]['path'].strip(), 
         input_file_rna= "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}.h5",
         input_file_met = "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_met-{de2}.h5"
