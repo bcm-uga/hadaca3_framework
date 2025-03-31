@@ -22,6 +22,7 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
 ```
+cd ~/projects/hadaca3_framework/
 mkdir data
 cd data
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
