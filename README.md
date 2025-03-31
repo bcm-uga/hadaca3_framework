@@ -42,7 +42,7 @@ The section describes which data are needed to execute the entire pipeline and p
 ```
 mkdir data
 cd data
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ groundtruth1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
 rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
@@ -78,7 +78,7 @@ All data should have HDF5 format with a compression level set to 6 and 'gzip' as
 ## Execute the pipeline: 
 
 
-Execute order 66! 
+Run the pipeline. 
 
 
 ```
@@ -93,7 +93,9 @@ snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 
 ### TODO 
 
+* Implement scoring + metanalysis qui visualise une table des pipele (knitter table  => ktable). 
+
+
+* Add script and input in snakemake rule !
+
 * improve handling of hdf5 files to not rewrite unmodified data
-* Remove completely  large files in .git 
-* Implemente scoring + metanalysis qui visualise une table des pipele (knitter table  => ktable). 
-* add script and input in snakemake rule ! 

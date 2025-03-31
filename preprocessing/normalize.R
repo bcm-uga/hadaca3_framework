@@ -1,7 +1,8 @@
-program_block_PP <- function(mix = NULL, ref = NULL, 
-                    ...) {
-  # source("scr/teamF_Source_prior_known_features.R")                   
-   # Normalize input matrices
+program_block_PP <- function(multi_data) {
+  
+  
+  
+  # Normalize input matrices
   #' Normalize a Matrix by Column Sums
   #'
   #' @param mat A numeric matrix where rows represent features and columns represent 
@@ -14,13 +15,10 @@ program_block_PP <- function(mix = NULL, ref = NULL,
     mat = sweep(mat, 2, colSums(mat), "/")
     return(mat)
   }
-    ref$ref_bulkRNA = normalize_matrix(ref$ref_bulkRNA)
-    ref$ref_met = normalize_matrix(ref$ref_met)
+    multi_data$ref$ref_bulkRNA = normalize_matrix(multi_data$ref$ref_bulkRNA)
+    multi_data$ref$ref_met = normalize_matrix(multi_data$ref$ref_met)
 
 
-  
- multi_data = list(mix = mix,
-             ref = ref)
-  
+
   return(multi_data) 
 }
