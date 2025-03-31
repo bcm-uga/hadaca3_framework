@@ -93,6 +93,7 @@ uni_data
 
 ## Snakemake shenanigan. 
 
+The snakeme make will create combinaison between compatible functions inside each block. 
 
 
 
