@@ -57,6 +57,18 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_invivo_pdac.h5
 wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/ref.h5
 ```
+## Execute the pipeline: 
+
+```
+cd ~/projects/hadaca3_framework
+snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
+```
+
+This pipeline can be visualised by generating its DAG:
+```
+snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
+```
 
 ## Blocks description
 
@@ -131,21 +143,6 @@ In this hadaca3_framework project, Python and R libraries are provided to read a
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
 
-## Execute the pipeline: 
-
-
-Run the pipeline. 
-
-
-```
-snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
-```
-
-This pipeline can be visualised by generating its DAG:
-```
-snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
-```
 
 ### TODO 
 
