@@ -22,23 +22,34 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
 ```
-cd ~/projects/hadaca3_framework/
-mkdir data
-cd data
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
+mkdir -p ~/projects/hadaca3_framework/data
+cd ~/projects/hadaca3_framework/data
 
-# TODO (Florent)
-wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
+# from CIMENT/GRICAD cluster using rsync and cargo node
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
+
+# from internet using wget
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_invitro_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_invivo_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_invitro_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_invivo_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/ref.h5
 ```
 
 ## Blocks description. 
