@@ -2,7 +2,13 @@
 
 A framework to collectively develop multi-omic deconvolution methods.
 
+## Who to start?
 
+```
+cd ~/projects
+git clone git@github.com:bcm-uga/hadaca3_framework.git
+cd hadaca3_framework
+```
 ## Conda environement
 
 Set up your conda environement as follow:
@@ -22,30 +28,54 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
 ```
-mkdir data
-cd data
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
-rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
+mkdir -p ~/projects/hadaca3_framework/data
+cd ~/projects/hadaca3_framework/data
 
-# TODO (Florent)
-wget https://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/...
+# from CIMENT/GRICAD cluster using rsync and cargo node
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
+rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
+
+# from internet using wget
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_invitro_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_invivo_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_invitro_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes1_invivo_pdac.h5
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/ref.h5
+```
+## Execute the pipeline: 
+
+```
+cd ~/projects/hadaca3_framework
+snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
 ```
 
-## Blocks description. 
+This pipeline can be visualised by generating its DAG:
+```
+snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
+```
+
+## Blocks description
 
 
 This framework contains several blocks
 
-- **pre-processing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input multi_data and return multi-data (see below for details).
+- **preprocessing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input multi_data and return multi-data (see below for details).
   
 - **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) from the dataset to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features. This block takes as input multi_data and return multi-data (see below for details).
   
@@ -112,22 +142,6 @@ You can install it with :
 In this hadaca3_framework project, Python and R libraries are provided to read and write data. There named *data_processing* and are located in the *utils* folder.  
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
-
-## Execute the pipeline: 
-
-
-Run the pipeline. 
-
-
-```
-snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
-```
-
-This pipeline can be visualised by generating its DAG:
-```
-snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
-```
 
 ### TODO 
 
