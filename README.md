@@ -1,4 +1,4 @@
-# hadaca3_framework
+# Hadaca3 Framework
 
 A framework to collectively develop multi-omic deconvolution methods.
 
