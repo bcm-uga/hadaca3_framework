@@ -5,7 +5,10 @@
 .snakemake/*
 .snakemake/metadata/
 
+logs/*
+
 data/*
 __pycache__/*
 tmp*
 old_datasets/*
+dag.pdf

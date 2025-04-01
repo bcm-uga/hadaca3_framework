@@ -1,7 +1,8 @@
+source("utils/data_processing.R")
 
-if (!exists("groundtruth_file")) {groundtruth_file = "01_groundtruth/groundtruth1_insilicodirichletEMFA_pdac.rds"} 
-if (!exists("prediction_file"))  {prediction_file = "02_prediction/prediction1_nnls_insilicodirichletEMFA_pdac.rds"}   
-if (!exists("score_file"))     {score_file = "03_prediction/score1_nnls_insilicodirichletEMFA_pdac.rds"}   
+# if (!exists("groundtruth_file")) {groundtruth_file = "01_groundtruth/groundtruth1_insilicodirichletEMFA_pdac.rds"} 
+# if (!exists("prediction_file"))  {prediction_file = "02_prediction/prediction1_nnls_insilicodirichletEMFA_pdac.rds"}   
+# if (!exists("score_file"))     {score_file = "03_prediction/score1_nnls_insilicodirichletEMFA_pdac.rds"}   
 
 # Scoring functions - generate the worst RMSE/MAE possible to normalize metrics
 
@@ -349,8 +350,9 @@ scoring_function <- function(A_real, A_pred) {
 
 # Run Scoring
 
-prediction = readRDS(paste0(prediction_file))$prediction
-ground_truth = readRDS(paste0(groundtruth_file))
+
+prediction = read_hdf5(paste0(prediction_file))$pred
+ground_truth = read_hdf5(paste0(groundtruth_file))$groundtruth
 
 A_real = as.matrix(ground_truth)
 A_pred = as.matrix(prediction)
@@ -361,5 +363,5 @@ names(scores) = names(scores_full)
 
 
 
-saveRDS(scores, paste0(score_file))
+write_global_hdf5(paste0(score_file),scores)
 

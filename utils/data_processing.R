@@ -196,7 +196,9 @@ write_global_hdf5 <- function(path, data_list) {
     if(length(colnames(data_list[[name]]))){
       h5write(colnames(data_list[[name]]), file = path, name = paste0(name, "/samples"))
     }
-    h5write(rownames(data_list[[name]]), file = path, name = paste0(name, "/genes"))
+    if(length(rownames(data_list[[name]]))){
+      h5write(rownames(data_list[[name]]), file = path, name = paste0(name, "/genes"))
+    }
   }
 }
 
@@ -221,8 +223,10 @@ read_hdf5 <- function(path) {
       samples <- h5read(file = path, name = paste0("/",name, "/samples"))
       colnames(data) <- samples
     }
-    genes <- h5read(file = path, name = paste0("/",name, "/genes"))
-    rownames(data) <- genes
+    if(!is.null(file_structure[[name]]$genes)){
+      genes <- h5read(file = path, name = paste0("/",name, "/genes"))
+      rownames(data) <- genes
+    }
 
     data_list[[name]] <- data
     # Store the data in the list with the group name
