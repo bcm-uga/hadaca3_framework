@@ -61,13 +61,13 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 
 ```
 cd ~/projects/hadaca3_framework
-snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
+snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
 ```
 
 This pipeline can be visualised by generating its DAG:
 ```
-snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
+snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 ```
 
 ## Blocks description
