@@ -112,42 +112,50 @@ read_mix_hdf5 <- function(path) {
 # mix_h5 = read_mix_hdf5("data/mix_test.h5")
 
 
-read_all_ref_hdf5 <- function(path) {
+read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA')) {
   # Read ref_bulkRNA data
-  ref_bulkRNA <- h5read(path, "ref_bulkRNA/data")
-  colnames(ref_bulkRNA) <- h5read(path, "ref_bulkRNA/cell_types")
-  rownames(ref_bulkRNA) <- h5read(path, "ref_bulkRNA/genes")
+  ref_bulkRNA = list()
+  if('ref_bulkRNA' %in% to_read){
+    ref_bulkRNA <- h5read(path, "ref_bulkRNA/data")
+    colnames(ref_bulkRNA) <- h5read(path, "ref_bulkRNA/cell_types")
+    rownames(ref_bulkRNA) <- h5read(path, "ref_bulkRNA/genes")
+  }
+    
 
   # Read ref_met data
-  ref_met <- h5read(path, "ref_met/data")
-  colnames(ref_met) <- h5read(path, "ref_met/cell_types")
-  rownames(ref_met) <- h5read(path, "ref_met/CpG_sites")
+  ref_met = list()
+  if('ref_bulkRNA' %in% to_read){
+    ref_met <- h5read(path, "ref_met/data")
+    colnames(ref_met) <- h5read(path, "ref_met/cell_types")
+    rownames(ref_met) <- h5read(path, "ref_met/CpG_sites")
+  }
 
   # Read ref_scRNA data
   ref_scRNA <- list()
-  datasets <- c("ref_sc_peng", "ref_sc_baron", "ref_sc_raghavan")
-  for (dataset in datasets) {
-    group <- paste0('ref_scRNA/', dataset)
+  if('ref_scRNA' %in% to_read){
+    datasets <- c("ref_sc_peng", "ref_sc_baron", "ref_sc_raghavan")
+    for (dataset in datasets) {
+      group <- paste0('ref_scRNA/', dataset)
 
-    counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
-    counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
-    counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
-    counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
+      counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
+      counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
+      counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
+      counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
 
-    cells = h5read(path, paste0(group, "/cell"))
-    counts <- new("dgCMatrix",
-                  x = counts_data,
-                  i = counts_indices,
-                  p = counts_indptr,
-                  Dim = counts_shape,
-                  Dimnames = list(
-                    h5read(path, paste0(group, "/genes")),
-                    cells
-                  ))
+      cells = h5read(path, paste0(group, "/cell"))
+      counts <- new("dgCMatrix",
+                    x = counts_data,
+                    i = counts_indices,
+                    p = counts_indptr,
+                    Dim = counts_shape,
+                    Dimnames = list(
+                      h5read(path, paste0(group, "/genes")),
+                      cells
+                    ))
 
-    meta <- h5read(path, paste0(group, "/meta"))
-    rownames(meta) = cells
-
+      meta <- h5read(path, paste0(group, "/meta"))
+      rownames(meta) = cells
+    }
     ref_scRNA[[dataset]] <- list(
       counts = counts,
       metadata = meta
@@ -164,10 +172,16 @@ read_all_ref_hdf5 <- function(path) {
   return(ref_all)
 }
 
-read_all_hdf5 <- function(path) {
-  mix = read_mix_hdf5(path)
-  ref = read_all_ref_hdf5(path)
+read_all_hdf5 <- function(path,to_read=c('mix','ref')) {
   
+  mix =list()
+  if('mix' %in% to_read ){
+    mix = read_mix_hdf5(path)
+  }
+  ref= list()
+  if('ref' %in% to_read ){
+    ref = read_all_ref_hdf5(path)
+  }
   return (list(
     mix = mix, 
     ref = ref
