@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run a script
-        run: echo "Running on self-hosted runner"
+        run: cat 02_ppreprocess.R
 
 # name: CI Pipeline
 
