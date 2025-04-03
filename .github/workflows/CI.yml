@@ -10,6 +10,14 @@ jobs:
   CI_Pipeline:
     runs-on: self-hosted
 
+    env:
+      CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
+      CONDA_ENV_NAME: "hadaca3framework_env"
+      # REPO_DIR: "/home/runner/work/your-repo/your-repo"  # Adjust this to your repo path
+      SNK_CORES: "4"
+      MEM_MB: "16000"
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -44,11 +52,7 @@ jobs:
 
 # name: 
 
-#     env:
-#       CONDA_ENV_NAME: "hadaca3framework_env"
-#       REPO_DIR: "/home/runner/work/your-repo/your-repo"  # Adjust this to your repo path
-#       SNK_CORES: "4"
-#       MEM_MB: "16000"
+
 
 #     steps:
 #       - name: Checkout repository
