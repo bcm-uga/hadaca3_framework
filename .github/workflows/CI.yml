@@ -7,22 +7,42 @@ on:
 #     - cron: '0 0 * * *'  # Adjust this to your schedule if needed
 
 jobs:
-  example-job:
+  CI_Pipeline:
     runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: ${{ env.CONDA_ENV_NAME }}
+          auto-activate-base: false
+      - name: Create Conda environment
+        run: |
+          conda create -y -n ${{ env.CONDA_ENV_NAME }}
 
-      - name: Run a script
-        run: cat 02_preprocess.R
+      - name: Activate Conda environment
+        run: |
+          conda activate ${{ env.CONDA_ENV_NAME }}
 
-# name: CI Pipeline
+      # - name: Fetch all branches
+      #   run: |
+      #     git fetch --all
+      #     git reset --hard ${{ github.sha }}
+
+      - name: Execute commands from README
+        run: |
+          awk '/```/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
+            [[ "\$line" =~ ^# ]] && continue
+            [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
+            echo "Executing: \$line"
+            $line
+          done
 
 
-# jobs:
-#   run_ci:
-#     runs-on: ubuntu-latest
+# name: 
 
 #     env:
 #       CONDA_ENV_NAME: "hadaca3framework_env"
