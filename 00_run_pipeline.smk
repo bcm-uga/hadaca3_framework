@@ -166,15 +166,19 @@ rule late_integration:
         merge_wrapper = '04_pipeline_A_merge.R',
         script_li = lambda wildcard: LATE_INTEGRATION[wildcard.li]['path'].strip(), 
         input_file_rna= "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}.h5",
-        input_file_met = "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_met-{de2}.h5"
+        input_file_met = "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_met-{de2}.h5", 
     output: 
         "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"      
-    log : 
-        "logs/04_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"                
+    log: 
+        "logs/04_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"     
+    params: 
+        last_dataset = "output/feature_selection/{dataset}_{pp}_{fs}.h5" ,
+        priorknowledge  =  lambda wildcard: LATE_INTEGRATION[wildcard.li]['input'],      
     shell:"""
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
-output_file='{output}'; script_file='{input.script_li}'; source('{input.merge_wrapper}');"
+output_file='{output}'; script_file='{input.script_li}';  input_needed='{params.priorknowledge}' ; 
+last_dataset='{params.last_dataset}'  ; source('{input.merge_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 
