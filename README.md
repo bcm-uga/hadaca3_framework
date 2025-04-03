@@ -2,7 +2,7 @@
 
 A framework to collectively develop multi-omic deconvolution methods.
 
-## Who to start?
+## How to start?
 
 ```
 cd ~/projects
@@ -17,7 +17,7 @@ Set up your conda environement as follow:
 conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-base.conda
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-base.conda  r-quadprog
 ```
 <!-- h5py -->
 
@@ -121,13 +121,13 @@ uni_data
 ```
 * prediction : contains only the prediction table. 
 
-## Snakemake shenanigan. 
+## Snakemake shenanigan.
 
 The snakeme make will create combinaison between compatible functions inside each block. 
 
 
 
-### HDF5 format. 
+## HDF5 format.
 
 Hierarchical Data Format (HDF) is a set of file formats (HDF4, HDF5) designed to store and organise large amounts of data. 
 
@@ -143,11 +143,6 @@ In this hadaca3_framework project, Python and R libraries are provided to read a
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
 
-### TODO 
-
-* Implement scoring + metanalysis qui visualise une table des pipele (knitter table  => ktable). 
-
-
-* Add script and input in snakemake rule !
+## TODO
 
 * improve handling of hdf5 files to not rewrite unmodified data
