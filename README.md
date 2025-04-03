@@ -17,9 +17,11 @@ Set up your conda environement as follow:
 conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-base.conda  r-quadprog
+
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog
+
 ```
-<!-- h5py -->
+<!-- h5py r-base.conda  -->
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
@@ -61,13 +63,13 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 
 ```
 cd ~/projects/hadaca3_framework
-snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
+snakemake --cores 1 -s 00_run_pipeline.py -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.py -pn       # dry-run
 ```
 
 This pipeline can be visualised by generating its DAG:
 ```
-snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
+snakemake --forceall --dag -s 00_run_pipeline.py | dot -Tpdf > dag.pdf
 ```
 
 ## Blocks description
