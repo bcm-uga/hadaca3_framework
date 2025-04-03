@@ -1,26 +1,21 @@
 
 limean :  #must be a unique ID without "_" ! 
   path: late_integration/avg.R
-  input : 
   short_name: avg
 
 # limeanRMSE :  #must be a unique ID  without "_" !
-#   input : [mix]
+#[mix]
 #   path: late_integration/mean_rmse.R
 #   short_name: MRMS
 
-
 liCtSens :  #must be a unique ID  without "_" !
   path: late_integration/CTS_ens.R
-  input : 
   short_name: CTSe
 
 TunedH :  #must be a unique ID  without "_" !
   path: late_integration/TunedH.R
-  input : 
   short_name: TunH
 
 TunedJ :  #must be a unique ID  without "_" !
-  path: late_integration/TunedJ.R
-  input :  
+  path: late_integration/TunedJ.R 
   short_name: TunJ

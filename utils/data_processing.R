@@ -9,7 +9,6 @@ write_all_ref_hdf5 <- function(path, ref_all) {
   # assert( all(colnames(ref_peng$counts)== rownames(ref_peng$metadata)))
   h5createFile(path)
 
-
   h5createGroup(path, "ref_bulkRNA")
   h5write(ref_all$ref_bulkRNA, file=path , name=paste0( "ref_bulkRNA/data"  ))
   h5write(colnames(ref_all$ref_bulkRNA), file=path , name ="ref_bulkRNA/cell_types"   )
@@ -58,7 +57,6 @@ write_all_ref_hdf5 <- function(path, ref_all) {
 
 # file = 'sparse_matrix_R2.h5'
 
-# write_all_ref_hdf5(file,ref)
 write_mix_hdf5 <- function(path, mix) {
   # assert( all(colnames(ref_peng$counts)== rownames(ref_peng$metadata)))
   
@@ -110,8 +108,6 @@ read_mix_hdf5 <- function(path) {
 }
 
 # mix_h5 = read_mix_hdf5("data/mix_test.h5")
-
-
 read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA')) {
   # Read ref_bulkRNA data
   ref_bulkRNA = list()
@@ -124,7 +120,7 @@ read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA'
 
   # Read ref_met data
   ref_met = list()
-  if('ref_bulkRNA' %in% to_read){
+  if('ref_met' %in% to_read){
     ref_met <- h5read(path, "ref_met/data")
     colnames(ref_met) <- h5read(path, "ref_met/cell_types")
     rownames(ref_met) <- h5read(path, "ref_met/CpG_sites")
@@ -155,11 +151,11 @@ read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA'
 
       meta <- h5read(path, paste0(group, "/meta"))
       rownames(meta) = cells
+      ref_scRNA[[dataset]] <- list(
+        counts = counts,
+        metadata = meta
+      )
     }
-    ref_scRNA[[dataset]] <- list(
-      counts = counts,
-      metadata = meta
-    )
   }
 
   # Combine all data into a single list

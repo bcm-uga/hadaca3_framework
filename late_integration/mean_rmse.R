@@ -1,8 +1,12 @@
-program_block <- function(l_pred) { 
+# source("utils/data_processing.R") to if you want to use outside the wrapper "04_..."
+
+program_block_li <- function(l_pred) { 
+
 
   prop1 = l_pred$prop1
   prop2 = l_pred$prop2
-  mix = l_pred$mix
+  path_dataset = l_pred$last_dataset
+  mix = read_all_hdf5(path_dataset,('mix'))$mix$ mix_rna
 
   real = mix / colSums(mix)
   reconstructed = lapply(list(prop1, prop2), function(x)
@@ -20,3 +24,5 @@ program_block <- function(l_pred) {
 
   return(prop)
 }
+
+
