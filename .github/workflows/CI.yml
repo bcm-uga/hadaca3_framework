@@ -24,13 +24,14 @@ jobs:
       
       - name: Set up Miniconda
         run : source "${{ env.CONDA }}"
+        shell: bash
         # uses: conda-incubator/setup-miniconda@v2
         # with:
           # activate-environment: ${{ env.CONDA_ENV_NAME }}
           # auto-activate-base: false
-      - name: Create Conda environment
-        run: |
-          conda create -y -n ${{ env.CONDA_ENV_NAME }}
+      # - name: Create Conda environment
+      #   run: |
+      #     conda create -y -n ${{ env.CONDA_ENV_NAME }}
 
       # - name: Activate Conda environment
       #   run: |
@@ -49,6 +50,7 @@ jobs:
             echo $line
             $line
           done
+        shell: bash
 
 
 # name: 
