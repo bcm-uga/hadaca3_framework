@@ -74,13 +74,7 @@ jobs:
         if: failure()
         run: |
           echo "An error occurred. Checking log files for details..."
-          LOG_DIR=".snakemake/log"
-
-          # Check if the log directory exists
-          if [ ! -d "$LOG_DIR" ]; then
-            echo "Log directory not found!"
-            exit 1
-          fi
+          LOG_DIR=".snakemake/log/"
 
           # Find the latest log file
           LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
@@ -90,7 +84,7 @@ jobs:
             echo "No log files found in the directory."
             exit 1
           fi
-          ERROR_LOGS=$(grep -A 5 "Error in rule" "$SNAKEMAKE_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
+          ERROR_LOGS=$(grep -A 5 "Error in rule" "$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
 
           if [ -z "$ERROR_LOGS" ]; then
             echo "No error logs found in Snakemake log."
