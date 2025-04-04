@@ -90,7 +90,7 @@ jobs:
             echo "No log files found in the directory."
             exit 1
           fi
-          ERROR_LOGS=$(grep -A 5n "Error in rule" "$SNAKEMAKE_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
+          ERROR_LOGS=$(grep -A 5 "Error in rule" "$SNAKEMAKE_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
 
           if [ -z "$ERROR_LOGS" ]; then
             echo "No error logs found in Snakemake log."
