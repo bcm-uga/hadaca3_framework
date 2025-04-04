@@ -14,7 +14,7 @@ jobs:
       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
       CONDA_ENV_NAME: "hadaca3framework_env"
       # REPO_DIR: "/home/runner/work/your-repo/your-repo"  # Adjust this to your repo path
-      SNK_CORES: "4"
+      SNK_CORES: "2"
       MEM_MB: "16000"
 
 
@@ -84,8 +84,9 @@ jobs:
             echo "No log files found in the directory."
             exit 1
           fi
+          echo $LATEST_LOG
           ERROR_LOGS=$(grep -A 5 "Error in rule" "$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
-
+          echo $ERROR_LOGS
           if [ -z "$ERROR_LOGS" ]; then
             echo "No error logs found in Snakemake log."
             exit 0
