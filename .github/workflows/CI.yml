@@ -46,7 +46,7 @@ jobs:
           awk '/```{Automatic CI-conda}/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
             [[ "\$line" =~ ^# ]] && continue
             [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
-            echo "Executing: \$line"
+            echo $line
             $line
           done
 
