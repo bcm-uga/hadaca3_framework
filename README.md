@@ -29,7 +29,7 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
-```
+```{Automatic CI}
 mkdir -p ~/projects/hadaca3_framework/data
 cd ~/projects/hadaca3_framework/data
 
