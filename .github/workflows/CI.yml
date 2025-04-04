@@ -41,20 +41,35 @@ jobs:
       #   run: |
       #     git fetch --all
       #     git reset --hard ${{ github.sha }}
-
+      
       - name: Execute commands from README
         run: |
           source "${{ env.CONDA }}"
-          awk '/```{Automatic CI-conda}/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
-            [[ "\$line" =~ ^# ]] && continue
-            [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
-            echo $line
-            $line
+            awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
+            [[ "$line" =~ ^# ]] && continue
+            [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
+            echo "$line"
+            eval "$line"
           done
-        shell: bash
+      
+      # shell: bash
+      - name: download data
+        run: |
+          mkdir data
+          cd data
+          awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' README.md | while read -r line; do
+            echo "$line"
+            eval "$line"
+          done
 
-
-# name: 
+      - name: Run Snakemake
+        run: |
+          source "${{ env.CONDA }}" 
+          conda activate ${{ env.CONDA_ENV_NAME }}
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
+          snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+      
+      # name: 
 
 
 
@@ -90,10 +105,6 @@ jobs:
 #             $line
 #           done
 
-#       - name: Run Snakemake
-#         run: |
-#           snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
-#           snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
 
 #       - name: Prepare artifacts
 #         run: |
