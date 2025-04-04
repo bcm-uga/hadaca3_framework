@@ -13,7 +13,7 @@ cd hadaca3_framework
 
 Set up your conda environement as follow:
 
-```
+```{Automatic CI-conda}
 conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
@@ -29,7 +29,7 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
-```{Automatic CI}
+```{Automatic CI-data}
 mkdir -p ~/projects/hadaca3_framework/data
 cd ~/projects/hadaca3_framework/data
 
