@@ -22,9 +22,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
-      - name: Set up Miniconda
-        run : source "${{ env.CONDA }}"
-        shell: bash
+      # - name: Set up Miniconda
+      #   run : source "${{ env.CONDA }}"
+      #   shell: bash
         # uses: conda-incubator/setup-miniconda@v2
         # with:
           # activate-environment: ${{ env.CONDA_ENV_NAME }}
@@ -44,6 +44,7 @@ jobs:
 
       - name: Execute commands from README
         run: |
+          source "${{ env.CONDA }}"
           awk '/```{Automatic CI-conda}/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
             [[ "\$line" =~ ^# ]] && continue
             [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
