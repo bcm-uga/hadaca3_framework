@@ -70,6 +70,43 @@ jobs:
           snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
       
       # name: 
+      - name: Check for errors and read logs 
+        if: failure()
+        run: |
+          echo "An error occurred. Checking log files for details..."
+          LOG_DIR=".snakemake/log"
+
+          # Check if the log directory exists
+          if [ ! -d "$LOG_DIR" ]; then
+            echo "Log directory not found!"
+            exit 1
+          fi
+
+          # Find the latest log file
+          LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
+
+          # Check if a log file was found
+          if [ -z "$LATEST_LOG" ]; then
+            echo "No log files found in the directory."
+            exit 1
+          fi
+          ERROR_LOGS=$(grep -A 5n "Error in rule" "$SNAKEMAKE_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
+
+          if [ -z "$ERROR_LOGS" ]; then
+            echo "No error logs found in Snakemake log."
+            exit 0
+          fi
+
+          # Display the contents of the error logs
+          echo "Errors found in the following log files:"
+          for LOG_FILE in $ERROR_LOGS; do
+            echo "--- $LOG_FILE ---"
+            if [ -f "$LOG_FILE" ]; then
+              cat "$LOG_FILE"
+            else
+              echo "Log file not found: $LOG_FILE"
+            fi
+          done
 
 
 
