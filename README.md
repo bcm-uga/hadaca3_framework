@@ -121,7 +121,8 @@ uni_data
         ├── ref_sc_baron
         └── ref_sc_raghavan
 ```
-* prediction : contains only the prediction table. 
+prediction : contains only the prediction table. 
+
 
 ## Snakemake shenanigan.
 
@@ -141,9 +142,24 @@ https://support.hdfgroup.org/documentation/hdf5/latest/_view_tools_view.html
 You can install it with : 
 `sudo apt-get install hdf5-tools`
 
-In this hadaca3_framework project, Python and R libraries are provided to read and write data. There named *data_processing* and are located in the *utils* folder.  
+### How to read and write H5 files ?  
+
+In this hadaca3_framework project, Python and R libraries are provided to read and write data. 
+They are named *data_processing* and are located in the *utils* folder.  
+
+Useful functions: 
+- *read_all_hdf5(path_of_file,..)* returns the a multi_data (cd data types). The second **optionnal** argument is *to_read=c('mix','ref')* which precise which data will be read. By default, all data of multi_data are read. 
+
+- *write_all_hdf5(path,multi_data)* write to *path*, multi_data (cf data types). 
+
+- *read_hdf5(path)* returns a data_list. This function browse the file from the file on path and browse read all subfolder inside this path. For instance, if the file "exemple.h5" contains /prop1 and /prop2 *read_hdf5(path)* return a list(prop1, prop2).
+
+- *write_global_hdf5(path,data_list)* this function write all sub-data inside the data_list. 
+For instance, data_list contain prop1 and prop2, *write_global_hdf5(file,data_list)* will wrote both prop into the file. 
+
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
+
 
 ## TODO
 

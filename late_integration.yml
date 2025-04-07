@@ -4,7 +4,6 @@ limean :  #must be a unique ID without "_" !
   short_name: avg
 
 # limeanRMSE :  #must be a unique ID  without "_" !
-#[mix]
 #   path: late_integration/mean_rmse.R
 #   short_name: MRMS
 
