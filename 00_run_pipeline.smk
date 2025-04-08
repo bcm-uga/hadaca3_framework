@@ -3,7 +3,8 @@ import yaml
 
 ##import blocks and datasets from yml files
 DATASETS                 = yaml.safe_load(open("datasets.yml")) 
-REFERENCE                = ["data/ref.h5"]
+REFERENCE                = ["data/ref.h5"] 
+CLEANER                  =  "global_cleaning/clean_matrix.R" 
 PRE_PROC                 = yaml.safe_load(open("preprocessing.yml")) 
 FEATURES_SELECTION       = yaml.safe_load(open("feature_selection.yml")) 
 EARLY_INTEGRATION        = yaml.safe_load(open("early_integration.yml")) 
@@ -14,8 +15,8 @@ SPLIT                    = yaml.safe_load(open("split.yml"))
 
 
 def compare_input_output(dic_out,dic_in):
-    return (set(dic_out['output']) == set(dic_in['input']) or 'ANY' in dic_in['input'] or ('ANY' in dic_out['output']))
-
+    # return (set(dic_out['output']) == set(dic_in['input']) or 'ANY' in dic_in['input'] or ('ANY' in dic_out['output']))
+    return (bool(set(dic_out['output']) & set(dic_in['input'])) or 'ANY' in dic_in['input'] or ('ANY' in dic_out['output']))
 
 def get_blockv(file, dic_block):
     last_fun = file.split('_')[-1]
@@ -25,10 +26,23 @@ def add_h5(list_files):
     return (list(map( (lambda x : x+'.h5'), list_files)))
 
 
-datasets_files = [f'{dsv['path']}' for dsv in DATASETS.values() ]
+original_datasets_files = [f'{dsv['path']}' for dsv in DATASETS.values() ]
+
+cleaned_datasets_files = [f'output/mixes/{dataset}' for dataset in DATASETS.keys() ]
+cleaned_REFERENCE = [f'output/ref/{ref.split('/')[-1]}' for ref in REFERENCE ]
+
 pp_files = [f'output/preprocessing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
+# pp_files_met = [f'output/preprocessing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
+# pp_files_scrna = [f'output/preprocessing/{dataset}_{pp}' for dataset in DATASETS.keys() for pp in PRE_PROC.keys()  ]
+
+
+# fs_files_rna = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  last_file in pp_files  
+# fs_files_met = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  last_file in pp_files  
 fs_files = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  last_file in pp_files  
             for fs,fsv in FEATURES_SELECTION.items() if compare_input_output(get_blockv(last_file,PRE_PROC),fsv) ]
+
+
+
 
 #Create combinaison for pipeline A. 
 de_files_rna = [f'output/split_deconvolution/{last_file.split('/')[-1]}_{split}_rna-{de}' for last_file in fs_files 
@@ -43,6 +57,16 @@ scores_files = [f'output/scores/{last_file.split('/')[-1]}_score' for last_file 
 
 #Pipeline B
 
+##Pipeline B  => early integration and decovo
+# expand("output/early_integration/{dataset}_{pp}_{fs}_{ei}.h5",
+#     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EARLY_INTEGRATION.keys()),
+# expand("output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.h5",
+#     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EARLY_INTEGRATION.keys(), de=DECOnVOLUTION.keys()),
+
+# ##Pipeline C  => intermediate decovo
+# expand("output/prediction/{dataset}_{pp}_{fs}_{it}.h5",
+#     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),it=INTERMEDIATE_INTEGRATION.keys()),
+
 
 
 
@@ -50,17 +74,20 @@ scores_files = [f'output/scores/{last_file.split('/')[-1]}_score' for last_file 
 rule all: 
     input: 
         #pipelines A
-        datasets_files,
+        original_datasets_files,
+        add_h5(cleaned_datasets_files),
+        REFERENCE,
+        cleaned_REFERENCE,
         add_h5(pp_files),
         add_h5(fs_files),
         add_h5(de_files_rna),
         add_h5(de_files_met),
         add_h5(li_files),
         score =  add_h5(scores_files),
-        metaanalysis_script_file ='07_metaanalysis.Rmd'
+        metaanalysis_script_file = "07_metaanalysis.Rmd"
     output: 
         "07_metaanalysis.html"
-    log : 
+    log: 
         "logs/07_metaanalysis.Rout"
     shell:"""
 RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
@@ -69,15 +96,42 @@ echo $RCODE | Rscript - 2>&1 > {log}
 echo "all is done!" 
 """    
         
-        ##Pipeline B  => early integration and decovo
-        # expand("output/early_integration/{dataset}_{pp}_{fs}_{ei}.h5",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EARLY_INTEGRATION.keys()),
-        # expand("output/prediction/{dataset}_{pp}_{fs}_{ei}_{de}.h5",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),ei=EARLY_INTEGRATION.keys(), de=DECOnVOLUTION.keys()),
-        
-        # ##Pipeline C  => intermediate decovo
-        # expand("output/prediction/{dataset}_{pp}_{fs}_{it}.h5",
-        #     dataset= DATASETS.keys(),pp =PRE_PROC.keys(),fs = FEATURES_SELECTION.keys(),it=INTERMEDIATE_INTEGRATION.keys()),
+
+rule cleaning_mix:
+    threads: 1
+    message: "-- cleaning mixes --"
+    input: 
+        cleaner="01_global_preprocess_mix.R",
+        function_cleaner= CLEANER ,  
+        mixes =  original_datasets_files
+    output:
+        "output/mixes/{dataset}.h5"
+    log: 
+        "logs/01_{dataset}.txt"
+    shell:"""
+mkdir -p output/mixes/
+RCODE="mixes_file='{input.mixes}';   
+output_file='{output}'; cleaner ='{input.function_cleaner}' ;  source('{input.cleaner}');"
+echo $RCODE | Rscript - 2>&1 > {log}
+"""
+
+rule cleaning_ref:
+    threads: 1
+    message: "-- cleaning references -- " 
+    input: 
+        cleaner="01_global_preprocess_ref.R",
+        function_cleaner= CLEANER ,  
+        reference = REFERENCE
+    output: 
+        "output/ref/{reference}.h5"
+    log: 
+        "logs/01_{reference}.txt"   
+    shell:"""
+mkdir -p output/ref/
+RCODE=" reference_file='{input.reference}';   
+output_file='{output}'; cleaner ='{input.function_cleaner}' ; source('{input.cleaner}');"
+echo $RCODE | Rscript - 2>&1 > {log}
+"""
 
 
 rule preprocessing:
@@ -86,12 +140,14 @@ rule preprocessing:
     input: 
         pp_wrapper="02_preprocess.R",
         script = lambda wildcard: PRE_PROC[wildcard.pp]['path'].strip(),
-        mix = lambda wildcard: DATASETS[wildcard.dataset]['path'].strip(), # "data/mixes1_{dataset}_pdac.h5" ,
+        mix = "output/mixes/{dataset}.h5" ,
+        # mix = lambda wildcard: DATASETS[wildcard.dataset]['path'].strip(), # "data/mixes1_{dataset}_pdac.h5" ,
+        # reference = "output/ref/{reference}.h5"
         reference = REFERENCE[0]
     output: 
         "output/preprocessing/{dataset}_{pp}.h5"
     log : 
-        "logs/02_{dataset}_{pp}.h5"        
+        "logs/02_{dataset}_{pp}.txt"        
     shell:"""
 mkdir -p output/preprocessing/
 RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{input.script}';  source('{input.pp_wrapper}');"
@@ -105,11 +161,13 @@ rule features_selection:
     input: 
         fs_wrapper= '03_features_selection.R',
         file_input= "output/preprocessing/{dataset}_{pp}.h5" ,
+        # file_input= add_h5(pp_files) ,
         script = lambda wildcard: FEATURES_SELECTION[wildcard.fs]['path'].strip() 
     output: 
+        # add_h5(fs_files)
         "output/feature_selection/{dataset}_{pp}_{fs}.h5"
     log : 
-        "logs/03_{dataset}_{pp}_{fs}.h5" 
+        "logs/03_{dataset}_{pp}_{fs}.txt" 
     shell:"""
 mkdir -p output/feature_selection/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  source('{input.fs_wrapper}');"
@@ -130,7 +188,7 @@ rule prediction_deconvolution_rna:
     output: 
         "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_rna-{de}.h5"
     log : 
-        "logs/04_{dataset}_{pp}_{fs}_{split}_rna-{de}.h5"     
+        "logs/04_{dataset}_{pp}_{fs}_{split}_rna-{de}.txt"     
     shell:"""
 mkdir -p output/split_deconvolution/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; script_split='{input.script_split}'; 
@@ -149,7 +207,7 @@ rule prediction_deconvolution_met:
     output: 
         "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_met-{de}.h5"
     log : 
-        "logs/04_{dataset}_{pp}_{fs}_{split}_met-{de}.h5"      
+        "logs/04_{dataset}_{pp}_{fs}_{split}_met-{de}.txt"      
     shell:"""
 mkdir -p output/split_deconvolution/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; 
@@ -170,7 +228,7 @@ rule late_integration:
     output: 
         "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"      
     log: 
-        "logs/05_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"     
+        "logs/05_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.txt"     
     params: 
         last_dataset = "output/feature_selection/{dataset}_{pp}_{fs}.h5" 
         # priorknowledge  =  lambda wildcard: LATE_INTEGRATION[wildcard.li]['input'],      
@@ -194,7 +252,7 @@ rule scoring:
     output: 
         "output/scores/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"
     log : 
-        "logs/06_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"   
+        "logs/06_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.txt"   
     shell:"""
 mkdir -p output/scores/
 RCODE="prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
@@ -262,7 +320,8 @@ rule clean:
     threads: 1
     shell:"""
 rm -rf output/
-rm 06_metaanalysis.html
+rm -rf logs/
+rm -rf 07_metaanalysis.html
 """
 
 rule gantt:

@@ -1,11 +1,35 @@
-dropNull :  #must be a unique ID without _
-  path: feature_selection/fs.R
-  short_name: FS01
-  input: [MET,RNA]
-  output: [RNA,MET]
+# dropNull :  #must be a unique ID without _
+#   path: feature_selection/fs.R
+#   short_name: DrNu
+#   input: [MET,RNA]
+#   output: [RNA,MET]
 
 fsID :  #must be a unique ID without _
   path: feature_selection/ID.R
-  short_name: FS01
+  short_name: FSID
   input: [ANY]
   output: [ANY]
+
+Toastnbfs :  #must be a unique ID without _
+  path: feature_selection/TOAST_nbfs.R
+  short_name: TNBF
+  input: [MET]
+  output: [MET]
+
+Toastpercent :  #must be a unique ID without _
+  path: feature_selection/TOAST_percent.R
+  short_name: Tper
+  input: [MET]
+  output: [MET]
+
+# Toastbulknbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_bulk_nbfs.R
+#   short_name: Tbnf
+#   input: [RNA,scRNA]
+#   output: [RNA,scRNA]
+
+Toastvst :  #must be a unique ID without _
+  path: feature_selection/TOAST_vst.R
+  short_name: Tvst
+  input: [RNA,scRNA]
+  output: [RNA,scRNA]

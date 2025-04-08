@@ -169,7 +169,6 @@ read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA'
 }
 
 read_all_hdf5 <- function(path,to_read=c('mix','ref')) {
-  
   mix =list()
   if('mix' %in% to_read ){
     mix = read_mix_hdf5(path)

@@ -10,8 +10,20 @@ ppID :  #must be a unique ID
   # input:  ANY
   output: ANY
 
-# scScale :  #must be a unique ID
-#   path: pre-processing/sc_scale.R
-#   short_name: ID
-#   # input:  ANY
-#   output: [scRNA]
+scScale :  #must be a unique ID
+  path: preprocessing/sc_scale.R
+  short_name: Scsc
+  # input:  ANY
+  output: [scRNA]
+
+metScale :  #must be a unique ID
+  path: preprocessing/scale_met.R
+  short_name: metsc
+  # input:  ANY
+  output: [MET]
+
+scConcat :  #must be a unique ID
+  path: preprocessing/sc_concat.R
+  short_name: ScCo
+  # input:  ANY
+  output: [scRNA]

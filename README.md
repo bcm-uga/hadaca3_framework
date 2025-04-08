@@ -18,10 +18,10 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast
 
 ```
-<!-- h5py r-base.conda  -->
+<!-- h5py   -->
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
@@ -164,3 +164,6 @@ All data should have HDF5 format with a compression level set to 6 and 'gzip' as
 ## TODO
 
 * improve handling of hdf5 files to not rewrite unmodified data
+* Sc_concat in preprocess have a warning 'should be sample-normalized' but this is not appearing in the code. 
+* how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
+* deal with global feature selection ? It seems it's only to select rows present in all datasets. 
