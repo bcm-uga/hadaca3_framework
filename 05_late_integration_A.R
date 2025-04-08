@@ -21,7 +21,7 @@ source(script_file);
 pred_RNA = read_hdf5(input_file_rna)$pred
 pred_met = read_hdf5(input_file_met)$pred
 
-output= program_block_li( list(prop1= pred_RNA,prop2 = pred_met,last_dataset=last_dataset )  ) 
+output= program_block_li(prop1 = pred_RNA,prop2 = pred_met,path_dataset = last_dataset )  
 
 # library(arrow)
 

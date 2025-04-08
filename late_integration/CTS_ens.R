@@ -1,7 +1,7 @@
-program_block_li <- function(l_pred) { 
+program_block_li <- function(prop1,prop2,path_dataset) { 
 
-  prop1 = l_pred$prop1
-  prop2 = l_pred$prop2
+  # prop1 = l_pred$prop1
+  # prop2 = l_pred$prop2
 
  CTS_EnsDeconv_LS <- function(What, mygamma = 0.001, maxit = 1000,
                                  mysigma = 0.4, mybeta = 0.1) {

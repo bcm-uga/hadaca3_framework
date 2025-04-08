@@ -57,14 +57,14 @@ rule all:
         add_h5(de_files_met),
         add_h5(li_files),
         score =  add_h5(scores_files),
-        script_file ='06_metaanalysis.Rmd'
+        metaanalysis_script_file ='07_metaanalysis.Rmd'
     output: 
-        "06_metaanalysis.html"
+        "07_metaanalysis.html"
     log : 
-        "logs/06_metaanalysis.Rout"
+        "logs/07_metaanalysis.Rout"
     shell:"""
 RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
-rmarkdown::render('{input.script_file}');"
+rmarkdown::render('{input.metaanalysis_script_file}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 echo "all is done!" 
 """    
@@ -123,7 +123,7 @@ rule prediction_deconvolution_rna:
     threads: 1
     message: "-- Processing splitted rna deconvolution Block, Pipeline A -- "
     input: 
-       split_wrapper = "04_pipeline_A_split.R" ,
+       split_wrapper = "04_Split_n_decon_A.R" ,
        script_de = lambda wildcard: DECONVOLUTION[wildcard.de]['path'].strip(), 
        script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(),
        file_input= "output/feature_selection/{dataset}_{pp}_{fs}.h5"
@@ -142,7 +142,7 @@ rule prediction_deconvolution_met:
     threads: 1
     message: "-- Processing splitted met deconvolution Block, Pipeline A -- "
     input: 
-        split_wrapper = "04_pipeline_A_split.R" , 
+        split_wrapper = "04_Split_n_decon_A.R" , 
         script_de = lambda wildcard: DECONVOLUTION[wildcard.de]['path'].strip(),
         script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(), 
         file_input= "output/feature_selection/{dataset}_{pp}_{fs}.h5"
@@ -163,14 +163,14 @@ rule late_integration:
     threads: 1
     message: "-- Processing splitted deconvolution late ingration Block, Pipeline A -- "
     input: 
-        merge_wrapper = '04_pipeline_A_merge.R',
+        late_integration = '05_late_integration_A.R',
         script_li = lambda wildcard: LATE_INTEGRATION[wildcard.li]['path'].strip(), 
         input_file_rna= "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_rna-{de1}.h5",
         input_file_met = "output/split_deconvolution/{dataset}_{pp}_{fs}_{split}_met-{de2}.h5", 
     output: 
         "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"      
     log: 
-        "logs/04_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"     
+        "logs/05_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5"     
     params: 
         last_dataset = "output/feature_selection/{dataset}_{pp}_{fs}.h5" 
         # priorknowledge  =  lambda wildcard: LATE_INTEGRATION[wildcard.li]['input'],      
@@ -178,7 +178,7 @@ rule late_integration:
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
 output_file='{output}'; script_file='{input.script_li}'; 
-last_dataset='{params.last_dataset}'  ; source('{input.merge_wrapper}');"
+last_dataset='{params.last_dataset}'  ; source('{input.late_integration}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 
@@ -188,13 +188,13 @@ rule scoring:
     threads: 1
     message: "-- Score prediction  -- "
     input: 
-        scoring_script = '05_scoring.R',
+        scoring_script = '06_scoring.R',
         prediction = "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5",
         groundtruth_file = lambda wildcard: DATASETS[wildcard.dataset]['groundtruth_file_path'].strip(), 
     output: 
         "output/scores/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"
     log : 
-        "logs/05_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"   
+        "logs/06_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"   
     shell:"""
 mkdir -p output/scores/
 RCODE="prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
