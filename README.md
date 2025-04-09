@@ -18,7 +18,7 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt r-plotly
 
 ```
 <!-- h5py r-base.conda  -->
