@@ -1,22 +1,37 @@
-# Aggregated and atomic scores per method
 ---
 title: "HADACA3 Framework - Generate data for data challenge hadaca"
 subtitle: "Meta analysis"
 author: ""
 date: "`r Sys.Date()`"
 output: 
-  rmarkdown::html_document
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
 ---
 
-```{r}
+# Aggregated and atomic scores per method
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+```{r loading_pckgs}
 library(yaml)
 library(DT)
 library(stringr)
+library(dplyr)
+library(ggplot2)
+theme_set(theme_light())
+
+source("utils/data_processing.R")
 ```
 
 
-```{r}
+```{r all_combinaisons_dataset}
 datasets = read_yaml("datasets.yml") 
+score_files = list(list.files(path = "./output/scores/", full.names = TRUE))
 # print(score_file)
 
 results <- data.frame(
@@ -27,7 +42,33 @@ results <- data.frame(
   # split = character(),
   deconvolution_rna = character(),
   deconvolution_met = character(),
-  late_integration = character()
+  late_integration = character(),
+  
+  aid = numeric(),
+  aid_norm = numeric(),
+  aitchison = numeric(),
+  aitchison_norm = numeric(),
+  jsd = numeric(),
+  jsd_norm = numeric(),
+  mae = numeric(),
+  mae_norm = numeric(),
+  pearson_col = numeric(),
+  pearson_col_norm = numeric(),
+  pearson_row = numeric(),
+  pearson_row_norm = numeric(),
+  pearson_tot = numeric(),
+  pearson_tot_norm = numeric(),
+  rmse = numeric(),
+  rmse_norm = numeric(),
+  score_aggreg = numeric(),
+  sdid = numeric(),
+  sdid_norm = numeric(),
+  spearman_col = numeric(),
+  spearman_col_norm = numeric(),
+  spearman_row = numeric(),
+  spearman_row_norm = numeric(),
+  spearman_tot = numeric(),
+  spearman_tot_norm = numeric()
 )
 
 
@@ -39,22 +80,462 @@ for (score_file in score_files[[1]]) {
   # Extract components from the file name
   #                                    DT   pp   FS   SPIT    DE1      DE2   li
   components <- str_match(base_name, "(.+)_(.+)_(.+)_(.+)_rna-(.+)_met-(.+)_(.+)_score")[2:8]
+  scores <- read_hdf5(score_file)
 
   # Append the extracted information to the results data frame
-  results <- rbind(results, data.frame(
-    dataset = components[1],
-    preprocessing = components[2],
-    feature_selection = components[3],
-    deconvolution_rna = components[5],
-    deconvolution_met = components[6],
-    late_integration = components[7],
-    stringsAsFactors = FALSE
-  ))
+  results <- rbind(results,
+    cbind(
+     data.frame(
+       dataset = components[1],
+       preprocessing = components[2],
+       feature_selection = components[3],
+       deconvolution_rna = components[5],
+       deconvolution_met = components[6],
+       late_integration = components[7],
+       stringsAsFactors = FALSE
+     ),
+     scores
+    ))
+  
+  rownames(results) = NULL
 
   i = i +1 
 }
 
-datatable(results, options = list(pageLength = 10))
+results %>%
+  # filter(dc==2) %>%
+  group_by(late_integration) %>%
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore))
 
+results$preprocessing = factor(results$preprocessing, 
+  levels = unique(results$preprocessing[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+results$feature_selection = factor(results$feature_selection, 
+  levels = unique(results$feature_selection[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+results$deconvolution_rna = factor(results$deconvolution_rna, 
+  levels = unique(results$deconvolution_rna[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+results$deconvolution_met = factor(results$deconvolution_met, 
+  levels = unique(results$deconvolution_met[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+results$late_integration = factor(results$late_integration, 
+  levels = unique(results$late_integration[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+
+
+datatable(results[,c(1:6,23)], options = list(pageLength = 10))
 ```
 
+
+# Visualisations of the different metrics
+
+## Aggregated scores
+
+```{r combinaisons_aggregated_scores}
+boxplots_pp_aggreg = ggplot(results, aes(x = preprocessing, y = score_aggreg, fill = preprocessing)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score, per dataset",
+    x = "Methods",
+    y = "Score",
+    fill = "Preprocessing"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_pp_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_fs_aggreg = ggplot(results, aes(x = feature_selection, y = score_aggreg, fill = feature_selection)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score, per dataset",
+    x = "Methods",
+    y = "Score",
+    fill = "Feature selection"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fs_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_li_aggreg = ggplot(results, aes(x = late_integration, y = score_aggreg, fill = late_integration)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score, per dataset",
+    x = "Methods",
+    y = "Score",
+    fill = "Late integration"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_li_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+
+## MAE
+
+```{r combinaisons_MAE}
+boxplots_pp_mae = ggplot(results, aes(x = preprocessing, y = mae, fill = preprocessing)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error, per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Preprocessing"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_pp_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_fs_mae = ggplot(results, aes(x = feature_selection, y = mae, fill = feature_selection)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error, per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Feature selection"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fs_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_li_mae = ggplot(results, aes(x = late_integration, y = mae, fill = late_integration)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error, per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Late integration"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_li_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+
+## RMSE
+
+```{r combinaisons_RMSE}
+boxplots_pp_rmse = ggplot(results, aes(x = preprocessing, y = rmse, fill = preprocessing)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error, per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Preprocessing"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_pp_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_fs_rmse = ggplot(results, aes(x = feature_selection, y = rmse, fill = feature_selection)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error, per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Feature selection"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fs_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_li_rmse = ggplot(results, aes(x = late_integration, y = rmse, fill = late_integration)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error, per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Late integration"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_li_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+
+## Spearman correlation (row)
+
+```{r combinaisons_spearman_row}
+boxplots_pp_spearman_row = ggplot(results, aes(x = preprocessing, y = spearman_row, fill = preprocessing)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Cell types correlation, per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Preprocessing"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_pp_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_fs_spearman_row = ggplot(results, aes(x = feature_selection, y = spearman_row, fill = feature_selection)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Cell types correlation, per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Feature selection"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fs_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_li_spearman_row = ggplot(results, aes(x = late_integration, y = spearman_row, fill = late_integration)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Cell types correlation, per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Late integration"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_li_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+
+## Aitchison distance
+
+```{r combinaisons_aitchison}
+boxplots_pp_aitchison = ggplot(results, aes(x = preprocessing, y = aitchison, fill = preprocessing)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance, per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Preprocessing"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_pp_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_fs_aitchison = ggplot(results, aes(x = feature_selection, y = aitchison, fill = feature_selection)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance, per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Feature selection"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fs_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+boxplots_li_aitchison = ggplot(results, aes(x = late_integration, y = aitchison, fill = late_integration)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance, per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Late integration"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_li_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
