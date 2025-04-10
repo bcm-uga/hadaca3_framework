@@ -1,0 +1,161 @@
+
+on:
+  push:
+    branches:
+      - '*' # Adjust this to your default branch
+  # schedule:
+  #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
+
+jobs:
+  CI_full_Pipeline_scheduled:
+    runs-on: self-hosted
+    env:
+      CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
+      CONDA_ENV_NAME: "hadaca3framework_env"
+      REPO_DIR: "/home/github-runner/projects/hadaca3_framework/"  # Adjust this to your repo path
+      SNK_CORES: "2"
+      MEM_MB: "32000"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      # - name: Set up Miniconda
+      #   run : source "${{ env.CONDA }}"
+      #   shell: bash
+        # uses: conda-incubator/setup-miniconda@v2
+        # with:
+          # activate-environment: ${{ env.CONDA_ENV_NAME }}
+          # auto-activate-base: false
+      # - name: Create Conda environment
+      #   run: |
+      #     conda create -y -n ${{ env.CONDA_ENV_NAME }}
+
+      # - name: Activate Conda environment
+      #   run: |
+      #     conda activate ${{ env.CONDA_ENV_NAME }}
+
+      # - name: Fetch all branches
+      #   run: |
+      #     git fetch --all
+      #     git reset --hard ${{ github.sha }}
+      
+      - name: Execute commands from README
+        run: |
+          echo ${{ github.workspace }}
+          cd ${{ env.REPO_DIR }}
+          source "${{ env.CONDA }}"
+            awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
+            [[ "$line" =~ ^# ]] && continue
+            [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
+            echo "$line"
+            eval "$line"
+          done
+      
+      # shell: bash
+      - name: download data
+        run: |
+          cd ${{ env.REPO_DIR }}
+          mkdir data
+          cd data
+          awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
+            echo "$line"
+            eval "$line"
+          done
+
+      - name: Run Snakemake
+        run: |
+          cd ${{ env.REPO_DIR }}
+          source "${{ env.CONDA }}" 
+          conda activate ${{ env.CONDA_ENV_NAME }}
+          git fetch --all
+          git reset --hard ${{ github.sha }}
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
+          snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          mkdir -p ${{ github.workspace }}/public
+          cp 07_metaanalysis.html ${{ github.workspace }}/public/index.html
+      
+      # name: 
+      - name: Check for errors and read logs 
+        if: failure()
+        run: |
+          echo "An error occurred. Checking log files for details..."
+          LOG_DIR=".snakemake/log/"
+
+          # Find the latest log file
+          LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
+
+          # Check if a log file was found
+          if [ -z "$LATEST_LOG" ]; then
+            echo "No log files found in the directory."
+            exit 1
+          fi
+          echo $LOG_DIR$LATEST_LOG
+          ERROR_LOGS=$(grep -A 5 "Error in rule" "$LOG_DIR$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
+          echo $ERROR_LOGS
+          if [ -z "$ERROR_LOGS" ]; then
+            echo "No error logs found in Snakemake log."
+            exit 0
+          fi
+
+          # Display the contents of the error logs
+          echo "Errors found in the following log files:"
+          for LOG_FILE in $ERROR_LOGS; do
+            echo "--- $LOG_FILE ---"
+            if [ -f "$LOG_FILE" ]; then
+              cat "$LOG_FILE"
+            else
+              echo "Log file not found: $LOG_FILE"
+            fi
+          done
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       - name: Set up Miniconda
+#         uses: conda-incubator/setup-miniconda@v2
+#         with:
+#           activate-environment: ${{ env.CONDA_ENV_NAME }}
+#           auto-activate-base: false
+
+#       - name: Create Conda environment
+#         run: |
+#           conda create -y -n ${{ env.CONDA_ENV_NAME }}
+
+#       - name: Activate Conda environment
+#         run: |
+#           conda activate ${{ env.CONDA_ENV_NAME }}
+
+#       - name: Fetch all branches
+#         run: |
+#           git fetch --all
+#           git reset --hard ${{ github.sha }}
+
+#       - name: Execute commands from README
+#         run: |
+#           awk '/```/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
+#             [[ "\$line" =~ ^# ]] && continue
+#             [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
+#             echo "Executing: \$line"
+#             $line
+#           done
+
+
+      # - name: Prepare artifacts
+      #   run: |
+      #     mkdir -p public
+      #     cp 05_metaanalysis.html public/index.html
+
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: public
+      #     path: public/

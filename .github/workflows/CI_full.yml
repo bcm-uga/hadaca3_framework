@@ -1,22 +1,33 @@
 
 on:
-  push:
-    branches:
-      - main  # Adjust this to your default branch
-#   schedule:
-#     - cron: '0 0 * * *'  # Adjust this to your schedule if needed
+  schedule:
+    - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
 jobs:
-  CI_Pipeline:
+  check_date:
     runs-on: self-hosted
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+      - id: should_run
+        continue-on-error: true
+        name: check latest commit is less than a day
+        if: ${{ github.event_name == 'schedule' }}
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) &amp;&amp; echo "::set-output name=should_run::false"
 
+  CI_full_Pipeline_scheduled:
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    runs-on: self-hosted
     env:
       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
       CONDA_ENV_NAME: "hadaca3framework_env"
-      # REPO_DIR: "/home/runner/work/your-repo/your-repo"  # Adjust this to your repo path
       SNK_CORES: "2"
-      MEM_MB: "16000"
-
+      MEM_MB: "32000"
 
     steps:
       - name: Checkout code
@@ -68,6 +79,8 @@ jobs:
           conda activate ${{ env.CONDA_ENV_NAME }}
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
           snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          mkdir -p public
+          cp 07_metaanalysis.html public/index.html
       
       # name: 
       - name: Check for errors and read logs 
@@ -103,6 +116,11 @@ jobs:
             fi
           done
 
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
 
 
 #     steps:
