@@ -37,7 +37,7 @@ jobs:
       - name: download data
         run: |
           cd ${{ env.REPO_DIR }}
-          mkdir data
+          mkdir -p data
           cd data
           awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
             echo "$line"
