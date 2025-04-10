@@ -7,7 +7,7 @@ on:
   #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
 jobs:
-  CI_full_Pipeline_scheduled:
+  Continue_pipeline:
     runs-on: self-hosted
     env:
       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
@@ -20,29 +20,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
-      # - name: Set up Miniconda
-      #   run : source "${{ env.CONDA }}"
-      #   shell: bash
-        # uses: conda-incubator/setup-miniconda@v2
-        # with:
-          # activate-environment: ${{ env.CONDA_ENV_NAME }}
-          # auto-activate-base: false
-      # - name: Create Conda environment
-      #   run: |
-      #     conda create -y -n ${{ env.CONDA_ENV_NAME }}
-
-      # - name: Activate Conda environment
-      #   run: |
-      #     conda activate ${{ env.CONDA_ENV_NAME }}
-
-      # - name: Fetch all branches
-      #   run: |
-      #     git fetch --all
-      #     git reset --hard ${{ github.sha }}
-      
+    
       - name: Execute commands from README
         run: |
-          echo ${{ github.workspace }}
+          # echo ${{ github.workspace }}
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}"
             awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
