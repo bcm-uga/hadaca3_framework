@@ -42,8 +42,6 @@ fs_files = [f'output/feature_selection/{last_file.split('/')[-1]}_{fs}' for  las
             for fs,fsv in FEATURES_SELECTION.items() if compare_input_output(get_blockv(last_file,PRE_PROC),fsv) ]
 
 
-
-
 #Create combinaison for pipeline A. 
 de_files_rna = [f'output/split_deconvolution/{last_file.split('/')[-1]}_{split}_rna-{de}' for last_file in fs_files 
                for split in SPLIT.keys() for de in DECONVOLUTION.keys() 
