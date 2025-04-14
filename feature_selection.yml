@@ -7,29 +7,37 @@
 fsID :  #must be a unique ID without _
   path: feature_selection/ID.R
   short_name: FSID
-  input: [ANY]
-  output: [ANY]
+  # input: [ANY]
+  omic: [ANY]
 
 Toastnbfs :  #must be a unique ID without _
   path: feature_selection/TOAST_nbfs.R
   short_name: TNBF
-  input: [MET]
-  output: [MET]
+  # input: [MET]
+  omic: [MET]
 
 Toastpercent :  #must be a unique ID without _
   path: feature_selection/TOAST_percent.R
   short_name: Tper
-  input: [MET]
-  output: [MET]
+  # input: [MET]
+  omic: [MET]
 
 # Toastbulknbfs :  #must be a unique ID without _
 #   path: feature_selection/TOAST_bulk_nbfs.R
 #   short_name: Tbnf
 #   input: [RNA,scRNA]
-#   output: [RNA,scRNA]
+#   omic: [RNA,scRNA]
 
 Toastvst :  #must be a unique ID without _
   path: feature_selection/TOAST_vst.R
   short_name: Tvst
-  input: [RNA,scRNA]
-  output: [RNA,scRNA]
+  # input: [RNA,scRNA]
+  omic: [RNA,scRNA]
+
+
+# top100 :  #must be a unique ID without _
+#   path: feature_selection/top100.R
+#   # dependence : teamH_scSignature.csv top100.
+#   short_name: T100
+#   omic: [MIXRNA,RNA,scRNA]
+#   # output: [ANY]

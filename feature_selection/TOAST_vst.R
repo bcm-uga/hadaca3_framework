@@ -9,6 +9,7 @@ program_block_FS <- function(multi_data) {
     return(var_sorted_genes)
   }
   top_genes <- determine_variable_genes(multi_data$ref$ref_bulkRNA, nb_fs_rna)
+  
   multi_data$mix$mix_rna = multi_data$mix$mix_rna[top_genes,]
   multi_data$ref$ref_bulkRNA = multi_data$ref$ref_bulkRNA[top_genes,]
   multi_data$ref$ref_scRNA = lapply(multi_data$ref$ref_scRNA, function(x) list(counts = x$counts[top_genes,], metadata = x$metadata))

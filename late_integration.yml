@@ -18,3 +18,11 @@ TunedH :  #must be a unique ID  without "_" !
 TunedJ :  #must be a unique ID  without "_" !
   path: late_integration/TunedJ.R 
   short_name: TunJ
+
+OnlyMet: 
+  path: late_integration/only_met.R 
+  short_name: OMet
+
+OnlyRna: 
+  path: late_integration/only_rna.R 
+  short_name: ORNA
