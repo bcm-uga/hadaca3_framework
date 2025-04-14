@@ -1,5 +1,6 @@
 
-on:
+on: 
+  workflow_dispatch: 
   schedule:
     - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
