@@ -2,7 +2,7 @@
 on:
   push:
     branches:
-      - '*' # Adjust this to your default branch
+      - 'main' # Adjust this to your default branch
   # schedule:
   #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
