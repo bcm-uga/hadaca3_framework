@@ -1,8 +1,3 @@
-# dropNull :  #must be a unique ID without _
-#   path: feature_selection/fs.R
-#   short_name: DrNu
-#   input: [MET,RNA]
-#   output: [RNA,MET]
 
 fsID :  #must be a unique ID without _
   path: feature_selection/ID.R
@@ -10,29 +5,29 @@ fsID :  #must be a unique ID without _
   # input: [ANY]
   omic: [ANY]
 
-Toastnbfs :  #must be a unique ID without _
-  path: feature_selection/TOAST_nbfs.R
-  short_name: TNBF
-  # input: [MET]
-  omic: [MET]
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBF
+#   # input: [MET]
+#   omic: [MET]
 
-Toastpercent :  #must be a unique ID without _
-  path: feature_selection/TOAST_percent.R
-  short_name: Tper
-  # input: [MET]
-  omic: [MET]
+# Toastpercent :  #must be a unique ID without _
+#   path: feature_selection/TOAST_percent.R
+#   short_name: Tper
+#   # input: [MET]
+#   omic: [MET]
 
-# Toastbulknbfs :  #must be a unique ID without _
-#   path: feature_selection/TOAST_bulk_nbfs.R
-#   short_name: Tbnf
-#   input: [RNA,scRNA]
+# # Toastbulknbfs :  #must be a unique ID without _
+# #   path: feature_selection/TOAST_bulk_nbfs.R
+# #   short_name: Tbnf
+# #   input: [RNA,scRNA]
+# #   omic: [RNA,scRNA]
+
+# Toastvst :  #must be a unique ID without _
+#   path: feature_selection/TOAST_vst.R
+#   short_name: Tvst
+#   # input: [RNA,scRNA]
 #   omic: [RNA,scRNA]
-
-Toastvst :  #must be a unique ID without _
-  path: feature_selection/TOAST_vst.R
-  short_name: Tvst
-  # input: [RNA,scRNA]
-  omic: [RNA,scRNA]
 
 
 # top100 :  #must be a unique ID without _

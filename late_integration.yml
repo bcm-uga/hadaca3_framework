@@ -3,10 +3,6 @@ limean :  #must be a unique ID without "_" !
   path: late_integration/avg.R
   short_name: avg
 
-# limeanRMSE :  #must be a unique ID  without "_" !
-#   path: late_integration/mean_rmse.R
-#   short_name: MRMS
-
 liCtSens :  #must be a unique ID  without "_" !
   path: late_integration/CTS_ens.R
   short_name: CTSe
@@ -26,3 +22,10 @@ OnlyMet:
 OnlyRna: 
   path: late_integration/only_rna.R 
   short_name: ORNA
+
+
+
+
+# limeanRMSE :  #must be a unique ID  without "_" !
+#   path: late_integration/mean_rmse.R
+#   short_name: MRMS

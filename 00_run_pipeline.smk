@@ -25,9 +25,9 @@ CONFIG_FILES = {
     "early_integration": "early_integration.yml",
     "intermediate_integration": "intermediate_integration.yml",
     "late_integration": "late_integration.yml",
-    "deconvolution": "deconvolution.yml",
-    # "split": "split.yml"
+    "deconvolution": "deconvolution.yml"
 }
+    # "split": "split.yml"
 
 # Load configurations
 CONFIG = {key: load_yaml(path) for key, path in CONFIG_FILES.items()}
@@ -56,11 +56,14 @@ def get_omic(path:str) -> str:
     omic = path.split('/')[-2]
     return(omic)
 
-def block_combinaison(path:str)-> str:
+def block_combinaison(path:str,add_omics : bool = True)-> str:
     l_path = path.split('/')
     omic = l_path[-2]
     descriptif = l_path[-1].split('_')
-    combinaison = '_'.join([omic]+descriptif[1:])
+    if(add_omics):
+        combinaison = '_'.join([omic]+descriptif[1:])
+    else :
+        combinaison = '_'.join(descriptif[1:])
     # if(omic in REFOMICS):
     #     combinaison =   l_path[-1]
     return(combinaison)
@@ -90,14 +93,14 @@ pp_files = [f'output/preprocessing/{omic}/{dataset}_{pp}'
         if omic in ppv['omic'] or 'ANY' in ppv['omic'] 
     ]
 
-fs_files = [f'output/feature_selection/{get_omic(last_pp)}/{last_pp.split('/')[-1]}_{fs}' 
+fs_files = [f'output/feature-selection/{get_omic(last_pp)}/{last_pp.split('/')[-1]}_{fs}' 
         for last_pp in pp_files  
         for fs,fsv in CONFIG['features_selection'].items() 
         if is_type(fsv,get_omic(last_pp)) 
     ]
 
 #RNA unit combinaison (composed of mix, ref_rna and sc_rna) dataset_ppmix_fsmix_pprna_fsrna_ppsc_fs_sc_de
-de_rna_unit_files = [f'output/rna_decovolution_split/{get_dataset(mix_combi)}_{block_combinaison(mix_combi)}_{block_combinaison(rna_combi)}_{block_combinaison(sc_combi)}_{de}' 
+de_rna_unit_files = [f'output/rna-decovolution-split/{get_dataset(mix_combi)}_{block_combinaison(mix_combi)}_{block_combinaison(rna_combi)}_{block_combinaison(sc_combi)}_{de}' 
         for mix_combi in fs_files
         for rna_combi in fs_files
         for sc_combi in fs_files 
@@ -107,7 +110,7 @@ de_rna_unit_files = [f'output/rna_decovolution_split/{get_dataset(mix_combi)}_{b
         
 
 #MET unit combinaison (composed of mix, ref_rna and sc_rna) dataset_ppmix_fsmix_pprna_fsrna_ppsc_fs_sc_de
-de_met_unit_files = [f'output/met_decovolution_split/{get_dataset(mix_combi)}_{block_combinaison(mix_combi)}_{block_combinaison(met_combi)}_{de}' 
+de_met_unit_files = [f'output/met-decovolution-split/{get_dataset(mix_combi)}_{block_combinaison(mix_combi)}_{block_combinaison(met_combi)}_{de}' 
         for mix_combi in fs_files  
         for met_combi in fs_files 
         for de,dev in CONFIG['deconvolution'].items() 
@@ -116,17 +119,14 @@ de_met_unit_files = [f'output/met_decovolution_split/{get_dataset(mix_combi)}_{b
 
 
 
-li_files = [f'output/prediction/{get_dataset(file_prediction_RNA)}_{block_combinaison(file_prediction_RNA)}_{block_combinaison(file_prediction_MET)}_{li}' 
+li_files = [f'output/prediction/{get_dataset(file_prediction_RNA)}_{block_combinaison(file_prediction_RNA,False)}_{block_combinaison(file_prediction_MET,False)}_{li}' 
         for file_prediction_RNA  in de_rna_unit_files 
         for file_prediction_MET in de_met_unit_files 
         for li in CONFIG['late_integration'].keys()
         if get_dataset(file_prediction_RNA) == get_dataset(file_prediction_MET)
     ]
 
-# li_files = [f'output/prediction/{last_file.split('/')[-1]}_met-{de}_{li}' for last_file  in de_files_rna 
-#             for de in CONFIG['deconvolution'].keys() for li in LATE_INTEGRATION.keys() ]
-
-# scores_files = [f'output/scores/{last_file.split('/')[-1]}_score' for last_file  in li_files ]
+scores_files = [f'output/scores/{last_file.split('/')[-1]}_score' for last_file  in li_files ]
 
 
 #Pipeline B
@@ -153,18 +153,18 @@ rule all:
         add_h5(de_rna_unit_files),
         add_h5(de_met_unit_files),
         add_h5(li_files),
-        # score =  add_h5(scores_files),
-        # metaanalysis_script_file = "07_metaanalysis.Rmd"
-    # output: 
-    #     "07_metaanalysis.html"
+        score =  add_h5(scores_files),
+        metaanalysis_script_file = "07_metaanalysis.Rmd"
+    output: 
+        "07_metaanalysis.html"
     log: 
         "logs/07_metaanalysis.Rout"
-#     shell:"""
-# RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
-# rmarkdown::render('{input.metaanalysis_script_file}');"
-# echo $RCODE | Rscript - 2>&1 > {log}
-# echo "all is done!" 
-# """    
+    shell:"""
+RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
+rmarkdown::render('{input.metaanalysis_script_file}');"
+echo $RCODE | Rscript - 2>&1 > {log}
+echo "all is done!" 
+"""    
         
 
 rule cleaning_mix:
@@ -224,9 +224,6 @@ RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_fi
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 
-
-
-
 rule features_selection:
     threads: 1
     message: "-- Processing features selections Block -- "
@@ -236,11 +233,11 @@ rule features_selection:
         script = lambda wildcard: CONFIG['features_selection'][wildcard.fs]['path'].strip() ,
         dependances = lambda wildcard: CONFIG['features_selection'][wildcard.fs].get('dependances',[])
     output: 
-        "output/feature_selection/{omic}/{dataset}_{pp}_{fs}.h5"
+        "output/feature-selection/{omic}/{dataset}_{pp}_{fs}.h5"
     log : 
         "logs/03_{omic}_{dataset}_{pp}_{fs}.txt" 
     shell:"""
-mkdir -p output/feature_selection/{{{omic_dirs}}}/
+mkdir -p output/feature-selection/{{{omic_dirs}}}/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  source('{input.fs_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -255,15 +252,15 @@ rule prediction_deconvolution_rna:
        script_de = lambda wildcard: CONFIG['deconvolution'][wildcard.de]['path'].strip(), 
     #    script_split = lambda wildcard: CONFIG['split'][]['path'].strip(),
        dependances = lambda wildcard: CONFIG['deconvolution'][wildcard.de].get('dependances',[]),
-       file_input_mix = "output/feature_selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
-       file_input_rna = "output/feature_selection/{omicrna}/{dataset}_{pprna}_{fsrna}.h5",
-       file_input_scrna = "output/feature_selection/{omicscrna}/{dataset}_{ppsc}_{fssc}.h5"
+       file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
+       file_input_rna = "output/feature-selection/{omicrna}/{dataset}_{pprna}_{fsrna}.h5",
+       file_input_scrna = "output/feature-selection/{omicscrna}/{dataset}_{ppsc}_{fssc}.h5"
     output: 
-        "output/rna_decovolution_split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.h5"
+        "output/rna-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.h5"
     log : 
         "logs/04_{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.txt"     
     shell:"""
-mkdir -p output/rna_decovolution_split/
+mkdir -p output/rna-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}'; input_file_rna='{input.file_input_rna}';input_file_sc='{input.file_input_scrna}';
 output_file='{output}'; 
 script_de_rna='{input.script_de}' ;  source('{input.split_wrapper}');"
@@ -279,20 +276,20 @@ rule prediction_deconvolution_met:
         script_de = lambda wildcard: CONFIG['deconvolution'][wildcard.de]['path'].strip(),
         dependances = lambda wildcard: CONFIG['deconvolution'][wildcard.de].get('dependances',[]),
         # script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(), 
-        file_input_mix = "output/feature_selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
-        file_input_met = "output/feature_selection/{omicmet}/{dataset}_{ppmet}_{fsmet}.h5"
+        file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
+        file_input_met = "output/feature-selection/{omicmet}/{dataset}_{ppmet}_{fsmet}.h5"
     output: 
-        "output/met_decovolution_split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.h5"
+        "output/met-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.h5"
     log : 
         "logs/04_{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.txt"      
     shell:"""
-mkdir -p output/met_decovolution_split/
+mkdir -p output/met-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}';  input_file_met='{input.file_input_met}';
 output_file='{output}';  script_de_met='{input.script_de}';  
 source('{input.split_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
-# script_split='{input.script_split}';
+# # script_split='{input.script_split}';
 
 
 rule late_integration:
@@ -302,42 +299,43 @@ rule late_integration:
         late_integration = '05_late_integration_A.R',
         script_li = lambda wildcard: CONFIG['late_integration'][wildcard.li]['path'].strip(), 
         dependances = lambda wildcard: CONFIG['late_integration'][wildcard.li].get('dependances',[]),
-        input_file_rna= "output/split_deconvolution/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}.h5",
-        input_file_met = "output/met_decovolution_split/{dataset}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}.h5", 
+        input_file_rna= "output/rna-decovolution-split/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}.h5",
+        input_file_met = "output/met-decovolution-split/{dataset}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}.h5", 
     output: 
         "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"      
     log: 
         "logs/05_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.txt"     
     # params: 
-    #     last_dataset = "output/feature_selection/{dataset}_{pp}_{fs}.h5" 
+    #     last_dataset = "output/feature-selection/{dataset}_{pp}_{fs}.h5" 
         # priorknowledge  =  lambda wildcard:  CONFIG['late_integration'][wildcard.li]['input'],      
     shell:"""
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
 output_file='{output}'; script_file='{input.script_li}'; 
-last_dataset='{params.last_dataset}'  ; source('{input.late_integration}');"
+  source('{input.late_integration}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
+# last_dataset='{params.last_dataset}';
 
 
 
-# rule scoring:
-#     threads: 1
-#     message: "-- Score prediction  -- "
-#     input: 
-#         scoring_script = '06_scoring.R',
-#         prediction = "output/prediction/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}.h5",
-#         groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
-#     output: 
-#         "output/scores/{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.h5"
-#     log : 
-#         "logs/06_{dataset}_{pp}_{fs}_{split}_rna-{de1}_met-{de2}_{li}_score.txt"   
-#     shell:"""
-# mkdir -p output/scores/
-# RCODE="prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
-# score_file='{output}'; source('{input.scoring_script}');"
-# echo $RCODE | Rscript - 2>&1 > {log}
-# """
+rule scoring:
+    threads: 1
+    message: "-- Score prediction  -- "
+    input: 
+        scoring_script = '06_scoring.R',
+        prediction = "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5",
+        groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
+    output: 
+        "output/scores/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.h5"
+    log : 
+        "logs/06_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.txt"   
+    shell:"""
+mkdir -p output/scores/
+RCODE="prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
+score_file='{output}'; source('{input.scoring_script}');"
+echo $RCODE | Rscript - 2>&1 > {log}
+"""
 
 
 

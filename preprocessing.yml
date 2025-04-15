@@ -1,28 +1,29 @@
-normalize :  #must be a unique ID
-  path: preprocessing/normalize.R
-  short_name: norm
-  omic: [RNA,MET]
-
 ppID :  #must be a unique ID
   path: preprocessing/ID.R
   short_name: ID
-  # input:  ANY
   omic: [ANY]
 
-scScale :  #must be a unique ID
-  path: preprocessing/sc_scale.R
-  short_name: Scsc
-  # input:  ANY
-  omic: [scRNA]
 
-metScale :  #must be a unique ID
-  path: preprocessing/scale_met.R
-  short_name: metsc
-  # input:  ANY
-  omic: [MET]
+# normalize :  #must be a unique ID
+#   path: preprocessing/normalize.R
+#   short_name: norm
+#   omic: [RNA,MET]
 
-scConcat :  #must be a unique ID
-  path: preprocessing/sc_concat.R
-  short_name: ScCo
-  # input:  ANY
-  omic: [scRNA]
+
+# scScale :  #must be a unique ID
+#   path: preprocessing/sc_scale.R
+#   short_name: Scsc
+#   # input:  ANY
+#   omic: [scRNA]
+
+# metScale :  #must be a unique ID
+#   path: preprocessing/scale_met.R
+#   short_name: metsc
+#   # input:  ANY
+#   omic: [MET]
+
+# scConcat :  #must be a unique ID
+#   path: preprocessing/sc_concat.R
+#   short_name: ScCo
+#   # input:  ANY
+#   omic: [scRNA]
