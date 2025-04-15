@@ -5,6 +5,51 @@ library(Matrix)
 
 
 
+get_omic <- function(path) {
+  path_parts <- unlist(strsplit(path, "/"))
+  return(path_parts[length(path_parts) - 1])
+}
+
+omic2list_name = list(mixRNA = "mix_rna" , 
+mixMET =  "mix_met",
+MET='ref_met',
+RNA= 'ref_bulkRNA',
+scRNA= 'ref_scRNA' ) 
+
+
+write_sparse_matrix <- function(group,path,counts,meta){
+    #  =  dataset_name 
+    h5createGroup(path, group)
+    h5createDataset(path, dataset =  paste0(group,'/data'), dims = length(counts@x) , storage.mode = "integer")
+    h5write(counts@x, file=path, name=paste0(group, "/data"))
+    h5write(dim(counts), file=path, name=paste0(group, "/shape"))
+    h5createDataset(path, dataset = paste0(group,'/indices'), dims = length(counts@i), storage.mode = "integer")
+    h5write(counts@i, file=path, name=paste0(group, "/indices"))
+    h5write(counts@p, file=path, name=paste0(group, "/indptr"))
+    if (!is.null(rownames(counts))) {
+      h5write(rownames(counts), file=path, name=paste0(group, "/genes"))
+    }
+
+    if (!is.null(colnames(counts))) {
+      h5write(colnames(counts), file=path, name=paste0(group, "/cell"))
+    }
+
+    h5write(meta, file=path , name=paste0( group,"/meta"  ))
+}
+
+write_data_frame <- function(name, path,data){
+    h5createGroup(path, name)
+    h5write(data, file = path, name = paste0(name, "/data"))
+    if(length(colnames(data))){
+      h5write(colnames(data), file = path, name = paste0(name, "/samples"))
+    }
+    if(length(rownames(data))){
+      h5write(rownames(data), file = path, name = paste0(name, "/genes"))
+    }
+}
+
+
+
 write_all_ref_hdf5 <- function(path, ref_all) {
   # assert( all(colnames(ref_peng$counts)== rownames(ref_peng$metadata)))
   h5createFile(path)
@@ -28,31 +73,28 @@ write_all_ref_hdf5 <- function(path, ref_all) {
     counts = ref_all$ref_scRNA[[dataset]]$counts
     meta =   ref_all$ref_scRNA[[dataset]]$metadata
     
+    write_sparse_matrix(paste0( 'ref_scRNA/' , dataset  ), path,counts,meta)
     
-    group =  paste0( 'ref_scRNA/' , dataset  )
+    # group =  paste0( 'ref_scRNA/' , dataset  )
+    # h5createGroup(path, group)
+    # h5createDataset(path, dataset =  paste0(group,'/data'), dims = length(counts@x) , storage.mode = "integer")
+    # h5write(counts@x, file=path, name=paste0(group, "/data"))
+    # h5write(dim(counts), file=path, name=paste0(group, "/shape"))
+    # h5createDataset(path, dataset = paste0(group,'/indices'), dims = length(counts@i), storage.mode = "integer")
+    # h5write(counts@i, file=path, name=paste0(group, "/indices"))
+    # h5write(counts@p, file=path, name=paste0(group, "/indptr"))
 
-    h5createGroup(path, group)
+    # if (!is.null(rownames(counts))) {
+    #   h5write(rownames(counts), file=path, name=paste0(group, "/genes"))
+    # }
 
+    # if (!is.null(colnames(counts))) {
+    #   h5write(colnames(counts), file=path, name=paste0(group, "/cell"))
+    # }
 
-    h5createDataset(path, dataset =  paste0(group,'/data'), dims = length(counts@x) , storage.mode = "integer")
-    h5write(counts@x, file=path, name=paste0(group, "/data"))
-    h5write(dim(counts), file=path, name=paste0(group, "/shape"))
-    h5createDataset(path, dataset = paste0(group,'/indices'), dims = length(counts@i), storage.mode = "integer")
-    h5write(counts@i, file=path, name=paste0(group, "/indices"))
-    h5write(counts@p, file=path, name=paste0(group, "/indptr"))
-
-    if (!is.null(rownames(counts))) {
-      h5write(rownames(counts), file=path, name=paste0(group, "/genes"))
-    }
-
-    if (!is.null(colnames(counts))) {
-      h5write(colnames(counts), file=path, name=paste0(group, "/cell"))
-    }
-
-    h5write(meta, file=path , name=paste0( group,"/meta"  ))
+    # h5write(meta, file=path , name=paste0( group,"/meta"  ))
   }
 
-  return(NULL)
 }
 
 # file = 'sparse_matrix_R2.h5'
@@ -131,29 +173,31 @@ read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA'
   if('ref_scRNA' %in% to_read){
     datasets <- c("ref_sc_peng", "ref_sc_baron", "ref_sc_raghavan")
     for (dataset in datasets) {
-      group <- paste0('ref_scRNA/', dataset)
+      scRNA = read_sparse_matrix(paste0('ref_scRNA/', dataset),path)
 
-      counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
-      counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
-      counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
-      counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
+      # group <- paste0('ref_scRNA/', dataset)
 
-      cells = h5read(path, paste0(group, "/cell"))
-      counts <- new("dgCMatrix",
-                    x = counts_data,
-                    i = counts_indices,
-                    p = counts_indptr,
-                    Dim = counts_shape,
-                    Dimnames = list(
-                      h5read(path, paste0(group, "/genes")),
-                      cells
-                    ))
+      # counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
+      # counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
+      # counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
+      # counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
 
-      meta <- h5read(path, paste0(group, "/meta"))
-      rownames(meta) = cells
+      # cells = h5read(path, paste0(group, "/cell"))
+      # counts <- new("dgCMatrix",
+      #               x = counts_data,
+      #               i = counts_indices,
+      #               p = counts_indptr,
+      #               Dim = counts_shape,
+      #               Dimnames = list(
+      #                 h5read(path, paste0(group, "/genes")),
+      #                 cells
+      #               ))
+
+      # meta <- h5read(path, paste0(group, "/meta"))
+      # rownames(meta) = cells
       ref_scRNA[[dataset]] <- list(
-        counts = counts,
-        metadata = meta
+        counts = scRNA$counts,
+        metadata = scRNA$meta
       )
     }
   }
@@ -197,35 +241,24 @@ write_global_hdf5 <- function(path, data_list) {
 
   # Iterate over each named element in the data_list
   for (name in names(data_list)) {
-    # Create a group for each named element
-    h5createGroup(path, name)
 
-    # Write the data, column names, and row names to the HDF5 file
-    h5write(data_list[[name]], file = path, name = paste0(name, "/data"))
-    if(length(colnames(data_list[[name]]))){
-      h5write(colnames(data_list[[name]]), file = path, name = paste0(name, "/samples"))
-    }
-    if(length(rownames(data_list[[name]]))){
-      h5write(rownames(data_list[[name]]), file = path, name = paste0(name, "/genes"))
+    if(name == "ref_scRNA"){
+      h5createGroup(path, 'ref_scRNA/')
+        for (dataset in names(data_list[[name]])){
+          counts = data_list[[name]][[dataset]]$counts
+          meta =   data_list[[name]][[dataset]]$metadata
+          
+          write_sparse_matrix(paste0( 'ref_scRNA/' , dataset  ), path,counts,meta)
+        }
+    }else{
+      write_data_frame(name,path,data_list[[name]])
     }
   }
 }
 
-read_hdf5 <- function(path) {
-  # Initialize a list to store the data
-  # file_structure <- h5ls(path,recursive=FALSE)
-  file_structure <- h5dump(path,load=FALSE)
 
-  # Extract unique group names (assuming groups end with "/data")
-  # group_names <- unique(sub("/data$", "", grep("/data$", file_structure$name, value = TRUE)))
-  group_names= names(file_structure)
 
-  # Initialize a list to store the data
-  data_list <- list()
-
-  # Iterate over each group name
-  for (name in group_names) {
-    # Read the data, column names, and row names from the HDF5 file
+read_data_frame <- function(path,name,file_structure){
     data <- h5read(file = path, name = paste0("/",name, "/data"))
     
     if(!is.null(file_structure[[name]]$samples)){
@@ -236,9 +269,50 @@ read_hdf5 <- function(path) {
       genes <- h5read(file = path, name = paste0("/",name, "/genes"))
       rownames(data) <- genes
     }
+    return(data)
 
-    data_list[[name]] <- data
-    # Store the data in the list with the group name
+}
+
+
+read_sparse_matrix <- function(group,path){
+      counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
+      counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
+      counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
+      counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
+
+      cells = h5read(path, paste0(group, "/cell"))
+      counts <- new("dgCMatrix",
+                    x = counts_data,
+                    i = counts_indices,
+                    p = counts_indptr,
+                    Dim = counts_shape,
+                    Dimnames = list(
+                      h5read(path, paste0(group, "/genes")),
+                      cells
+                    ))
+      meta <- h5read(path, paste0(group, "/meta"))
+      rownames(meta) = cells
+      return( list(counts = counts,meta = meta))
+}
+
+read_hdf5 <- function(path) {
+  file_structure <- h5dump(path,load=FALSE)
+  group_names= names(file_structure)
+  data_list <- list()
+  for (name in group_names) {
+    if(name == "ref_scRNA"){
+      ref_scRNA <- list()
+      for (dataset in names(file_structure[[name]])){
+        scRNA = read_sparse_matrix(paste0('ref_scRNA/', dataset),path)
+        ref_scRNA[[dataset]] <- list(
+          counts = scRNA$counts,
+          metadata = scRNA$meta
+        )
+      }
+    data_list[[name]]= ref_scRNA
+    }else{
+      data_list[[name]] <- read_data_frame(path,name,file_structure)
+    }
   }
 
   return(data_list)

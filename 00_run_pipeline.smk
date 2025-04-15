@@ -150,21 +150,21 @@ rule all:
         cleaned_REFERENCE,
         add_h5(pp_files),
         add_h5(fs_files),
-        add_h5(de_rna_unit_files),
-        add_h5(de_met_unit_files),
-        add_h5(li_files),
-        score =  add_h5(scores_files),
-        metaanalysis_script_file = "07_metaanalysis.Rmd"
-    output: 
-        "07_metaanalysis.html"
-    log: 
-        "logs/07_metaanalysis.Rout"
-    shell:"""
-RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
-rmarkdown::render('{input.metaanalysis_script_file}');"
-echo $RCODE | Rscript - 2>&1 > {log}
-echo "all is done!" 
-"""    
+#         add_h5(de_rna_unit_files),
+#         add_h5(de_met_unit_files),
+#         add_h5(li_files),
+#         score =  add_h5(scores_files),
+#         metaanalysis_script_file = "07_metaanalysis.Rmd"
+#     output: 
+#         "07_metaanalysis.html"
+#     log: 
+#         "logs/07_metaanalysis.Rout"
+#     shell:"""
+# RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
+# rmarkdown::render('{input.metaanalysis_script_file}');"
+# echo $RCODE | Rscript - 2>&1 > {log}
+# echo "all is done!" 
+# """    
         
 
 rule cleaning_mix:
@@ -219,7 +219,6 @@ rule preprocessing:
         "logs/02_{omic}_{dataset}_{pp}.txt"        
     shell:"""
 mkdir -p output/preprocessing/{{{omic_dirs}}}/
-
 RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{input.script}';  source('{input.pp_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
