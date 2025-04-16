@@ -1,13 +1,18 @@
 
-program_block_FS <- function(multi_data) {
+program_block_FS <- function(data,path_og_dataset='') {
   
-  nb_fs_met=nrow(multi_data$ref$ref_bulkRNA)
+  og_ref_met  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_met')$ref_met
+  # nb_fs_met=nrow(og_ref$ref_bulkRNA)
+  nb_fs_met=nrow(og_ref_met)
 
-  hvp <- TOAST::findRefinx(multi_data$ref$ref_met, nmarker = min(nrow(multi_data$ref$ref_met),nb_fs_met))
 
-  multi_data$mix$mix_met <- multi_data$mix$mix_met[hvp,]
-  multi_data$ref$ref_met <- multi_data$ref$ref_met[hvp,]
+  hvp <- TOAST::findRefinx(og_ref_met, nmarker = min(nrow(og_ref_met),nb_fs_met))
+
+  # multi_data$mix$mix_met <- multi_data$mix$mix_met[hvp,]
+  # multi_data$ref$ref_met <- multi_data$ref$ref_met[hvp,]
+
+  
  
-  return(multi_data) 
+  return(data[hvp,]) 
 }
 

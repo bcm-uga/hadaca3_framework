@@ -1,4 +1,4 @@
-program_block_PP <- function(data) {    
+program_block_PP <- function(data,path_og_dataset='') {    
     # Normalize input matrices
     #' Normalize a Matrix by Column Sums
     #'

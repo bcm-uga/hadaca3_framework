@@ -1,12 +1,13 @@
-program_block_PP <- function(multi_data) {
-
-
+program_block_PP <- function(data,path_og_dataset='') {
+  
+#only for scRNA
+stopifnot(is.list(data))
         
-  multi_data$ref$ref_scRNA <- lapply(multi_data$ref$ref_scRNA, function(x) {
+  data<- lapply(data, function(x) {
       logical_matrix = x$counts > 1000 ; 
       x$counts[logical_matrix] = 1000;
       list(counts = x$counts,
            metadata = x$metadata)})
   
-  return(multi_data) 
+  return(data) 
 }

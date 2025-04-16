@@ -1,13 +1,9 @@
 source("utils/data_processing.R")
 source(script_file)
 
-# ref = read_all_ref_hdf5(reference_file)
-# mix = read_mix_hdf5(mixes_file)
-# write_global_hdf5('output/tmp2.h5',ref)
 
-# multi_data = list(mix = mix,
-#              ref = ref)
 
+path_og_dataset= list(mix =mixes_file,ref = reference_file )
 
 omic_name = omic2list_name[[get_omic(output_file)]]
 
@@ -21,7 +17,10 @@ if (mixes_file!= ''){
 print(mixes_file)
 print(reference_file)
 
-ppblock = program_block_PP(data)
+ppblock = program_block_PP(data,path_og_dataset)
+
+assert(length(ppblock) != 0, paste("result data in Preprocess is empty, script_file = ",script_file ) )
+
 
 res =list()
 res[[omic_name]] =  ppblock

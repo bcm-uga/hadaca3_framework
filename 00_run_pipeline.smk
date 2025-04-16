@@ -150,21 +150,21 @@ rule all:
         cleaned_REFERENCE,
         add_h5(pp_files),
         add_h5(fs_files),
-#         add_h5(de_rna_unit_files),
-#         add_h5(de_met_unit_files),
-#         add_h5(li_files),
-#         score =  add_h5(scores_files),
-#         metaanalysis_script_file = "07_metaanalysis.Rmd"
-#     output: 
-#         "07_metaanalysis.html"
-#     log: 
-#         "logs/07_metaanalysis.Rout"
-#     shell:"""
-# RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
-# rmarkdown::render('{input.metaanalysis_script_file}');"
-# echo $RCODE | Rscript - 2>&1 > {log}
-# echo "all is done!" 
-# """    
+        add_h5(de_rna_unit_files),
+        add_h5(de_met_unit_files),
+        add_h5(li_files),
+        score =  add_h5(scores_files),
+        metaanalysis_script_file = "07_metaanalysis.Rmd"
+    output: 
+        "07_metaanalysis.html"
+    log: 
+        "logs/07_metaanalysis.Rout"
+    shell:"""
+RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
+rmarkdown::render('{input.metaanalysis_script_file}');"
+echo $RCODE | Rscript - 2>&1 > {log}
+echo "all is done!" 
+"""    
         
 
 rule cleaning_mix:
@@ -233,11 +233,16 @@ rule features_selection:
         dependances = lambda wildcard: CONFIG['features_selection'][wildcard.fs].get('dependances',[])
     output: 
         "output/feature-selection/{omic}/{dataset}_{pp}_{fs}.h5"
+    params:
+        mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        ref = cleaned_REFERENCE
     log : 
         "logs/03_{omic}_{dataset}_{pp}_{fs}.txt" 
     shell:"""
 mkdir -p output/feature-selection/{{{omic_dirs}}}/
-RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  source('{input.fs_wrapper}');"
+RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  
+path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+source('{input.fs_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 
@@ -247,21 +252,25 @@ rule prediction_deconvolution_rna:
     threads: 1
     message: "-- Processing splitted RNA unit deconvolution Block, Pipeline A -- "
     input: 
-       split_wrapper = "04_Split_n_decon_A.R" ,
+       split_wrapper = "04_decovolution_RNA_unit_pipA.R" ,
        script_de = lambda wildcard: CONFIG['deconvolution'][wildcard.de]['path'].strip(), 
     #    script_split = lambda wildcard: CONFIG['split'][]['path'].strip(),
        dependances = lambda wildcard: CONFIG['deconvolution'][wildcard.de].get('dependances',[]),
        file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
-       file_input_rna = "output/feature-selection/{omicrna}/{dataset}_{pprna}_{fsrna}.h5",
-       file_input_scrna = "output/feature-selection/{omicscrna}/{dataset}_{ppsc}_{fssc}.h5"
+       file_input_rna = "output/feature-selection/{omicrna}/ref_{pprna}_{fsrna}.h5",
+       file_input_scrna = "output/feature-selection/{omicscrna}/ref_{ppsc}_{fssc}.h5"
     output: 
         "output/rna-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.h5"
+    params:
+        mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        ref = cleaned_REFERENCE
     log : 
         "logs/04_{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.txt"     
     shell:"""
 mkdir -p output/rna-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}'; input_file_rna='{input.file_input_rna}';input_file_sc='{input.file_input_scrna}';
 output_file='{output}'; 
+path_ogmix={params.mix} ; path_ogref={params.ref} ; 
 script_de_rna='{input.script_de}' ;  source('{input.split_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -270,21 +279,24 @@ rule prediction_deconvolution_met:
     threads: 1
     message: "-- Processing splitted met unit deconvolution Block, Pipeline A -- "
     input: 
-        split_wrapper = "04_Split_n_decon_A.R" , 
-        # dependece = lambda wildcard: CONFIG['deconvolution'][wildcard.de]['depence'].strip(),
+        split_wrapper = "04_decovolution_MET_unit_pipA.R" , 
         script_de = lambda wildcard: CONFIG['deconvolution'][wildcard.de]['path'].strip(),
         dependances = lambda wildcard: CONFIG['deconvolution'][wildcard.de].get('dependances',[]),
         # script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(), 
         file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
-        file_input_met = "output/feature-selection/{omicmet}/{dataset}_{ppmet}_{fsmet}.h5"
+        file_input_met = "output/feature-selection/{omicmet}/ref_{ppmet}_{fsmet}.h5"
     output: 
         "output/met-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.h5"
+    params:
+        mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        ref = cleaned_REFERENCE
     log : 
         "logs/04_{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.txt"      
     shell:"""
 mkdir -p output/met-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}';  input_file_met='{input.file_input_met}';
 output_file='{output}';  script_de_met='{input.script_de}';  
+path_ogmix={params.mix} ; path_ogref={params.ref} ; 
 source('{input.split_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -304,14 +316,15 @@ rule late_integration:
         "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"      
     log: 
         "logs/05_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.txt"     
-    # params: 
-    #     last_dataset = "output/feature-selection/{dataset}_{pp}_{fs}.h5" 
-        # priorknowledge  =  lambda wildcard:  CONFIG['late_integration'][wildcard.li]['input'],      
+    params:
+        mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        ref = cleaned_REFERENCE      
     shell:"""
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
 output_file='{output}'; script_file='{input.script_li}'; 
-  source('{input.late_integration}');"
+path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+source('{input.late_integration}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 # last_dataset='{params.last_dataset}';
@@ -327,6 +340,9 @@ rule scoring:
         groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
     output: 
         "output/scores/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.h5"
+    # params:
+    #     mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+    #     ref = cleaned_REFERENCE
     log : 
         "logs/06_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.txt"   
     shell:"""

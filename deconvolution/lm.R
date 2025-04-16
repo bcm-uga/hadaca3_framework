@@ -11,7 +11,7 @@ program_block_DE = function(uni_data) {
   # idx_feat corresponds to the intersection of features present in the references and in the mixtures.
   
   mix = uni_data$mix
-  ref = uni_data$ref$bulk
+  ref = uni_data$ref
   idx_feat = intersect(rownames(mix), rownames(ref))
 
 
