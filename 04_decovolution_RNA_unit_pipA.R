@@ -12,7 +12,11 @@ rna_unit = list(mix= mix,ref =ref,ref_scRNA=  scRNA  )
 
 source(script_de_rna)
 pred = program_block_DE(rna_unit,path_og_dataset)
-assert(length(pred) != 0, paste("prediction  in Pipeline A RNA unit is empty, script_file = ",script_de_rna ) )
+
+if(length(pred) == 0){
+stop(paste("prediction  in Pipeline A RNA unit is empty, script_file = ",script_de_met ) )
+} 
+# assert(length(pred) != 0, paste("prediction  in Pipeline A RNA unit is empty, script_file = ",script_de_rna ) )
 
 
 write_global_hdf5(output_file,list(pred=pred))

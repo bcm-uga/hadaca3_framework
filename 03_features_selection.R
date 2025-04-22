@@ -13,7 +13,9 @@ data = read_hdf5(input_file)[[omic_name]]
 source(script_file)
 block = program_block_FS(data,path_og_dataset)
 
-assert(length(block) != 0, paste("result data in Features selection is empty, script_file = ",script_file ) )
+if(length(block) == 0){
+strop(paste("result data in Features selection is empty, script_file = ",script_file ) )
+} 
 
 
 res =list()

@@ -2,17 +2,6 @@
 import yaml
 from typing import List, Dict
 
-# ##import blocks and datasets from yml files
-# DATASETS                 = yaml.safe_load(open("datasets.yml")) 
-# PRE_PROC                 = yaml.safe_load(open("preprocessing.yml")) 
-# FEATURES_SELECTION       = yaml.safe_load(open("feature_selection.yml")) 
-# EARLY_INTEGRATION        = yaml.safe_load(open("early_integration.yml")) 
-# INTERMEDIATE_INTEGRATION = yaml.safe_load(open("intermediate_integration.yml")) 
-# LATE_INTEGRATION         = yaml.safe_load(open("late_integration.yml")) 
-# DECONVOLUTION            = yaml.safe_load(open("deconvolution.yml")) 
-# SPLIT                    = yaml.safe_load(open("split.yml")) 
-
-# Load configuration from YAML files
 def load_yaml(file_path: str) -> Dict:
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
@@ -29,9 +18,7 @@ CONFIG_FILES = {
 }
     # "split": "split.yml"
 
-# Load configurations
 CONFIG = {key: load_yaml(path) for key, path in CONFIG_FILES.items()}
-
 
 REFERENCE     = ["data/ref.h5"] 
 CLEANER       =  "global_cleaning/clean_matrix.R" 
@@ -117,8 +104,6 @@ de_met_unit_files = [f'output/met-decovolution-split/{get_dataset(mix_combi)}_{b
         if (( get_omic(mix_combi) == 'mixMET' ) and (get_omic(met_combi) =='MET')) 
     ]
 
-
-
 li_files = [f'output/prediction/{get_dataset(file_prediction_RNA)}_{block_combinaison(file_prediction_RNA,False)}_{block_combinaison(file_prediction_MET,False)}_{li}' 
         for file_prediction_RNA  in de_rna_unit_files 
         for file_prediction_MET in de_met_unit_files 
@@ -144,15 +129,15 @@ scores_files = [f'output/scores/{last_file.split('/')[-1]}_score' for last_file 
 rule all: 
     input: 
         #pipelines A
-        original_datasets_files,
-        add_h5(cleaned_datasets_files),
-        REFERENCE,
-        cleaned_REFERENCE,
-        add_h5(pp_files),
-        add_h5(fs_files),
-        add_h5(de_rna_unit_files),
-        add_h5(de_met_unit_files),
-        add_h5(li_files),
+        # original_datasets_files,
+        # add_h5(cleaned_datasets_files),
+        # REFERENCE,
+        # cleaned_REFERENCE,
+        # add_h5(pp_files),
+        # add_h5(fs_files),
+        # add_h5(de_rna_unit_files),
+        # add_h5(de_met_unit_files),
+        # add_h5(li_files),
         score =  add_h5(scores_files),
         metaanalysis_script_file = "07_metaanalysis.Rmd"
     output: 
@@ -241,7 +226,7 @@ rule features_selection:
     shell:"""
 mkdir -p output/feature-selection/{{{omic_dirs}}}/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  
-path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.fs_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -270,7 +255,7 @@ rule prediction_deconvolution_rna:
 mkdir -p output/rna-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}'; input_file_rna='{input.file_input_rna}';input_file_sc='{input.file_input_scrna}';
 output_file='{output}'; 
-path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 script_de_rna='{input.script_de}' ;  source('{input.split_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -296,7 +281,7 @@ rule prediction_deconvolution_met:
 mkdir -p output/met-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}';  input_file_met='{input.file_input_met}';
 output_file='{output}';  script_de_met='{input.script_de}';  
-path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.split_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -323,7 +308,7 @@ rule late_integration:
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
 output_file='{output}'; script_file='{input.script_li}'; 
-path_ogmix={params.mix} ; path_ogref={params.ref} ; 
+path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.late_integration}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -340,9 +325,9 @@ rule scoring:
         groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
     output: 
         "output/scores/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.h5"
-    # params:
-    #     mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
-    #     ref = cleaned_REFERENCE
+    params:
+        mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        ref = cleaned_REFERENCE
     log : 
         "logs/06_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.txt"   
     shell:"""

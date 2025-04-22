@@ -19,8 +19,9 @@ print(reference_file)
 
 ppblock = program_block_PP(data,path_og_dataset)
 
-assert(length(ppblock) != 0, paste("result data in Preprocess is empty, script_file = ",script_file ) )
-
+if(length(ppblock) == 0){
+    stop(paste("result data in Preprocess is empty, script_file = ",script_file ))
+}
 
 res =list()
 res[[omic_name]] =  ppblock

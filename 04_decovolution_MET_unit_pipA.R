@@ -12,6 +12,8 @@ met_unit = list(mix= mix,ref =ref)#,ref_scRNA=  scRNA  )
 source(script_de_met)
 pred = program_block_DE(met_unit,path_og_dataset)
 
-assert(length(pred) != 0, paste("prediction  in Pipeline A MET unit is empty, script_file = ",script_de_met ) )
+if(length(pred) == 0){
+stop(paste("prediction  in Pipeline A MET unit is empty, script_file = ",script_de_met ) )
+} 
 
 write_global_hdf5(output_file,list(pred=pred))

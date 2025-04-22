@@ -1,6 +1,6 @@
 
 # TODO
-program_block_FS <- function(multi_data,path_og_dataset='') {
+program_block_FS <- function(data,path_og_dataset='') {
     
     
     
@@ -21,6 +21,6 @@ program_block_FS <- function(multi_data,path_og_dataset='') {
     }
 
  
-  return(multi_data) 
+  return(data) 
 }
 
