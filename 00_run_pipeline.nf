@@ -24,11 +24,19 @@ params.omic_dirs = params.mixomics + params.refomics
 
 
 params.wrapper = [
-    script_01: '01_global_preprocess_mix.R',
-    script_02 : '01_global_preprocess_ref.R'
+    script_01_mix: '01_global_preprocess_mix.R',
+    script_01_ref : '01_global_preprocess_ref.R', 
+    script_02 : "02_preprocess.R", 
+    script_03 : '03_features_selection.R',
+    script_04_rna : '04_decovolution_RNA_unit_pipA.R',
+    script_04_met : '04_decovolution_MET_unit_pipA.R',
+    script_04_met : '04_decovolution_MET_unit_pipA.R',
+    script_05 : '05_late_integration_A.R',
+    script_06_scoring : '06_scoring.R',
+    script_07_anal : '07_metaanalysis.Rmd'
 ]
 
-
+params.utils = "utils/data_processing.R"
 
 def get_omic(path) {
     return path.split('/')[-2]
@@ -52,9 +60,7 @@ workflow {
         def parsedContent = new YamlSlurper().parse(filePath as File)
         CONFIG[key] = parsedContent
     }
-
-
-    original_datasets_files = CONFIG['datasets'].collect { k, v -> v['path'] }
+    original_datasets_files = CONFIG['datasets'].collect { k, v -> v['path'] }.flatten()
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
     cleaned_REFERENCE = params.reference.collect { "output/ref/${it.split('/')[-1]}" }
 
@@ -125,28 +131,212 @@ workflow {
 
     scores_files = li_files.collect { "output/scores/${it.split('/')[-1]}_score" }
 
-
-    // println "scores: ${li_files.sort()}"
-    // println "scores: ${scores_files.size()}"
+    // println "original_datasets_files: ${original_datasets_files}"
 
 
-     cleaning_mix( Channel.fromPath(original_datasets_files),Channel.fromPath(params.cleaner) ,
-     Channel.fromPath(params.wrapper['script_01'])  )
-    // cleaning_ref(params.reference)
-    // preprocessing(pp_files)
-//     features_selection(fs_files)
+    def utils_channel =  Channel.fromPath(params.utils)
+
+    // Channel.fromPath(original_datasets_files)
+    //     .combine(Channel.fromPath(params.cleaner).concat(
+    //             Channel.fromPath(params.wrapper['script_01_mix']), 
+    //             Channel.fromPath(params.utils))) 
+    //     .set { combined_inputs_cleaning_mix }
+    // Channel.fromPath(original_datasets_files)
+    // .map { mixes -> tuple(mixes, Channel.fromPath(params.cleaner), Channel.fromPath(params.wrapper['script_01_mix']), utils_channel) }
+    // .set { combined_inputs_cleaning_mix }
+
+
+
+    // computing ref 
+    out_cleaned_ref =     cleaning_ref( 
+        Channel.fromPath(params.reference),
+        Channel.fromPath(params.cleaner) ,
+        Channel.fromPath(params.wrapper['script_01_ref']), 
+        Channel.fromPath(params.utils))
+    
+    out_ref_keyed = out_cleaned_ref.map { file ->
+        def key = file.baseName 
+        tuple(key, file)
+    }
+    // computing mixes
+    Channel.fromPath(original_datasets_files)
+    .combine (Channel.fromPath(params.cleaner))
+    .combine (Channel.fromPath(params.wrapper['script_01_mix']))
+    .combine(utils_channel)
+    .set {  combined_inputs_cleaning_mix}
+    
+    out_mix = combined_inputs_cleaning_mix |cleaning_mix
+
+    out_mix_keyed = out_mix.map { file ->
+        def key = file.baseName 
+        tuple(key, file)
+    }.concat( Channel.of(tuple('none',file('none')) ) )  
+
+
+    pp_mix_path = []
+    CONFIG['pre_proc'].each { pp, ppv ->
+        params.mixomics.each { omic ->
+            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
+                pp_mix_path.add(tuple(omic,file(ppv['path'])))
+            }
+        }
+    }
+    pp_ref_path = []
+    CONFIG['pre_proc'].each { pp, ppv ->
+        params.refomics.each { omic ->
+            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
+                pp_ref_path.add(tuple(omic,file(ppv['path']),file('none')))
+            }
+        }
+    }
+
+
+    Channel.fromList( pp_mix_path)
+    .combine(out_mix)
+    .combine(out_cleaned_ref)
+    .combine(Channel.fromPath(params.wrapper.script_02))
+    .combine(utils_channel)
+    .set{pp_mix}
+
+    Channel.fromList( pp_ref_path)
+    .combine(out_cleaned_ref)
+    .combine(Channel.fromPath(params.wrapper.script_02))
+    .combine(utils_channel)
+    .set{pp_ref}
+    
+    out_pp = pp_ref.concat(pp_mix) | preprocessing
+    // out_pp.view()
+    // out_pp.count().view()
+
+    // tuple val(omic),
+    // path(fs_script), 
+    // paht(file_input),
+    // path(mix), /home/nicolashomberg/projects/hadaca3_framework/none
+    // path(reference), 
+    // path(wrapper03),
+    // path(utils)
+
+
+    fs_files = out_pp.map { last_pp ->
+        def omic = last_pp[0]
+        def dataset = last_pp[1]
+        def ref = last_pp[2]
+        // def mix_match = out_mix
+        // .filter { it.baseName.contains(dataset) }
+        // .first()
+
+        //  def ref_match = out_cleaned_ref
+        // .filter { it.baseName.contains(ref) }
+        // .first()
+        def results = []
+        CONFIG['features_selection'].each { fs, fsv ->
+            if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
+                results.add( tuple(
+                                dataset,
+                                ref, 
+                                omic,
+                                file(fsv['path']),
+                                file(last_pp[-1]),
+                                file(params.wrapper.script_03),
+                                file(params.utils)
+                                
+                                
+                                // mix_match,
+                                // ref_match
+                                // out_mix.filter{it.baseName.contains(dataset)},
+                                // out_cleaned_ref.filter{it.baseName.contains(ref)}
+                ))
+            }   
+         }
+        return results
+    }.flatten().collate(7)
+    // .view()
+
+    // fs_files.count().view()
+
+    // merged = fs_files
+    // .join(out_mix_keyed, by: 0)
+    // .map { dataset, ref, omic, script, input_file, scrpit_file ->
+    //     tuple(omic, script, input_file, scrpit_file)
+    // }.view()
+
+    // out_mix_keyed.view()
+
+    // Add the correct file from out_mix to each fs_files tuple
+    merged = fs_files
+    .combine(out_mix_keyed)
+    .filter { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file ->
+        fs_dataset_key == dataset_key 
+    }
+    .combine(out_ref_keyed)
+    .filter {fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file,ref_key,ref_file ->
+        fs_ref_key == ref_key 
+    }
+    .map { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file,ref_key,ref_file->
+        tuple(omic, script, input_file, dataset_file,ref_file,fs_script,utils)
+    }
+    .view()
+
+
+    merged.count().view()
+
+    // fs_files.count().view()
+    
+    // fs_files | features_selection
+
+    // fs_files.combine(Channel.fromPath(params.wrapper.script_02))
+    // .combine(utils_channel)
+    // .set{pp_ref}
+
+    // out_cleaned_ref.view()
+    // out_mix.filter(it -> it.name.contains('mixes1_invivo_pdac') ).view()
+    // out_mix.filter{it.name.contains('mixes1_invivo_pdac')}.view()
+    // dataset = 'mixes1_invivo_pdac'
+    // out_mix.filter(~/.*$(dataset).*/) .view()
+
+//  .filter( ~/^a.*/ )
+
+
+
+
+    // fs_files = out_pp.map { last_pp ->
+    //     def omic = last_pp[0]
+    //     println omic
+    //     def results = []
+    //     params.CONFIG['features_selection'].each { fs, fsv ->
+    //             results.add(file(fsv['path']))
+    //         }
+    //     }
+    //     return results
+    // }.flatten()
+
+    // fs_files.view()
+
+    // pp_mix.view()
+    // pp_ref.concat(pp_mix).count().view()
+
+    // pp_mix.combine(pp_ref.collect()).view()
+    // out_pp_mix = pp_mix | preprocessing 
+    // Channel.fromList([1, 2, 3]).set { A }
+    // Channel.fromList(['a', 'b', 'c']).set { B }
+
+    // A.combine((B.collect()))
+    //     .view()
+
+
+
+    // features_selection(fs_files)
 //     prediction_deconvolution_rna(de_rna_unit_files)
 //     prediction_deconvolution_met(de_met_unit_files)
 //     late_integration(li_files)
 //     scoring(scores_files)
+
+
 }
 
 process cleaning_mix {
     input:
-    path mixes
-    path cleaner
-    path wrapper01
-     
+    tuple path(mixes), path(cleaner), path(wrapper01), path(utils)
 
     output:
     path "output/mixes/${mixes.baseName}.h5"
@@ -155,72 +345,126 @@ process cleaning_mix {
     """
     mkdir -p output/mixes/
     RCODE="mixes_file='${mixes}'; output_file='output/mixes/${mixes.baseName}.h5'; 
-    cleaner='${cleaner}'; source('${wrapper01}');"
+    utils_script='${utils}'; cleaner='${cleaner}';
+     source('${wrapper01}');"
     echo \$RCODE | Rscript -
     """
-
-    workingDir : '.'
+    
+    stub:
+    """
+    mkdir -p output/mixes/
+    RCODE="mixes_file='${mixes}'; output_file='output/mixes/${mixes.baseName}.h5'; 
+    utils_script='${utils}'; cleaner='${cleaner}';
+     source('${wrapper01}');"
+    echo \$RCODE
+    touch output/mixes/${mixes.baseName}.h5
+    """
+    // workingDir : '.'
 }
 
-// process cleaning_mix {
-//     input:
-//     path mixes
-
-//     output:
-//     path "output/mixes/${mixes.baseName}.h5"
-
-//     script:
-//     """
-//     mkdir -p output/mixes/
-//     RCODE="mixes_file='${mixes}'; output_file='${output}'; cleaner='${params.cleaner}'; source('01_global_preprocess_mix.R');"
-//     echo \$RCODE | Rscript - 2>&1 > logs/01_${mixes.baseName}.txt
-//     """
-// }
 
 process cleaning_ref{
     input:
     path reference
+    path cleaner
+    path wrapper01
+    path utils
 
     output:
-    path "output/ref/${reference.baseName}.h5"
+    path  "output/ref/${reference.baseName}.h5"
 
     script:
     """
     mkdir -p output/ref/
-    RCODE="reference_file='${reference}'; output_file='${output}'; cleaner='${params.cleaner}'; source('01_global_preprocess_ref.R');"
-    echo \$RCODE | Rscript - 2>&1 > logs/01_${reference.baseName}.txt
+    RCODE="reference_file='${reference}'; output_file='output/ref/${reference.baseName}.h5'; 
+    utils_script='${utils}';cleaner='${cleaner}'; 
+    source('${wrapper01}');"
+    echo \$RCODE | Rscript -
+    """
+
+    stub : 
+        """
+    mkdir -p output/ref/
+    RCODE="reference_file='${reference}'; output_file='output/ref/${reference.baseName}.h5'; 
+    utils_script='${utils}';cleaner='${cleaner}'; 
+    source('${wrapper01}');"
+    echo \$RCODE 
+    touch output/ref/${reference.baseName}.h5
     """
 }
+    // echo \$RCODE | Rscript - 2>&1 > logs/01_${reference.baseName}.txt
 
 process preprocessing {
     input:
-    path mix, reference
-    path script
-
+    tuple val(omic),
+        path(pp_script), 
+        path(mix), 
+        path(reference), 
+        path(wrapper02),
+        path(utils)
     output:
-    path "output/preprocessing/${omic}/${dataset}_${pp}.h5"
+    tuple val(omic),val(mix.baseName),val(reference.baseName), path("output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5")
 
     script:
     """
-    mkdir -p output/preprocessing/${params.omic_dirs.join(',')}/
-    RCODE="mixes_file='${mix}'; reference_file='${reference}'; output_file='${output}'; script_file='${script}'; source('02_preprocess.R');"
-    echo \$RCODE | Rscript - 2>&1 > logs/02_${omic}_${dataset}_${pp}.txt
+    mkdir -p output/preprocessing/${omic}/
+    RCODE=" omic='${omic}'; 
+    output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
+    utils_script='${utils}'; 
+    script_file='${pp_script}'; 
+    source('${wrapper02}');"
+    echo \$RCODE | Rscript -
+    touch output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5
+    """
+    // mixes_file='${mix}'; reference_file='${reference}'; 
+
+    stub : 
+        """
+    mkdir -p output/preprocessing/${omic}/
+    RCODE="mixes_file='${mix}'; reference_file='${reference}'; 
+    output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
+    utils_script='${utils}'; 
+    script_file='${pp_script}'; 
+    source('${wrapper02}');"
+    echo \$RCODE 
+    touch output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5
     """
 }
+    // echo \$RCODE | Rscript - 2>&1 > logs/02_${omic}_${dataset}_${pp}.txt
 
 process features_selection {
     input:
-    path file_input
-    path script
+        tuple val(omic),
+        path(fs_script), 
+        path(file_input),
+        path(mix), 
+        path(reference), 
+        path(wrapper03),
+        path(utils)
+
 
     output:
-    path "output/feature-selection/${omic}/${dataset}_${pp}_${fs}.h5"
+    path "output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"
 
     script:
     """
-    mkdir -p output/feature-selection/${params.omic_dirs.join(',')}/
-    RCODE="input_file='${file_input}'; output_file='${output}'; script_file='${script}'; source('03_features_selection.R');"
-    echo \$RCODE | Rscript - 2>&1 > logs/03_${omic}_${dataset}_${pp}_${fs}.txt
+        mkdir -p output/feature-selection/${omic}/
+        RCODE="input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5';
+        script_file='${fs_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper03}');"
+        echo \$RCODE | Rscript - 2>&1 > logs/03_${omic}_${dataset}_${pp}_${fs}.txt
+    """
+
+    stub:
+    """
+        mkdir -p output/feature-selection/${omic}/
+        RCODE="input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5'; 
+        script_file='${fs_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper03}');"
+        echo \$RCODE 
+        touch output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5
     """
 }
 

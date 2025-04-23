@@ -1,21 +1,22 @@
-source("utils/data_processing.R")
+source(utils_script)
 source(script_file)
 
 
 
 path_og_dataset= list(mix =mixes_file,ref = reference_file )
 
-omic_name = omic2list_name[[get_omic(output_file)]]
+# omic_name = omic2list_name[[get_omic(output_file)]]
+omic_name = omic
 
-if (mixes_file!= ''){
+if (mixes_file.split('/') != 'none'){
     data = read_mix_hdf5(mixes_file)[[omic_name]]
 }else{
     data = read_all_ref_hdf5(reference_file,to_read = omic_name)[[omic_name]]
 }
 
 
-print(mixes_file)
-print(reference_file)
+# print(mixes_file)
+# print(reference_file)
 
 ppblock = program_block_PP(data,path_og_dataset)
 
