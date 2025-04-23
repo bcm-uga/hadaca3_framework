@@ -2,8 +2,8 @@ source(utils_script)
 
 
 
-omic_name = omic
-# omic_name = omic2list_name[[get_omic(output_file)]]
+# omic_name = omic
+omic_name = omic2list_name[[omic]]
 
 
 path_og_dataset= list(mix =path_ogmix,ref = path_ogref )

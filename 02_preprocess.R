@@ -5,10 +5,10 @@ source(script_file)
 
 path_og_dataset= list(mix =mixes_file,ref = reference_file )
 
-# omic_name = omic2list_name[[get_omic(output_file)]]
-omic_name = omic
-
-if (mixes_file.split('/') != 'none'){
+omic_name = omic2list_name[[omic]]
+# omic_name = omic
+split_result <- strsplit(mixes_file, "/")[[1]]
+if (any(split_result != 'none')){
     data = read_mix_hdf5(mixes_file)[[omic_name]]
 }else{
     data = read_all_ref_hdf5(reference_file,to_read = omic_name)[[omic_name]]

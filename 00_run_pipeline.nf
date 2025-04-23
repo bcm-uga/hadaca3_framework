@@ -54,6 +54,9 @@ def block_combinaison(path, add_omics = true) {
 }
 
 workflow { 
+
+
+    // ################## Reading yml file and populating CONFIG file. 
      def CONFIG = [:]
 
     params.config_files.each { key, filePath ->
@@ -64,88 +67,35 @@ workflow {
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
     cleaned_REFERENCE = params.reference.collect { "output/ref/${it.split('/')[-1]}" }
 
-    pp_files = []
-    CONFIG['pre_proc'].each { pp, ppv ->
-        params.mixomics.each { omic ->
-            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')) {
-                CONFIG['datasets'].keySet().each { dataset ->
-                    pp_files.add("output/preprocessing/${omic}/${dataset}_${pp}")
-                }
-            }
-        }
-        params.refomics.each { omic ->
-            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')) {
-                pp_files.add("output/preprocessing/${omic}/ref_${pp}")
-            }
-        }
-    }
 
-    fs_files = []
-    pp_files.each { last_pp ->
-        omic = last_pp.split('/')[-2]
-        CONFIG['features_selection'].each { fs, fsv ->
-            if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
-                fs_files.add("output/feature-selection/${omic}/${last_pp.split('/')[-1]}_${fs}")
-            }
-        }
-    }
-
-
-
-    def de_rna_unit_files = []
-    fs_files.each { mix_combi ->
-        fs_files.each { rna_combi ->
-            fs_files.each { sc_combi ->
-                if (get_omic(mix_combi) == 'mixRNA' && get_omic(rna_combi) == 'RNA' && get_omic(sc_combi) == 'scRNA') {
-                    CONFIG['deconvolution'].each { de, dev ->
-                        de_rna_unit_files.add("output/rna-decovolution-split/${get_dataset(mix_combi)}_${block_combinaison(mix_combi).join('_')}_${block_combinaison(rna_combi).join('_')}_${block_combinaison(sc_combi).join('_')}_${de}")
-                    }
-                }
-            }
-        }
-    }
-
-    // Generate de_met_unit_files
-    def de_met_unit_files = []
-    fs_files.each { mix_combi ->
-        fs_files.each { met_combi ->
-            if (get_omic(mix_combi) == 'mixMET' && get_omic(met_combi) == 'MET') {
-                CONFIG['deconvolution'].each { de, dev ->
-                    de_met_unit_files.add("output/met-decovolution-split/${get_dataset(mix_combi)}_${block_combinaison(mix_combi).join('_')}_${block_combinaison(met_combi).join('_')}_${de}")
-                }
-            }
-        }
-    }
+    // // Generate de_met_unit_files
+    // def de_met_unit_files = []
+    // fs_files.each { mix_combi ->
+    //     fs_files.each { met_combi ->
+    //         if (get_omic(mix_combi) == 'mixMET' && get_omic(met_combi) == 'MET') {
+    //             CONFIG['deconvolution'].each { de, dev ->
+    //                 de_met_unit_files.add("output/met-decovolution-split/${get_dataset(mix_combi)}_${block_combinaison(mix_combi).join('_')}_${block_combinaison(met_combi).join('_')}_${de}")
+    //             }
+    //         }
+    //     }
+    // }
 
     
-    li_files = []
-    de_rna_unit_files.each { file_prediction_RNA ->
-        de_met_unit_files.each { file_prediction_MET ->
-            if (get_dataset(file_prediction_RNA) == get_dataset(file_prediction_MET)) {
-                CONFIG['late_integration'].keySet().each { li ->
-                    li_files.add("output/prediction/${get_dataset(file_prediction_RNA)}_${block_combinaison(file_prediction_RNA, false).join('_')}_${block_combinaison(file_prediction_MET, false).join('_')}_${li}")
-                }
-            }
-        }
-    }
+    // li_files = []
+    // de_rna_unit_files.each { file_prediction_RNA ->
+    //     de_met_unit_files.each { file_prediction_MET ->
+    //         if (get_dataset(file_prediction_RNA) == get_dataset(file_prediction_MET)) {
+    //             CONFIG['late_integration'].keySet().each { li ->
+    //                 li_files.add("output/prediction/${get_dataset(file_prediction_RNA)}_${block_combinaison(file_prediction_RNA, false).join('_')}_${block_combinaison(file_prediction_MET, false).join('_')}_${li}")
+    //             }
+    //         }
+    //     }
+    // }
 
-    scores_files = li_files.collect { "output/scores/${it.split('/')[-1]}_score" }
-
-    // println "original_datasets_files: ${original_datasets_files}"
+    // scores_files = li_files.collect { "output/scores/${it.split('/')[-1]}_score" }
 
 
     def utils_channel =  Channel.fromPath(params.utils)
-
-    // Channel.fromPath(original_datasets_files)
-    //     .combine(Channel.fromPath(params.cleaner).concat(
-    //             Channel.fromPath(params.wrapper['script_01_mix']), 
-    //             Channel.fromPath(params.utils))) 
-    //     .set { combined_inputs_cleaning_mix }
-    // Channel.fromPath(original_datasets_files)
-    // .map { mixes -> tuple(mixes, Channel.fromPath(params.cleaner), Channel.fromPath(params.wrapper['script_01_mix']), utils_channel) }
-    // .set { combined_inputs_cleaning_mix }
-
-
 
     // computing ref 
     out_cleaned_ref =     cleaning_ref( 
@@ -158,6 +108,9 @@ workflow {
         def key = file.baseName 
         tuple(key, file)
     }
+
+    // ################## Computing cleaned mix and ref cleand and generating a tuple with key as the dataset or ref name and output file. 
+
     // computing mixes
     Channel.fromPath(original_datasets_files)
     .combine (Channel.fromPath(params.cleaner))
@@ -173,6 +126,9 @@ workflow {
     }.concat( Channel.of(tuple('none',file('none')) ) )  
 
 
+    // ################## Generate combinaison and prediction for the preprocess 
+
+    
     pp_mix_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
         params.mixomics.each { omic ->
@@ -205,29 +161,13 @@ workflow {
     .set{pp_ref}
     
     out_pp = pp_ref.concat(pp_mix) | preprocessing
-    // out_pp.view()
-    // out_pp.count().view()
 
-    // tuple val(omic),
-    // path(fs_script), 
-    // paht(file_input),
-    // path(mix), /home/nicolashomberg/projects/hadaca3_framework/none
-    // path(reference), 
-    // path(wrapper03),
-    // path(utils)
-
-
+    // ################## Generate combinaison and prediction for  features selection
     fs_files = out_pp.map { last_pp ->
         def omic = last_pp[0]
         def dataset = last_pp[1]
         def ref = last_pp[2]
-        // def mix_match = out_mix
-        // .filter { it.baseName.contains(dataset) }
-        // .first()
 
-        //  def ref_match = out_cleaned_ref
-        // .filter { it.baseName.contains(ref) }
-        // .first()
         def results = []
         CONFIG['features_selection'].each { fs, fsv ->
             if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
@@ -239,31 +179,14 @@ workflow {
                                 file(last_pp[-1]),
                                 file(params.wrapper.script_03),
                                 file(params.utils)
-                                
-                                
-                                // mix_match,
-                                // ref_match
-                                // out_mix.filter{it.baseName.contains(dataset)},
-                                // out_cleaned_ref.filter{it.baseName.contains(ref)}
                 ))
             }   
          }
         return results
     }.flatten().collate(7)
-    // .view()
-
-    // fs_files.count().view()
-
-    // merged = fs_files
-    // .join(out_mix_keyed, by: 0)
-    // .map { dataset, ref, omic, script, input_file, scrpit_file ->
-    //     tuple(omic, script, input_file, scrpit_file)
-    // }.view()
-
-    // out_mix_keyed.view()
 
     // Add the correct file from out_mix to each fs_files tuple
-    merged = fs_files
+    complete_fs_files = fs_files
     .combine(out_mix_keyed)
     .filter { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file ->
         fs_dataset_key == dataset_key 
@@ -275,29 +198,46 @@ workflow {
     .map { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file,ref_key,ref_file->
         tuple(omic, script, input_file, dataset_file,ref_file,fs_script,utils)
     }
-    .view()
+
+    out_fs = complete_fs_files | features_selection
+
+    // ################## Generate combinaison for the RNA unit 
+
+        // def de_rna_unit_files = []
+    // fs_files.each { mix_combi ->
+    //     fs_files.each { rna_combi ->
+    //         fs_files.each { sc_combi ->
+    //             if (get_omic(mix_combi) == 'mixRNA' && get_omic(rna_combi) == 'RNA' && get_omic(sc_combi) == 'scRNA') {
+    //                 CONFIG['deconvolution'].each { de, dev ->
+    //                     de_rna_unit_files.add("output/rna-decovolution-split/${get_dataset(mix_combi)}_${block_combinaison(mix_combi).join('_')}_${block_combinaison(rna_combi).join('_')}_${block_combinaison(sc_combi).join('_')}_${de}")
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
 
-    merged.count().view()
-
-    // fs_files.count().view()
-    
-    // fs_files | features_selection
-
-    // fs_files.combine(Channel.fromPath(params.wrapper.script_02))
-    // .combine(utils_channel)
-    // .set{pp_ref}
-
-    // out_cleaned_ref.view()
-    // out_mix.filter(it -> it.name.contains('mixes1_invivo_pdac') ).view()
-    // out_mix.filter{it.name.contains('mixes1_invivo_pdac')}.view()
-    // dataset = 'mixes1_invivo_pdac'
-    // out_mix.filter(~/.*$(dataset).*/) .view()
-
-//  .filter( ~/^a.*/ )
-
-
-
+    de_rna_unit_files = out_fs.map { last_fs ->
+        def omic = last_fs[0]
+        def dataset = last_fs[1]
+        def ref = last_fs[2]
+        def output_file = last_fs[-1]
+        def results = []
+        CONFIG['features_selection'].each { fs, fsv ->
+            if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
+                results.add( tuple(
+                                dataset,
+                                ref, 
+                                omic,
+                                file(fsv['path']),
+                                file(last_pp[-1]),
+                                file(params.wrapper.script_03),
+                                file(params.utils)
+                ))
+            }   
+         }
+        return results
+    }.flatten().collate(7)
 
     // fs_files = out_pp.map { last_pp ->
     //     def omic = last_pp[0]
@@ -325,7 +265,6 @@ workflow {
 
 
 
-    // features_selection(fs_files)
 //     prediction_deconvolution_rna(de_rna_unit_files)
 //     prediction_deconvolution_met(de_met_unit_files)
 //     late_integration(li_files)
@@ -395,6 +334,8 @@ process cleaning_ref{
     // echo \$RCODE | Rscript - 2>&1 > logs/01_${reference.baseName}.txt
 
 process preprocessing {
+    cpus 1
+
     input:
     tuple val(omic),
         path(pp_script), 
@@ -409,19 +350,20 @@ process preprocessing {
     """
     mkdir -p output/preprocessing/${omic}/
     RCODE=" omic='${omic}'; 
+    mixes_file='${mix}'; reference_file='${reference}'; 
     output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
     utils_script='${utils}'; 
     script_file='${pp_script}'; 
     source('${wrapper02}');"
     echo \$RCODE | Rscript -
-    touch output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5
     """
-    // mixes_file='${mix}'; reference_file='${reference}'; 
+    // 
 
     stub : 
         """
     mkdir -p output/preprocessing/${omic}/
-    RCODE="mixes_file='${mix}'; reference_file='${reference}'; 
+    RCODE=" omic='${omic}';
+    mixes_file='${mix}'; reference_file='${reference}'; 
     output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
     utils_script='${utils}'; 
     script_file='${pp_script}'; 
@@ -433,6 +375,8 @@ process preprocessing {
     // echo \$RCODE | Rscript - 2>&1 > logs/02_${omic}_${dataset}_${pp}.txt
 
 process features_selection {
+    cpus 1
+    
     input:
         tuple val(omic),
         path(fs_script), 
@@ -444,16 +388,74 @@ process features_selection {
 
 
     output:
-    path "output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"
+    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"))
+
+    script:
+    """
+        mkdir -p output/feature-selection/${omic}/
+        RCODE="omic='${omic}'; 
+        input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5';
+        path_ogmix='${mix}' ; path_ogref='${reference}' ; 
+        script_file='${fs_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper03}');"
+        echo \$RCODE | Rscript - 
+    """
+
+    stub:
+    """
+        mkdir -p output/feature-selection/${omic}/
+        RCODE="omic='${omic}'; 
+        input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5'; 
+        path_ogmix='${mix}' ; path_ogref='${reference}' ; 
+        script_file='${fs_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper03}');"
+        echo \$RCODE 
+        touch output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5
+    """
+}
+
+process prediction_deconvolution_rna {
+    cpus 1
+    
+     input:
+        tuple val(omic),
+        path(fs_script), 
+        path(file_input_mix),
+        path(file_input_rna),
+        path(file_input_scrna),
+        path(mix), 
+        path(reference), 
+        path(wrapper03),
+        path(utils)
+
+    path file_input_mix, file_input_rna, file_input_scrna
+    path script_de
+
+    output:
+    path "output/rna-decovolution-split/${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.h5"
+
+    output:
+    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"))
+    
+    script:
+    """
+    mkdir -p output/rna-decovolution-split/
+    RCODE="input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}'; output_file='${output}'; script_de_rna='${script_de}'; source('04_decovolution_RNA_unit_pipA.R');"
+    echo \$RCODE | Rscript - 2>&1 > logs/04_${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.txt
+    """
+
 
     script:
     """
         mkdir -p output/feature-selection/${omic}/
         RCODE="input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5';
+        mixes_file='${mix}'; reference_file='${reference}'; 
         script_file='${fs_script}'; 
         utils_script='${utils}'; 
         source('${wrapper03}');"
-        echo \$RCODE | Rscript - 2>&1 > logs/03_${omic}_${dataset}_${pp}_${fs}.txt
+        echo \$RCODE | Rscript - 
     """
 
     stub:
@@ -468,23 +470,9 @@ process features_selection {
     """
 }
 
-process prediction_deconvolution_rna {
-    input:
-    path file_input_mix, file_input_rna, file_input_scrna
-    path script_de
-
-    output:
-    path "output/rna-decovolution-split/${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.h5"
-
-    script:
-    """
-    mkdir -p output/rna-decovolution-split/
-    RCODE="input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}'; output_file='${output}'; script_de_rna='${script_de}'; source('04_decovolution_RNA_unit_pipA.R');"
-    echo \$RCODE | Rscript - 2>&1 > logs/04_${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.txt
-    """
-}
-
 process prediction_deconvolution_met {
+    cpus 1
+    
     input:
     path file_input_mix, file_input_met
     path script_de
@@ -501,6 +489,8 @@ process prediction_deconvolution_met {
 }
 
 process late_integration {
+    cpus 1
+    
     input:
     path input_file_rna, input_file_met
     path script_li
@@ -517,6 +507,8 @@ process late_integration {
 }
 
 process scoring {
+    cpus 1
+    
     input:
     path prediction
     path groundtruth_file
