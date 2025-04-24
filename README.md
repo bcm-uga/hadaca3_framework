@@ -167,3 +167,10 @@ All data should have HDF5 format with a compression level set to 6 and 'gzip' as
 * Sc_concat in preprocess have a warning 'should be sample-normalized' but this is not appearing in the code. 
 * how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
 * deal with global feature selection ? It seems it's only to select rows present in all datasets. 
+
+
+Nextflow : 
+* Finalize pipeline A 
+* add the dictionnary of current method (pp,fs) to access information such as... shortname and dependances and other parameters
+* change output of file depending to have the real name instead of the path; 
+* include ref in rna and met unit. 

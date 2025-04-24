@@ -1,6 +1,6 @@
 
+source(utils_script)
 
-source("utils/data_processing.R")
 
 mix = read_hdf5(input_file_mix)$mix_rna
 ref = read_hdf5(input_file_rna)$ref_bulkRNA

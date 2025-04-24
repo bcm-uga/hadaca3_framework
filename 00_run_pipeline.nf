@@ -30,7 +30,6 @@ params.wrapper = [
     script_03 : '03_features_selection.R',
     script_04_rna : '04_decovolution_RNA_unit_pipA.R',
     script_04_met : '04_decovolution_MET_unit_pipA.R',
-    script_04_met : '04_decovolution_MET_unit_pipA.R',
     script_05 : '05_late_integration_A.R',
     script_06_scoring : '06_scoring.R',
     script_07_anal : '07_metaanalysis.Rmd'
@@ -217,27 +216,63 @@ workflow {
     // }
 
 
-    de_rna_unit_files = out_fs.map { last_fs ->
-        def omic = last_fs[0]
-        def dataset = last_fs[1]
-        def ref = last_fs[2]
-        def output_file = last_fs[-1]
-        def results = []
-        CONFIG['features_selection'].each { fs, fsv ->
-            if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
-                results.add( tuple(
-                                dataset,
-                                ref, 
-                                omic,
-                                file(fsv['path']),
-                                file(last_pp[-1]),
-                                file(params.wrapper.script_03),
-                                file(params.utils)
-                ))
-            }   
-         }
-        return results
-    }.flatten().collate(7)
+    // de_rna_unit_files = out_fs.map { last_fs ->
+    //     def omic = last_fs[0]
+    //     def dataset = last_fs[1]
+    //     def ref = last_fs[2]
+    //     def output_file = last_fs[-1]
+    //     def results = []
+    //     CONFIG['features_selection'].each { fs, fsv ->
+    //         if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
+    //             results.add( tuple(
+    //                             dataset,
+    //                             ref, 
+    //                             omic,
+    //                             file(fsv['path']),
+    //                             file(last_fs[-1]),
+    //                             file(params.wrapper.script_03),
+    //                             file(params.utils)
+    //             ))
+    //         }   
+    //      }
+    //     return results
+    // }.flatten().collate(7)
+
+
+    // de_rna_unit_files = Channel.of(file(CONFIG['path']))
+
+    deco_path =  []
+    CONFIG.deconvolution.each {de,dev -> deco_path.add(file(dev.path))}
+
+    de_channel = Channel.fromList(deco_path)
+
+    fs_mixRNA = out_fs.filter{v -> v[0]=='mixRNA'}.map{v -> v[-3..-1]}
+    fs_RNA =out_fs.filter{v -> v[0]=='RNA'}.map{v -> v[-2..-1]}
+    fs_scRNA = out_fs.filter{v -> v[0]=='scRNA'}.map{v -> v[-2..-1]}
+
+    // de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).set{de_rna_unit}
+    de_rna_unit = 
+    de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix_keyed).combine(out_ref_keyed)
+    .filter{   de_script, dataset_mix, ref_mix,file_input_mix, ref_RNA,file_input_RNA,ref_scRNA,file_input_scRNA,dataset_key, dataset_file,ref_key,ref_file ->
+        ref_scRNA == ref_key && ref_RNA == ref_key && ref_mix == ref_key && dataset_mix == dataset_key
+    }
+    .map{ de_script, dataset_mix, ref_mix,file_input_mix, ref_RNA,file_input_RNA,ref_scRNA,file_input_scRNA,dataset_key, dataset_file,ref_key,ref_file ->
+        tuple(de_script,file_input_mix, file_input_RNA,file_input_scRNA, dataset_file,ref_file)
+    }
+    .combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils))))
+
+    // de_rna_unit.view()  
+    // de_rna_unit.count().view()
+
+    out_de_rna_unitde_rna_unit = de_rna_unit | prediction_deconvolution_rna 
+
+    out_de_rna_unitde_rna_unit.view()
+    out_de_rna_unitde_rna_unit.count().view()
+    
+
+
+
+
 
     // fs_files = out_pp.map { last_pp ->
     //     def omic = last_pp[0]
@@ -388,13 +423,13 @@ process features_selection {
 
 
     output:
-    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"))
+    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5"))
 
     script:
     """
-        mkdir -p output/feature-selection/${omic}/
+        mkdir -p output/feature-selection/
         RCODE="omic='${omic}'; 
-        input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5';
+        input_file='${file_input}'; output_file='output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5';
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_file='${fs_script}'; 
         utils_script='${utils}'; 
@@ -404,15 +439,15 @@ process features_selection {
 
     stub:
     """
-        mkdir -p output/feature-selection/${omic}/
+        mkdir -p output/feature-selection/
         RCODE="omic='${omic}'; 
-        input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5'; 
+        input_file='${file_input}'; output_file='output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5'; 
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_file='${fs_script}'; 
         utils_script='${utils}'; 
         source('${wrapper03}');"
         echo \$RCODE 
-        touch output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5
+        touch output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5
     """
 }
 
@@ -420,53 +455,43 @@ process prediction_deconvolution_rna {
     cpus 1
     
      input:
-        tuple val(omic),
-        path(fs_script), 
+        tuple path(de_script), 
         path(file_input_mix),
         path(file_input_rna),
         path(file_input_scrna),
         path(mix), 
         path(reference), 
-        path(wrapper03),
+        path(wrapper04),
         path(utils)
 
-    path file_input_mix, file_input_rna, file_input_scrna
-    path script_de
-
     output:
-    path "output/rna-decovolution-split/${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.h5"
-
-    output:
-    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5"))
-    
-    script:
-    """
-    mkdir -p output/rna-decovolution-split/
-    RCODE="input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}'; output_file='${output}'; script_de_rna='${script_de}'; source('04_decovolution_RNA_unit_pipA.R');"
-    echo \$RCODE | Rscript - 2>&1 > logs/04_${dataset}_${omicmix}_${ppmix}_${fsmix}_${omicrna}_${pprna}_${fsrna}_${omicscrna}_${ppsc}_${fssc}_${de}.txt
-    """
-
+    tuple(val(mix.baseName),val(reference.baseName),path("output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5"))
 
     script:
     """
-        mkdir -p output/feature-selection/${omic}/
-        RCODE="input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5';
-        mixes_file='${mix}'; reference_file='${reference}'; 
-        script_file='${fs_script}'; 
+        mkdir -p output/rna-decovolution-split
+        RCODE="
+        input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
+        output_file='output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5';
+        path_ogmix='${mix}' ; path_ogref='${reference}' ; 
+        script_de_rna='${de_script}'; 
         utils_script='${utils}'; 
-        source('${wrapper03}');"
+        source('${wrapper04}');"
         echo \$RCODE | Rscript - 
     """
 
     stub:
     """
-        mkdir -p output/feature-selection/${omic}/
-        RCODE="input_file='${file_input}'; output_file='output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5'; 
-        script_file='${fs_script}'; 
+        mkdir -p output/rna-decovolution-split/
+        RCODE="
+        input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
+        output_file='output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5'; 
+        path_ogmix='${mix}' ; path_ogref='${reference}' ; 
+        script_de_rna='${de_script}'; 
         utils_script='${utils}'; 
-        source('${wrapper03}');"
+        source('${wrapper04}');"
         echo \$RCODE 
-        touch output/feature-selection/${omic}/${file_input.baseName}_${fs_script.baseName}.h5
+        touch output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5
     """
 }
 
