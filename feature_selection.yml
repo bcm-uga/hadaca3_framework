@@ -14,15 +14,15 @@ Toastpercent :  #must be a unique ID without _
   short_name: Tper
   omic: [mixMET,MET]
 
-# Toastvst :  #must be a unique ID without _
-#   path: feature_selection/TOAST_vst.R
-#   short_name: Tvst
-#   omic: [mixRNA,RNA,scRNA]
+Toastvst :  #must be a unique ID without _
+  path: feature_selection/TOAST_vst.R
+  short_name: Tvst
+  omic: [mixRNA,RNA,scRNA]
 
-# Toastbulknbfs : #TOTEST  #must be a unique ID withou
-#   path: feature_selection/TOAST_bulk_nbfs.R
-#   short_name: Tbnf
-#   omic: [mixRNA,RNA,scRNA]
+Toastbulknbfs : #TOTEST  #must be a unique ID withou
+  path: feature_selection/TOAST_bulk_nbfs.R
+  short_name: Tbnf
+  omic: [mixRNA,RNA,scRNA]
 
 # SCcluster: #TODO
 #   path: feature_selection/TOAST_vst.R

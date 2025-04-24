@@ -1,4 +1,5 @@
-source("utils/data_processing.R")
+source(utils_script)
+
 
 # if (!exists("groundtruth_file")) {groundtruth_file = "01_groundtruth/groundtruth1_insilicodirichletEMFA_pdac.rds"} 
 # if (!exists("prediction_file"))  {prediction_file = "02_prediction/prediction1_nnls_insilicodirichletEMFA_pdac.rds"}   

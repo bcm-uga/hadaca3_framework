@@ -1,5 +1,6 @@
 
-source("utils/data_processing.R")
+source(utils_script)
+
 source(script_file);
 
 
@@ -7,6 +8,7 @@ path_og_dataset= list(mix =path_ogmix,ref = path_ogref )
 
 
 pred_RNA = read_hdf5(input_file_rna)$pred
+
 pred_met = read_hdf5(input_file_met)$pred
 
 pred= program_block_li(prop1 = pred_RNA,prop2 = pred_met,path_dataset = path_og_dataset )  
