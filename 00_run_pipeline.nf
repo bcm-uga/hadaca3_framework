@@ -6,6 +6,9 @@ nextflow.enable.dsl=2
 
 workDir='~/project/hadaca3_framework'
 
+
+params.EXECUTE = true
+
 params.config_files = [
     datasets: 'datasets.yml',
     pre_proc: 'preprocessing.yml',
@@ -37,20 +40,21 @@ params.wrapper = [
 
 params.utils = "utils/data_processing.R"
 
-def get_omic(path) {
-    return path.split('/')[-2]
-}
+// def get_omic(path) {
+//     return path.split('/')[-2]
+// }
 
-def get_dataset(path) {
-    return path.split('/')[-1].split('_')[0]
-}
+// def get_dataset(path) {
+//     return path.split('/')[-1].split('_')[0]
+// }
 
-def block_combinaison(path, add_omics = true) {
-    def l_path = path.split('/')
-    def omic = l_path[-2]
-    def descriptif = l_path[-1].split('_')
-    return add_omics ? [omic] + descriptif[1..-1] : descriptif[1..-1]
-}
+// def block_combinaison(path, add_omics = true) {
+//     def l_path = path.split('/')
+//     def omic = l_path[-2]
+//     def descriptif = l_path[-1].split('_')
+//     return add_omics ? [omic] + descriptif[1..-1] : descriptif[1..-1]
+// }
+
 
 workflow { 
 
@@ -64,63 +68,96 @@ workflow {
     }
     original_datasets_files = CONFIG['datasets'].collect { k, v -> v['path'] }.flatten()
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
-    cleaned_REFERENCE = params.reference.collect { "output/ref/${it.split('/')[-1]}" }
 
 
-
-    // li_files = []
-    // de_rna_unit_files.each { file_prediction_RNA ->
-    //     de_met_unit_files.each { file_prediction_MET ->
-    //         if (get_dataset(file_prediction_RNA) == get_dataset(file_prediction_MET)) {
-    //             CONFIG['late_integration'].keySet().each { li ->
-    //                 li_files.add("output/prediction/${get_dataset(file_prediction_RNA)}_${block_combinaison(file_prediction_RNA, false).join('_')}_${block_combinaison(file_prediction_MET, false).join('_')}_${li}")
-    //             }
-    //         }
-    //     }
-    // }
-
-    // scores_files = li_files.collect { "output/scores/${it.split('/')[-1]}_score" }
-
+    // ################## Computing cleaned mix and ref cleand and generating a tuple with key as the dataset or ref name and output file. 
 
     def utils_channel =  Channel.fromPath(params.utils)
 
     // computing ref 
-    out_cleaned_ref =     cleaning_ref( 
-        Channel.fromPath(params.reference),
-        Channel.fromPath(params.cleaner) ,
-        Channel.fromPath(params.wrapper['script_01_ref']), 
-        Channel.fromPath(params.utils))
+
+
+    ref_input = Channel.of (
+        tuple(     
+        [ id: "ref",
+        // ref: "ref", 
+        output : "cleaning-ref-ref.h5"
+        ],
+        file(params.reference[0]), 
+        file(params.cleaner),  
+        file(params.wrapper.script_01_ref),
+        file(params.utils)
+        )
+    )
+
     
-    out_ref_keyed = out_cleaned_ref.map { file ->
-        def key = file.baseName 
-        tuple(key, file)
-    }
+    out_cleaned_ref = ref_input |cleaning_ref 
 
-    // ################## Computing cleaned mix and ref cleand and generating a tuple with key as the dataset or ref name and output file. 
-
+    
+    // out_ref_keyed = out_cleaned_ref.map { file ->
+    //     def key = file.baseName 
+    //     tuple(key, file)
+    // }
     // computing mixes
-    Channel.fromPath(original_datasets_files)
-    .combine (Channel.fromPath(params.cleaner))
-    .combine (Channel.fromPath(params.wrapper['script_01_mix']))
-    .combine(utils_channel)
-    .set {  combined_inputs_cleaning_mix}
+
+
+    dataset_tuple = []
+    CONFIG.datasets.each{dt,dtv-> 
+        dataset_tuple.add( tuple( 
+                [ id: dt,
+                output : "cleaning-mix-"+dt+".h5"
+                ],
+                file(dtv.path),
+                file(params.cleaner),
+                file(params.wrapper.script_01_mix),
+                file(params.utils)                
+            ))
+        }
+
+    out_mix =  Channel.fromList(dataset_tuple) |cleaning_mix
     
-    out_mix = combined_inputs_cleaning_mix |cleaning_mix
+    // out_mix.view()
+        // out_mix = combined_inputs_cleaning_mix |cleaning_mix
 
-    out_mix_keyed = out_mix.map { file ->
-        def key = file.baseName 
-        tuple(key, file)
-    }.concat( Channel.of(tuple('none',file('none')) ) )  
+//     out_mix_keyed = out_mix.map { file ->
+//         def key = file.baseName 
+//         tuple(key, file)
+//     }
+// .concat( Channel.of(tuple('none',file('none')) ) )  
 
 
-    // ################## Generate combinaison and prediction for the preprocess 
 
-    
+
+//     // ################## Generate combinaison and prediction for the preprocess 
+
+
+    // out_mix.map{  mix_meta,mix_file -> 
+    // def pp_mix_path = []
+    //     CONFIG['pre_proc'].each { pp, ppv ->
+    //         params.mixomics.each { omic ->
+    //             if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
+    //                 pp_mix_path.add(tuple(
+    //                     [ id: dt,
+    //                     omic, 
+    //                     output : "cleaned-"+dt+".h5"
+    //                     ],
+    //                     file(ppv['path'])))
+    //             }
+    //         }
+    //     }
+
+
+    // }
+
     pp_mix_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
         params.mixomics.each { omic ->
             if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
-                pp_mix_path.add(tuple(omic,file(ppv['path'])))
+                pp_mix_path.add(tuple(
+                    [ pp_fun: pp,
+                    omic: omic, 
+                    ],
+                    file(ppv['path'])))
             }
         }
     }
@@ -128,163 +165,291 @@ workflow {
     CONFIG['pre_proc'].each { pp, ppv ->
         params.refomics.each { omic ->
             if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
-                pp_ref_path.add(tuple(omic,file(ppv['path']),file('none')))
+                pp_ref_path.add(tuple(
+                    [ pp_fun: pp,
+                    omic: omic, 
+                    ],
+                file(ppv['path']),
+                file('none')))
             }
         }
     }
 
-
-    Channel.fromList( pp_mix_path)
+    pp_mix = Channel.fromList( pp_mix_path)
     .combine(out_mix)
     .combine(out_cleaned_ref)
-    .combine(Channel.fromPath(params.wrapper.script_02))
-    .combine(utils_channel)
-    .set{pp_mix}
+    .map{pp_meta,pp_file,mix_meta,mix_file,ref_met,ref_file ->
+        // def dup_meta_mix = mix_meta.clone()
+        // def dup_meta_ref = ref_met.clone()
+        def dup_pp_meta = pp_meta.clone()
+        dup_pp_meta['dataset'] = mix_meta.id
+        dup_pp_meta['ref']=ref_met.id
+        dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
+        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+    }
+    // .combine(Channel.fromPath(params.wrapper.script_02))
+    // .combine(utils_channel)
 
-    Channel.fromList( pp_ref_path)
+
+
+    pp_ref =  Channel.fromList( pp_ref_path)
     .combine(out_cleaned_ref)
-    .combine(Channel.fromPath(params.wrapper.script_02))
-    .combine(utils_channel)
-    .set{pp_ref}
+    .map{pp_meta,pp_file,mix_file,ref_met,ref_file ->
+        def dup_pp_meta = pp_meta.clone() 
+        dup_pp_meta['dataset'] = 'none'
+        dup_pp_meta['ref']=ref_met.id
+        dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic, dup_pp_meta.dataset, ref_met.id,   dup_pp_meta.pp_fun ].join('_')+'.h5'
+        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+    }
     
     out_pp = pp_ref.concat(pp_mix) | preprocessing
 
-    // ################## Generate combinaison and prediction for  features selection
-    fs_files = out_pp.map { last_pp ->
-        def omic = last_pp[0]
-        def dataset = last_pp[1]
-        def ref = last_pp[2]
 
+//     // ################## Generate combinaison and prediction for  features selection
+
+
+    fs_files = out_pp.map { meta , last_pp_file ->
         def results = []
         CONFIG['features_selection'].each { fs, fsv ->
-            if (fsv['omic'].contains(omic) || fsv['omic'].contains('ANY')) {
-                results.add( tuple(
-                                dataset,
-                                ref, 
-                                omic,
+            def dup_meta = meta.clone() 
+
+            if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')) {
+                dup_meta['fs_fun'] = fs
+                results.add( 
+                                [
+                                    dup_meta,
+                                    // tuple(
                                 file(fsv['path']),
-                                file(last_pp[-1]),
+                                file(last_pp_file),
                                 file(params.wrapper.script_03),
                                 file(params.utils)
-                ))
+                                // )
+                                ]
+                )
             }   
          }
         return results
-    }.flatten().collate(7)
+    }.flatMap()
+    
 
-    // Add the correct file from out_mix to each fs_files tuple
+    out_mix_with_none = out_mix.concat(Channel.of(tuple( [id:'none'],file('none'))))
+    
+
     complete_fs_files = fs_files
-    .combine(out_mix_keyed)
-    .filter { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file ->
-        fs_dataset_key == dataset_key 
+    .combine(out_mix_with_none)
+    .filter { fs_meta, a,b,c,d, dataset_meta, dataset_file ->
+        fs_meta.dataset == dataset_meta.id 
     }
-    .combine(out_ref_keyed)
-    .filter {fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file,ref_key,ref_file ->
-        fs_ref_key == ref_key 
+    .combine(out_cleaned_ref)
+    .filter {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+        fs_meta.ref == ref_meta.id 
     }
-    .map { fs_dataset_key, fs_ref_key, omic, script, input_file, fs_script,utils, dataset_key, dataset_file,ref_key,ref_file->
-        tuple(omic, script, input_file, dataset_file,ref_file,fs_script,utils)
+    .map {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+        def dup_fs_meta = fs_meta.clone()
+        dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
+        tuple(dup_fs_meta, a,b,c,d,dataset_file,ref_file )
     }
 
     out_fs = complete_fs_files | features_selection
 
-    // ################## Generate combinaison for the RNA unit 
+    // out_fs.view()
+
+    // complete_fs_files.view{ v -> v[0].dataset}
+
+
+// ################## Generate combinaison for the RNA unit 
 
     deco_path =  []
-    CONFIG.deconvolution.each {de,dev -> deco_path.add(file(dev.path))}
+    CONFIG.deconvolution.each {de,dev -> deco_path.add( [ [de_fun : de]  , file(dev.path)])}
 
     de_channel = Channel.fromList(deco_path)
 
-    fs_mixRNA = out_fs.filter{v -> v[0]=='mixRNA'}.map{v -> v[-3..-1]}
-    fs_RNA =out_fs.filter{v -> v[0]=='RNA'}.map{v -> v[-2..-1]}
-    fs_scRNA = out_fs.filter{v -> v[0]=='scRNA'}.map{v -> v[-2..-1]}
+    fs_mixRNA = out_fs.filter{meta,_ -> meta.omic=='mixRNA'  }
+    fs_RNA =out_fs.filter{meta,_ -> meta.omic=='RNA'}
+    fs_scRNA = out_fs.filter{meta,_ -> meta.omic=='scRNA'}
 
     de_rna_unit = 
-    de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix_keyed).combine(out_ref_keyed)
-    .filter{   de_script, dataset_mix, ref_mix,file_input_mix, ref_RNA,file_input_RNA,ref_scRNA,file_input_scRNA,dataset_key, dataset_file,ref_key,ref_file ->
-        ref_scRNA == ref_key && ref_RNA == ref_key && ref_mix == ref_key && dataset_mix == dataset_key
+    de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
+    .filter{ meta_de,  de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+        meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
     }
-    .map{ de_script, dataset_mix, ref_mix,file_input_mix, ref_RNA,file_input_RNA,ref_scRNA,file_input_scRNA,dataset_key, dataset_file,ref_key,ref_file ->
-        tuple(de_script,file_input_mix, file_input_RNA,file_input_scRNA, dataset_file,ref_file)
+    .map{ meta_de, de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file->
+        // def meta_unit_rna = 
+        def dup_meta_de =meta_de.clone()
+        dup_meta_de['mixRNA'] = meta_mix
+        dup_meta_de['RNA'] = meta_RNA
+        dup_meta_de['scRNA'] = meta_scRNA
+        dup_meta_de['dataset'] = dup_meta_de.mixRNA.dataset
+        dup_meta_de['ref'] = dup_meta_de.mixRNA.ref
+        def output_name = "out-derna-" + [dup_meta_de.dataset,dup_meta_de.ref].join('_')  +
+                [dup_meta_de.mixRNA.omic, dup_meta_de.mixRNA.pp_fun, dup_meta_de.mixRNA.fs_fun ].join('_')   +
+                [dup_meta_de.RNA.omic, dup_meta_de.RNA.pp_fun, dup_meta_de.RNA.fs_fun ].join('_')   +
+                [dup_meta_de.scRNA.omic, dup_meta_de.scRNA.pp_fun, dup_meta_de.scRNA.fs_fun ].join('_')   +'.h5'
+                
+        dup_meta_de.output =output_name
+        tuple(dup_meta_de,de_script,file_input_mix, file_input_RNA,file_input_scRNA, dataset_file,ref_file)
     }
     .combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils))))
 
 
+    // de_rna_unit.view{v -> v[0].output  }
+
     out_de_rna_unit = de_rna_unit | prediction_deconvolution_rna 
 
+    // out_de_rna_unit.count().view()
     
 
-    // ################## Generate combinaison for the MET unit 
+//     // ################## Generate combinaison for the MET unit 
 
-    // deco_path =  []
-    // CONFIG.deconvolution.each {de,dev -> deco_path.add(file(dev.path))}
+    fs_mixMET = out_fs.filter{meta,_ -> meta.omic=='mixMET'  }
+    fs_MET =out_fs.filter{meta,_ -> meta.omic=='MET'  }
 
-    // de_channel = Channel.fromList(deco_path)
+    deco_path_met =  []
+    CONFIG.deconvolution.each {de,dev -> deco_path_met.add( [ [de_fun : de]  , file(dev.path)])}
 
-    fs_mixMET = out_fs.filter{v -> v[0]=='mixMET'}.map{v -> v[-3..-1]}
-    fs_MET =out_fs.filter{v -> v[0]=='MET'}.map{v -> v[-2..-1]}
+    de_channel_met = Channel.fromList(deco_path_met)
+
 
     de_met_unit = 
-    de_channel.combine(fs_mixMET).combine(fs_MET).combine(out_mix_keyed).combine(out_ref_keyed)
-    .filter{   de_script, dataset_mix, ref_mix,file_input_mix, ref_MET,file_input_MET,dataset_key, dataset_file,ref_key,ref_file ->
-        ref_MET == ref_key && ref_mix == ref_key && dataset_mix == dataset_key
+    de_channel_met.combine(fs_mixMET).combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)
+    .filter{ meta_de,  de_script, meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+        meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
     }
-    .map{ de_script, dataset_mix, ref_mix,file_input_mix, ref_MET,file_input_MET,dataset_key, dataset_file,ref_key,ref_file ->
-        tuple(de_script,file_input_mix, file_input_MET, dataset_file,ref_file)
+    .map{meta_de, de_script, meta_mix,file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+        def dup_meta_de = meta_de.clone()
+        dup_meta_de['mixMET'] = meta_mix
+        dup_meta_de['MET'] = meta_MET
+        dup_meta_de['dataset'] = meta_mix.dataset
+        dup_meta_de['ref'] = meta_mix.ref
+        def output_name = "out-demet-" + [dup_meta_de.dataset,dup_meta_de.ref].join('_')  +
+                [dup_meta_de.mixMET.omic, dup_meta_de.mixMET.pp_fun, dup_meta_de.mixMET.fs_fun ].join('_')   +
+                [dup_meta_de.MET.omic, dup_meta_de.MET.pp_fun, dup_meta_de.MET.fs_fun ].join('_')   +'.h5'
+                
+        dup_meta_de.output =output_name
+        tuple(dup_meta_de, de_script,file_input_mix, file_input_MET, dataset_file,ref_file)
     }
     .combine(Channel.of(tuple(file(params.wrapper.script_04_met),file(params.utils))))
 
-    out_de_met_unit= de_met_unit | prediction_deconvolution_met 
+
+    out_de_met_unit= de_met_unit | prediction_deconvolution_met
 
 
-    // ################## Generate combinaison for late integration
+
+
+    // out_de_met_unit.count().view()
+    // out_de_met_unit.last().view()
+
+    // de_met_unit.filter{v ->
+    //     v[0].mixMET == 'fsID'
+    // }.count().view()
+    
+    // de_met_unit
+
+// ################## Generate combinaison for late integration
 
     li_path =  []
-    CONFIG.late_integration.each {li,liv -> li_path.add(file(liv.path))}
+    CONFIG.late_integration.each {li,liv -> li_path.add([ [li:li ] , file(liv.path)])}
 
     li_channel = Channel.fromList(li_path)
 
     li_combinaison = 
-    li_channel.combine(out_de_rna_unit).combine(out_de_met_unit).combine(out_mix_keyed).combine(out_ref_keyed)
-    .filter{ li_cript,  dataset_rna, ref_rna, file_rna , dataset_met, ref_met, file_met ,dataset_key, dataset_file,ref_key,ref_file -> 
-        dataset_rna == dataset_key && dataset_met == dataset_key && ref_rna == ref_key &&     ref_met ==ref_key
-    }.map{
-        li_cript , dataset_rna, ref_rna, file_rna , dataset_met, ref_met, file_met, dataset_key, dataset_file,ref_key,ref_file ->
-        tuple( li_cript , file_rna , file_met, dataset_file,ref_file  )
+    li_channel.combine(out_de_rna_unit).combine(out_de_met_unit)
+    .combine(out_mix).combine(out_cleaned_ref)
+    // .filter{m, li_dic, meta_rna, file_rna,    meta_met, file_met         -> 
+    //     meta_met.mixMET == 'fsID'
+    // }
+    // .filter{m, li_dic, meta_rna, file_rna,    meta_met, file_met         -> 
+    //     meta_rna.dataset == meta_met.dataset
+    // }
+    
 
+    .filter{m, li_dic, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
+        meta_rna.dataset == dataset_meta.id &&         meta_met.dataset == dataset_meta.id && 
+        meta_rna.ref == ref_meta.id         &&         meta_met.ref ==ref_meta.id
+    }
+    .map{
+        li_meta,li_path,meta_rna, file_rna , meta_met, file_met ,dataset_meta, dataset_file, ref_meta, ref_file ->
+        def dup_li_meta = li_meta.clone()
+        dup_li_meta['dataset'] = meta_rna.dataset
+        dup_li_meta['ref'] = meta_rna.ref
+        dup_li_meta['rna_unit'] = meta_rna
+        dup_li_meta['met_unit'] = meta_met
+
+        def output_name = "out-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')  +
+            [dup_li_meta.rna_unit.mixRNA.pp_fun, dup_li_meta.rna_unit.mixRNA.fs_fun ].join('_')   +
+            [dup_li_meta.rna_unit.RNA.pp_fun, dup_li_meta.rna_unit.RNA.fs_fun ].join('_')           +
+            [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun ].join('_')      +
+            [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')   +
+            [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ].join('_')           +'.h5'
+        dup_li_meta["output"] = output_name
+        tuple( dup_li_meta,li_path , file_rna , file_met, dataset_file,ref_file )
     }.combine(Channel.of(tuple(file(params.wrapper.script_05),file(params.utils))))
 
 
-    // li_combinaison.last().view()
-    // li_combinaison.count().view()
+    // li_combinaison.view{ v->  """${v[2].dataset} ${v[4].dataset}
+    // ${v[2].mixRNA}
+    // ${v[2].RNA}
+    // ${v[2].scRNA}
+    
+    // ${v[4].mixMET}
+    // ${v[4].MET}    
+    // \n\n"""  }
+    
+
+    
+    li_combinaison.count().view()
+
+
 
     out_li = li_combinaison | late_integration 
 
     // out_li.last().view()
     // out_li.count().view()
 
-    // ################## Generate score 
+//     // ################## Generate score 
 
-    // out_li.map{   v -> 
-    // def dataset_full_name = v.split('/')[-1].split('_')
+    score_input = out_li.map{   meta,file_path  -> 
+
+        def dup_meta = meta.clone()
+        // dup_meta.output = 
+        def output_name = "score-" + [dup_meta.dataset,dup_meta.ref].join('_')  +
+            [dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +
+            [dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +
+            [dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun ].join('_')      +
+            [dup_meta.met_unit.mixMET.pp_fun, dup_meta.met_unit.mixMET.fs_fun ].join('_')   +
+            [dup_meta.met_unit.MET.pp_fun, dup_meta.met_unit.MET.fs_fun ].join('_')           +'.h5'
+        dup_meta["output"] = output_name
+        tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))
+     }   
+
+    // score_input.last().view()
+    // score_input.count().view()
 
 
-    // }
+    score_out = score_input | scoring
 
+    // score_out.last().view()
+    // score_out.count().view()
 
 }
 
 process cleaning_mix {
     input:
-    tuple path(mixes), path(cleaner), path(wrapper01), path(utils)
+    tuple val(meta),  
+    path(mixes), 
+    path(cleaner), 
+    path(wrapper01),
+    path(utils)
 
     output:
-    path "output/mixes/${mixes.baseName}.h5"
+    // path "${mixes.baseName}.h5"
+    // tuple val(meta), path("cleaning-mix-*.h5")
+    tuple val(meta), path("${meta.output}")
+    
 
     script:
     """
-    mkdir -p output/mixes/
-    RCODE="mixes_file='${mixes}'; output_file='output/mixes/${mixes.baseName}.h5'; 
+    RCODE="mixes_file='${mixes}'; output_file='${meta.output}'; 
     utils_script='${utils}'; cleaner='${cleaner}';
      source('${wrapper01}');"
     echo \$RCODE | Rscript -
@@ -292,12 +457,11 @@ process cleaning_mix {
     
     stub:
     """
-    mkdir -p output/mixes/
-    RCODE="mixes_file='${mixes}'; output_file='output/mixes/${mixes.baseName}.h5'; 
+    RCODE="mixes_file='${mixes}'; output_file='${meta.output}'; 
     utils_script='${utils}'; cleaner='${cleaner}';
      source('${wrapper01}');"
     echo \$RCODE
-    touch output/mixes/${mixes.baseName}.h5
+    touch ${meta.output}
     """
     // workingDir : '.'
 }
@@ -305,18 +469,22 @@ process cleaning_mix {
 
 process cleaning_ref{
     input:
-    path reference
-    path cleaner
-    path wrapper01
-    path utils
+    tuple val(meta), 
+    path(reference),
+    path(cleaner) ,
+    path(wrapper01),
+    path(utils)
+    
 
     output:
-    path  "output/ref/${reference.baseName}.h5"
+    // tuple val(meta), path("cleaning-ref*.h5")
+    tuple val(meta), path("${meta.output}")
+
+
 
     script:
     """
-    mkdir -p output/ref/
-    RCODE="reference_file='${reference}'; output_file='output/ref/${reference.baseName}.h5'; 
+    RCODE="reference_file='${reference}'; output_file='${meta.output}'; 
     utils_script='${utils}';cleaner='${cleaner}'; 
     source('${wrapper01}');"
     echo \$RCODE | Rscript -
@@ -324,12 +492,11 @@ process cleaning_ref{
 
     stub : 
         """
-    mkdir -p output/ref/
-    RCODE="reference_file='${reference}'; output_file='output/ref/${reference.baseName}.h5'; 
+    RCODE="reference_file='${reference}'; output_file='${meta.output}'; 
     utils_script='${utils}';cleaner='${cleaner}'; 
     source('${wrapper01}');"
     echo \$RCODE 
-    touch output/ref/${reference.baseName}.h5
+    touch ${meta.output}
     """
 }
     // echo \$RCODE | Rscript - 2>&1 > logs/01_${reference.baseName}.txt
@@ -338,21 +505,22 @@ process preprocessing {
     cpus 1
 
     input:
-    tuple val(omic),
+    tuple val(meta),
         path(pp_script), 
         path(mix), 
         path(reference), 
         path(wrapper02),
         path(utils)
     output:
-    tuple val(omic),val(mix.baseName),val(reference.baseName), path("output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5")
+    tuple val(meta), path("${meta.output}")
+
+    // tuple val(meta), path("out-prepross*.h5")
 
     script:
     """
-    mkdir -p output/preprocessing/${omic}/
-    RCODE=" omic='${omic}'; 
+    RCODE=" omic='${meta.omic}'; 
     mixes_file='${mix}'; reference_file='${reference}'; 
-    output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
+    output_file='${meta.output}'; 
     utils_script='${utils}'; 
     script_file='${pp_script}'; 
     source('${wrapper02}');"
@@ -361,16 +529,15 @@ process preprocessing {
     // 
 
     stub : 
-        """
-    mkdir -p output/preprocessing/${omic}/
-    RCODE=" omic='${omic}';
+    """
+    RCODE=" omic='${meta.omic}';
     mixes_file='${mix}'; reference_file='${reference}'; 
-    output_file='output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5'; 
+    output_file='${meta.output}'; 
     utils_script='${utils}'; 
     script_file='${pp_script}'; 
     source('${wrapper02}');"
     echo \$RCODE 
-    touch output/preprocessing/${omic}/${reference.baseName}_${mix.baseName}_${pp_script.baseName}.h5
+    touch ${meta.output}
     """
 }
     // echo \$RCODE | Rscript - 2>&1 > logs/02_${omic}_${dataset}_${pp}.txt
@@ -379,23 +546,25 @@ process features_selection {
     cpus 1
     
     input:
-        tuple val(omic),
-        path(fs_script), 
-        path(file_input),
-        path(mix), 
-        path(reference), 
-        path(wrapper03),
-        path(utils)
+        tuple( val(meta),
+            path(fs_script), 
+            path(file_input),
+            path(wrapper03),
+            path(utils),
+            path(mix), 
+            path(reference),
+            )
 
 
     output:
-    tuple(val(omic),val(mix.baseName),val(reference.baseName),path("output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5"))
+    tuple val(meta), path("${meta.output}")
+
+    // tuple(val(meta),path("out-fs-*.h5"))
 
     script:
     """
-        mkdir -p output/feature-selection/
-        RCODE="omic='${omic}'; 
-        input_file='${file_input}'; output_file='output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5';
+        RCODE="omic='${meta.omic}'; 
+        input_file='${file_input}'; output_file='${meta.output}';
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_file='${fs_script}'; 
         utils_script='${utils}'; 
@@ -405,15 +574,14 @@ process features_selection {
 
     stub:
     """
-        mkdir -p output/feature-selection/
-        RCODE="omic='${omic}'; 
-        input_file='${file_input}'; output_file='output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5'; 
+        RCODE="omic='${meta.omic}'; 
+        input_file='${file_input}'; output_file='${meta.output}'; 
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_file='${fs_script}'; 
         utils_script='${utils}'; 
         source('${wrapper03}');"
         echo \$RCODE 
-        touch output/feature-selection/${omic}_${file_input.baseName}_${fs_script.baseName}.h5
+        touch ${meta.output}
     """
 }
 
@@ -421,7 +589,8 @@ process prediction_deconvolution_rna {
     cpus 1
     
      input:
-        tuple path(de_script), 
+        tuple val(meta),
+        path(de_script), 
         path(file_input_mix),
         path(file_input_rna),
         path(file_input_scrna),
@@ -431,14 +600,17 @@ process prediction_deconvolution_rna {
         path(utils)
 
     output:
-    tuple(val(mix.baseName),val(reference.baseName),path("output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5"))
+    tuple val(meta), path("${meta.output}")
+
+    // tuple(val(meta),path("out-derna-*.h5"))s
+
+    // tuple(val(mix.baseName),val(reference.baseName),path("${meta.output}"))
 
     script:
     """
-        mkdir -p output/rna-decovolution-split
         RCODE="
         input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
-        output_file='output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5';
+        output_file='${meta.output}';
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_de_rna='${de_script}'; 
         utils_script='${utils}'; 
@@ -448,23 +620,23 @@ process prediction_deconvolution_rna {
 
     stub:
     """
-        mkdir -p output/rna-decovolution-split/
         RCODE="
         input_file_mix='${file_input_mix}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
-        output_file='output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5'; 
+        output_file='${meta.output}'; 
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_de_rna='${de_script}'; 
         utils_script='${utils}'; 
         source('${wrapper04}');"
         echo \$RCODE 
-        touch output/rna-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_rna.baseName}_${file_input_scrna.baseName}_${de_script.baseName}.h5
+        touch ${meta.output}
     """
 }
 
 process prediction_deconvolution_met {
     cpus 1
      input:
-        tuple path(de_script), 
+        tuple val(meta),
+        path(de_script), 
         path(file_input_mix),
         path(file_input_met),
         path(mix), 
@@ -473,14 +645,15 @@ process prediction_deconvolution_met {
         path(utils)
 
     output:
-    tuple(val(mix.baseName),val(reference.baseName),path("output/met-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_met.baseName}_${de_script.baseName}.h5"))
+    tuple val(meta), path("${meta.output}")
+
+    // tuple(val(meta),path("out-demet*.h5"))
 
     script:
     """
-        mkdir -p output/met-decovolution-split
         RCODE="
         input_file_mix='${file_input_mix}'; input_file_met='${file_input_met}';
-        output_file='output/met-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_met.baseName}_${de_script.baseName}.h5';
+        output_file='${meta.output}';
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_de_met='${de_script}'; 
         utils_script='${utils}'; 
@@ -490,16 +663,15 @@ process prediction_deconvolution_met {
 
     stub:
     """
-        mkdir -p output/met-decovolution-split/
         RCODE="
         input_file_mix='${file_input_mix}'; input_file_met='${file_input_met}';
-        output_file='output/met-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_met.baseName}_${de_script.baseName}.h5'; 
+        output_file='${meta.output}'; 
         path_ogmix='${mix}' ; path_ogref='${reference}' ; 
         script_de_met='${de_script}'; 
         utils_script='${utils}'; 
         source('${wrapper04}');"
         echo \$RCODE 
-        touch output/met-decovolution-split/${mix.baseName}_${file_input_mix.baseName}_${file_input_met.baseName}_${de_script.baseName}.h5
+        touch ${meta.output}
     """
 }
 
@@ -507,7 +679,8 @@ process late_integration {
     cpus 1
     
     input:
-    tuple path(script_li),
+    tuple val(meta),
+    path(script_li),
     path(input_file_rna), 
     path(input_file_met),
     path(mix), 
@@ -516,13 +689,16 @@ process late_integration {
     path(utils)
 
     output:
-    path "output/prediction/${mix.baseName}_${reference.baseName}_${script_li.baseName}.h5"
+    tuple val(meta), path("${meta.output}")
+
+    // tuple(val(meta),path("out-li*.h5"))
+
+    // path "${mix.baseName}_${reference.baseName}_${script_li.baseName}.h5"
 
     script:
     """
-    mkdir -p output/prediction/
     RCODE="input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
-    output_file='output/prediction/${mix.baseName}_${reference.baseName}_${script_li.baseName}.h5'; 
+    output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
     source('${wrapper04}');"
@@ -531,14 +707,13 @@ process late_integration {
 
     stub:
     """
-    mkdir -p output/prediction/
     RCODE="input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
-    output_file='output/prediction/${mix.baseName}_${reference.baseName}_${script_li.baseName}.h5'; 
+    output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
     source('${wrapper04}');"
     echo \$RCODE
-    touch output/prediction/${mix.baseName}_${reference.baseName}_${script_li.baseName}.h5
+    touch ${meta.output}
     """
 }
     // path "output/prediction/${mix.baseName}_${reference.baseName}_${input_file_rna.baseName}_${input_file_met.baseName}_${script_li.baseName}.h5"
@@ -547,18 +722,22 @@ process late_integration {
 process scoring {
     cpus 1
     
-    input: tuple   path(prediction),
+    input:   
+    tuple  val(meta) ,
+    path(prediction),
     path(groundtruth_file),
-    path(scoring_script)
+    path(scoring_script),
     path(utils)
+
     output:
-    path "output/scores/score.h5"
+    tuple val(meta), path("${meta.output}")
+
+    // path "score.h5"
 
     script:
     """
-    mkdir -p output/scores/
     RCODE="prediction_file='${prediction}'; groundtruth_file='${groundtruth_file}'; 
-    score_file='output/scores/score.h5'; 
+    score_file='${meta.output}'; 
     utils_script='${utils}'; 
     source('${scoring_script}');"
     echo \$RCODE | Rscript - 
@@ -566,13 +745,12 @@ process scoring {
 
     stub:
     """
-    mkdir -p output/scores/
     RCODE="prediction_file='${prediction}'; groundtruth_file='${groundtruth_file}'; 
-    score_file='output/scores/score.h5'; 
+    score_file='${meta.output}'; 
     utils_script='${utils}'; 
     source('${scoring_script}');"
     echo \$RCODE 
-    touch output/scores/score.h5
+    touch ${meta.output}
     """
 }
 
