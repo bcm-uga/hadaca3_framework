@@ -161,6 +161,17 @@ workflow {
             }
         }
     }
+
+    pp_mix = Channel.fromList( pp_mix_path)
+    .combine(out_mix)
+    .combine(out_cleaned_ref)
+    .map{pp_meta,pp_file,mix_meta,mix_file,ref_met,ref_file ->
+        def dup_pp_meta = pp_meta.clone()
+        dup_pp_meta['dataset'] = mix_meta.id
+        dup_pp_meta['ref']=ref_met.id
+        dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
+        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+    }
     pp_ref_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
         params.refomics.each { omic ->
@@ -174,24 +185,6 @@ workflow {
             }
         }
     }
-
-    pp_mix = Channel.fromList( pp_mix_path)
-    .combine(out_mix)
-    .combine(out_cleaned_ref)
-    .map{pp_meta,pp_file,mix_meta,mix_file,ref_met,ref_file ->
-        // def dup_meta_mix = mix_meta.clone()
-        // def dup_meta_ref = ref_met.clone()
-        def dup_pp_meta = pp_meta.clone()
-        dup_pp_meta['dataset'] = mix_meta.id
-        dup_pp_meta['ref']=ref_met.id
-        dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
-        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
-    }
-    // .combine(Channel.fromPath(params.wrapper.script_02))
-    // .combine(utils_channel)
-
-
-
     pp_ref =  Channel.fromList( pp_ref_path)
     .combine(out_cleaned_ref)
     .map{pp_meta,pp_file,mix_file,ref_met,ref_file ->
@@ -218,12 +211,10 @@ workflow {
                 results.add( 
                                 [
                                     dup_meta,
-                                    // tuple(
                                 file(fsv['path']),
                                 file(last_pp_file),
                                 file(params.wrapper.script_03),
                                 file(params.utils)
-                                // )
                                 ]
                 )
             }   
@@ -292,11 +283,9 @@ workflow {
     .combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils))))
 
 
-    // de_rna_unit.view{v -> v[0].output  }
 
     out_de_rna_unit = de_rna_unit | prediction_deconvolution_rna 
 
-    // out_de_rna_unit.count().view()
     
 
 //     // ################## Generate combinaison for the MET unit 
@@ -514,8 +503,6 @@ process preprocessing {
     output:
     tuple val(meta), path("${meta.output}")
 
-    // tuple val(meta), path("out-prepross*.h5")
-
     script:
     """
     RCODE=" omic='${meta.omic}'; 
@@ -526,7 +513,6 @@ process preprocessing {
     source('${wrapper02}');"
     echo \$RCODE | Rscript -
     """
-    // 
 
     stub : 
     """

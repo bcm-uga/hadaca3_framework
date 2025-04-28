@@ -146,6 +146,7 @@ rule all:
         "logs/07_metaanalysis.Rout"
     shell:"""
 RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
+utils_script ='utils/data_processing.R';
 rmarkdown::render('{input.metaanalysis_script_file}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 echo "all is done!" 
@@ -158,7 +159,8 @@ rule cleaning_mix:
     input: 
         cleaner="01_global_preprocess_mix.R",
         function_cleaner= CLEANER ,  
-        mixes =  original_datasets_files
+        mixes = lambda wildcard: CONFIG['datasets'][wildcard.dataset]['path'],
+
     output:
         "output/mixes/{dataset}.h5"
     log: 
@@ -166,6 +168,8 @@ rule cleaning_mix:
     shell:"""
 mkdir -p output/mixes/
 RCODE="mixes_file='{input.mixes}';   
+utils_script ='utils/data_processing.R';
+
 output_file='{output}'; cleaner ='{input.function_cleaner}' ;  source('{input.cleaner}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -183,7 +187,9 @@ rule cleaning_ref:
         "logs/01_{reference}.txt"   
     shell:"""
 mkdir -p output/ref/
-RCODE=" reference_file='{input.reference}';   
+RCODE=" reference_file='{input.reference}';
+utils_script ='utils/data_processing.R';
+
 output_file='{output}'; cleaner ='{input.function_cleaner}' ; source('{input.cleaner}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
@@ -201,10 +207,14 @@ rule preprocessing:
     output: 
         "output/preprocessing/{omic}/{dataset}_{pp}.h5" 
     log : 
-        "logs/02_{omic}_{dataset}_{pp}.txt"        
+        "logs/02_{omic}_{dataset}_{pp}.txt"     
+    params:    
+        omic = lambda wildcard: wildcard.omic 
     shell:"""
 mkdir -p output/preprocessing/{{{omic_dirs}}}/
-RCODE="mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{input.script}';  source('{input.pp_wrapper}');"
+RCODE=" omic='{params.omic}';
+utils_script ='utils/data_processing.R';
+mixes_file='{input.mix}'; reference_file='{input.reference}';   output_file='{output}'; script_file='{input.script}';  source('{input.pp_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
 
@@ -220,12 +230,15 @@ rule features_selection:
         "output/feature-selection/{omic}/{dataset}_{pp}_{fs}.h5"
     params:
         mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
+        omic = lambda wildcard: wildcard.omic, 
         ref = cleaned_REFERENCE
     log : 
         "logs/03_{omic}_{dataset}_{pp}_{fs}.txt" 
     shell:"""
 mkdir -p output/feature-selection/{{{omic_dirs}}}/
 RCODE="input_file='{input.file_input}';   output_file='{output}'; script_file='{input.script}';  
+utils_script ='utils/data_processing.R';
+omic='{params.omic}';
 path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.fs_wrapper}');"
 echo $RCODE | Rscript - 2>&1 > {log}
@@ -254,6 +267,8 @@ rule prediction_deconvolution_rna:
     shell:"""
 mkdir -p output/rna-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}'; input_file_rna='{input.file_input_rna}';input_file_sc='{input.file_input_scrna}';
+utils_script ='utils/data_processing.R';
+
 output_file='{output}'; 
 path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 script_de_rna='{input.script_de}' ;  source('{input.split_wrapper}');"
@@ -280,6 +295,8 @@ rule prediction_deconvolution_met:
     shell:"""
 mkdir -p output/met-decovolution-split/
 RCODE="input_file_mix='{input.file_input_mix}';  input_file_met='{input.file_input_met}';
+utils_script ='utils/data_processing.R';
+
 output_file='{output}';  script_de_met='{input.script_de}';  
 path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.split_wrapper}');"
@@ -307,6 +324,8 @@ rule late_integration:
     shell:"""
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
+utils_script ='utils/data_processing.R';
+
 output_file='{output}'; script_file='{input.script_li}'; 
 path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.late_integration}');"
@@ -332,7 +351,9 @@ rule scoring:
         "logs/06_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.txt"   
     shell:"""
 mkdir -p output/scores/
-RCODE="prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
+RCODE="
+utils_script ='utils/data_processing.R';
+prediction_file='{input.prediction}';  groundtruth_file='{input.groundtruth_file}';   
 score_file='{output}'; source('{input.scoring_script}');"
 echo $RCODE | Rscript - 2>&1 > {log}
 """
