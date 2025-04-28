@@ -261,8 +261,8 @@ echo $RCODE | Rscript - 2>&1 > {log}
 rule clean:
     threads: 1
     shell:"""
-rm -rf output/
-rm 06_metaanalysis.html
+rm -Rf output/
+rm -Rf 06_metaanalysis.html
 """
 
 rule gantt:
