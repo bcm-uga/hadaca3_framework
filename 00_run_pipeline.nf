@@ -4,19 +4,20 @@ import groovy.yaml.YamlSlurper
 
 nextflow.enable.dsl=2
 
-workDir='~/project/hadaca3_framework'
+workDir='~/project/hadaca3_framework/'
 
+// This should be overwritten 
+params.setup_folder = './'
 
-params.EXECUTE = true
 
 params.config_files = [
-    datasets: 'datasets.yml',
-    pre_proc: 'preprocessing.yml',
-    features_selection: 'feature_selection.yml',
-    early_integration: 'early_integration.yml',
-    intermediate_integration: 'intermediate_integration.yml',
-    late_integration: 'late_integration.yml',
-    deconvolution: 'deconvolution.yml'
+    datasets:                   params.setup_folder + 'datasets.yml',
+    pre_proc:                   params.setup_folder + 'preprocessing.yml',
+    features_selection:         params.setup_folder + 'feature_selection.yml',
+    early_integration:          params.setup_folder + 'early_integration.yml',
+    intermediate_integration:   params.setup_folder + 'intermediate_integration.yml',
+    late_integration:           params.setup_folder + 'late_integration.yml',
+    deconvolution:              params.setup_folder + 'deconvolution.yml'
 ]
 
 params.reference = ['data/ref.h5']
@@ -80,7 +81,7 @@ workflow {
     )
 
     
-    out_cleaned_ref = ref_input |cleaning_ref 
+    out_cleaned_ref = ref_input | Cleaning_ref 
 
 
     dataset_tuple = []
@@ -96,7 +97,7 @@ workflow {
             ))
         }
 
-    out_mix =  Channel.fromList(dataset_tuple) |cleaning_mix
+    out_mix =  Channel.fromList(dataset_tuple) | Cleaning_mix
     
 
 
@@ -151,7 +152,7 @@ workflow {
         tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     
-    out_pp = pp_ref.concat(pp_mix) | preprocessing
+    out_pp = pp_ref.concat(pp_mix) | Preprocessing
 
 
 //     // ################## Generate combinaison and prediction for  features selection
@@ -197,7 +198,7 @@ workflow {
         tuple(dup_fs_meta, a,b,c,d,dataset_file,ref_file )
     }
 
-    out_fs = complete_fs_files | features_selection
+    out_fs = complete_fs_files | Features_selection
 
 
 
@@ -237,7 +238,7 @@ workflow {
 
 
 
-    out_de_rna_unit = de_rna_unit | prediction_deconvolution_rna 
+    out_de_rna_unit = de_rna_unit | Prediction_deconvolution_rna 
 
     
 // ################## Generate combinaison for the MET unit 
@@ -272,12 +273,12 @@ workflow {
     .combine(Channel.of(tuple(file(params.wrapper.script_04_met),file(params.utils))))
 
 
-    out_de_met_unit= de_met_unit | prediction_deconvolution_met
+    out_de_met_unit= de_met_unit | Prediction_deconvolution_met
 
 // ################## Generate combinaison for late integration
 
     li_path =  []
-    CONFIG.late_integration.each {li,liv -> li_path.add([ [li:li ] , file(liv.path)])}
+    CONFIG.late_integration.each {li,liv -> li_path.add([ [li_fun:li ] , file(liv.path)])}
 
     li_channel = Channel.fromList(li_path)
 
@@ -299,18 +300,15 @@ workflow {
         def output_name = "out-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')  +
             [dup_li_meta.rna_unit.mixRNA.pp_fun, dup_li_meta.rna_unit.mixRNA.fs_fun ].join('_')   +
             [dup_li_meta.rna_unit.RNA.pp_fun, dup_li_meta.rna_unit.RNA.fs_fun ].join('_')           +
-            [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun ].join('_')      +
+            [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun,dup_li_meta.rna_unit.de_fun ].join('_')      +
             [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')   +
-            [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ].join('_')           +'.h5'
+            [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ,dup_li_meta.met_unit.de_fun].join('_')           +'.h5'
         dup_li_meta["output"] = output_name
         tuple( dup_li_meta,li_path , file_rna , file_met, dataset_file,ref_file )
     }.combine(Channel.of(tuple(file(params.wrapper.script_05),file(params.utils))))
 
-    li_combinaison.count().view()
 
-
-
-    out_li = li_combinaison | late_integration 
+    out_li = li_combinaison | Late_integration 
 
 
 // ################## Generate score 
@@ -319,21 +317,52 @@ workflow {
 
         def dup_meta = meta.clone()
         def output_name = "score-" + [dup_meta.dataset,dup_meta.ref].join('_')  +
-            [dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +
-            [dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +
-            [dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun ].join('_')      +
-            [dup_meta.met_unit.mixMET.pp_fun, dup_meta.met_unit.mixMET.fs_fun ].join('_')   +
-            [dup_meta.met_unit.MET.pp_fun, dup_meta.met_unit.MET.fs_fun ].join('_')           +'.h5'
+            ['mixRNA',  dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +    //dup_meta.rna_unit.mixRNA.omic,
+            ['RNA', dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +    //dup_meta.rna_unit.RNA.omic,
+            ['scRNA', dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun,dup_meta.rna_unit.de_fun ].join('_')      +    //dup_meta.rna_unit.scRNA.omic,
+            ['mixMET',  dup_meta.met_unit.mixMET.pp_fun, dup_meta.met_unit.mixMET.fs_fun ].join('_')   +    //dup_meta.rna_unit.mixMET.omic,
+            ['MET', dup_meta.met_unit.MET.pp_fun, dup_meta.met_unit.MET.fs_fun ,dup_meta.met_unit.de_fun].join('_')    +       //dup_meta.rna_unit.MET.omic,
+            '_'+dup_meta.li_fun    +'.h5'
         dup_meta["output"] = output_name
         tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))
      }   
 
-    score_out = score_input | scoring
+    score_out = score_input | Scoring
 
+
+// ################## Generate Metaanalysis
+
+    // input_meta = score_out.collect(flat: false)
+
+    score_out.map{ v-> 
+    v[0] }.set{l_meta}
+
+    score_out.map{ v-> 
+    v[1] }.set{l_path}
+
+    input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false)).collect(flat: false)
+    .combine(Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
+
+
+
+
+
+
+    // input_meta.count().view()
+    // input_meta.view()
+
+    // input.count().view()
+    // input_meta.view { v-> v.size()  }
+    // input_meta.view { v-> v[0].size() +' ' +v[1].size()   }
+    // input_meta.view { v-> v[0] +' \n\n\n' +v[1][0]   }
+
+    // input_meta.view { v-> v[0][1] +' ' +v[1][1]   }
+
+    input_meta | Metaanalysis 
 
 }
 
-process cleaning_mix {
+process Cleaning_mix {
     input:
     tuple val(meta),  
     path(mixes), 
@@ -364,7 +393,7 @@ process cleaning_mix {
 }
 
 
-process cleaning_ref{
+process Cleaning_ref{
     input:
     tuple val(meta), 
     path(reference),
@@ -394,7 +423,7 @@ process cleaning_ref{
     """
 }
 
-process preprocessing {
+process Preprocessing {
     cpus 1
 
     input:
@@ -431,7 +460,7 @@ process preprocessing {
     """
 }
 
-process features_selection {
+process Features_selection {
     cpus 1
     
     input:
@@ -472,7 +501,7 @@ process features_selection {
     """
 }
 
-process prediction_deconvolution_rna {
+process Prediction_deconvolution_rna {
     cpus 1
     
      input:
@@ -515,7 +544,7 @@ process prediction_deconvolution_rna {
     """
 }
 
-process prediction_deconvolution_met {
+process Prediction_deconvolution_met {
     cpus 1
      input:
         tuple val(meta),
@@ -556,7 +585,7 @@ process prediction_deconvolution_met {
     """
 }
 
-process late_integration {
+process Late_integration {
     cpus 1
     
     input:
@@ -595,7 +624,7 @@ process late_integration {
     """
 }
 
-process scoring {
+process Scoring {
     cpus 1
     
     input:   
@@ -627,4 +656,43 @@ process scoring {
     echo \$RCODE 
     touch ${meta.output}
     """
+}
+
+
+process Metaanalysis {
+    publishDir '.' 
+    cpus 1
+    
+    input:   
+    tuple( 
+        val(meta), 
+        path( input_score), 
+        path(meta_script), 
+        path(utils) 
+    )
+    // tuple( tuple(val(meta) ,path(input_score)),
+    // path(meta_script),
+    // path(utils))
+
+    output:
+    path("07_metaanalysis.html")
+
+
+    script:
+    """
+    RCODE="
+    utils_script ='${utils};
+    rmarkdown::render('${meta_script}');"
+    echo $RCODE | Rscript -
+    """  
+
+    stub:
+    """
+    RCODE="
+    utils_script ='${utils};
+    rmarkdown::render('${meta_script}');"
+    echo \$RCODE 
+    touch 07_metaanalysis.html
+    """
+
 }

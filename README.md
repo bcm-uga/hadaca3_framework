@@ -61,6 +61,8 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 ```
 ## Execute the pipeline: 
 
+### snakemake
+
 ```
 cd ~/projects/hadaca3_framework
 snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
@@ -71,6 +73,33 @@ This pipeline can be visualised by generating its DAG:
 ```
 snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
 ```
+
+Run with another setup: 
+```
+snakemake -s 00_run_pipeline.smk  --cores 4 -n  --config setup_folder='benchmark/setup1/' 
+```
+
+
+
+### N E X T F L O W  
+
+```
+nextflow run 00_run_pipeline.nf
+nextflow run 00_run_pipeline.nf -stub -resume  #continue and dry run
+
+```
+
+To create a a full report of the piple this option could be passed: 
+```
+nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timeline 
+```
+
+Run with another setup: 
+```
+nextflow run 00_run_pipeline.nf --setup_folder benchmark/setup1/
+```
+
+
 
 ## Blocks description
 

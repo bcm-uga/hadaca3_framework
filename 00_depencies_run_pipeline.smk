@@ -259,6 +259,9 @@ rule prediction_deconvolution_rna:
        file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
        file_input_rna = "output/feature-selection/{omicrna}/ref_{pprna}_{fsrna}.h5",
        file_input_scrna = "output/feature-selection/{omicscrna}/ref_{ppsc}_{fssc}.h5"
+    #    file_input_mix = rules.features_selection.output,
+    #    file_input_rna = rules.features_selection.output,
+    #    file_input_scrna = rules.features_selection.output
     output: 
         "output/rna-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicrna}_{pprna}_{fsrna}_{omicscrna}_{ppsc}_{fssc}_{de}.h5"
     params:
@@ -287,6 +290,9 @@ rule prediction_deconvolution_met:
         # script_split = lambda wildcard: SPLIT[wildcard.split]['path'].strip(), 
         file_input_mix = "output/feature-selection/{omicmix}/{dataset}_{ppmix}_{fsmix}.h5",
         file_input_met = "output/feature-selection/{omicmet}/ref_{ppmet}_{fsmet}.h5"
+        # file_input_mix = rules.features_selection.output,
+        # file_input_met = rules.features_selection.output
+
     output: 
         "output/met-decovolution-split/{dataset}_{omicmix}_{ppmix}_{fsmix}_{omicmet}_{ppmet}_{fsmet}_{de}.h5"
     params:
@@ -316,22 +322,36 @@ rule late_integration:
         dependances = lambda wildcard: CONFIG['late_integration'][wildcard.li].get('dependances',[]),
         input_file_rna= "output/rna-decovolution-split/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}.h5",
         input_file_met = "output/met-decovolution-split/{dataset}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}.h5", 
+        scoring_script = '06_scoring.R',
+        groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
+        # input_file_rna= rules.prediction_deconvolution_rna.output,
+        # input_file_met = rules.prediction_deconvolution_met.output, 
+
     output: 
-        "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"      
+        li_out = "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"      ,
+        score_out =   "output/scores/score-{dataset}_ref_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"
+       
     log: 
-        "logs/05_{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.txt"     
+        "logs/05_{dataset}_ref_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.txt"     
     params:
         mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
-        ref = cleaned_REFERENCE      
+        ref = cleaned_REFERENCE     , 
+        # li_out = 'tmp.h5'
     shell:"""
 mkdir -p output/prediction/
 RCODE="input_file_rna='{input.input_file_rna}';  input_file_met='{input.input_file_met}';   
 utils_script ='utils/data_processing.R';
 
-output_file='{output}'; script_file='{input.script_li}'; 
+output_file='{output.li_out}'; script_file='{input.script_li}'; 
 path_ogmix='{params.mix}' ; path_ogref='{params.ref}' ; 
 source('{input.late_integration}');"
 echo $RCODE | Rscript - 2>&1 > {log}
+mkdir -p output/scores/
+RCODE_score="
+utils_script ='utils/data_processing.R';
+prediction_file='{output.li_out}';  groundtruth_file='{input.groundtruth_file}';   
+score_file='{output.score_out}'; source('{input.scoring_script}');"
+echo $RCODE_score | Rscript - 2>&1 > {log}
 """
 # last_dataset='{params.last_dataset}';
 
@@ -342,10 +362,12 @@ rule scoring:
     message: "-- Score prediction  -- "
     input: 
         scoring_script = '06_scoring.R',
-        prediction = "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5",
+        # prediction = "output/prediction/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5",
+        prediction = rules.late_integration.output ,
         groundtruth_file = lambda wildcard:  CONFIG['datasets'][wildcard.dataset]['groundtruth_file_path'].strip(), 
     output: 
         "output/scores/score-{dataset}_ref_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}.h5"
+        # "output/scores/{dataset}_{omicMixRna}_{ppMixRna}_{fsMixRna}_{omicRNA}_{ppRNA}_{fsRNA}_{omicSCRNA}_{ppSCRNA}_{fsSCRNA}_{deRNA}_{omicMixMet}_{ppMixMet}_{fsMixMet}_{omicMET}_{ppMET}_{fsMET}_{deMET}_{li}_score.h5"
     params:
         mix = lambda wildcards: "output/mixes/{dataset}.h5".format(dataset=wildcards.dataset) if wildcards.dataset != 'ref' else  [],
         ref = cleaned_REFERENCE

@@ -14,5 +14,5 @@ old_datasets/*
 dag.pdf
 
 work/*
-
+.vscode/
 .nextflow*
