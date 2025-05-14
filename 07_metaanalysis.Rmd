@@ -23,25 +23,50 @@ library(DT)
 library(stringr)
 library(dplyr)
 library(ggplot2)
-theme_set(theme_light())
 
-source("utils/data_processing.R")
+source(utils_script)
+
+# source("utils/data_processing.R")
+theme_set(theme_light())
 ```
 
 
 ```{r all_combinaisons_dataset}
-datasets = read_yaml("datasets.yml") 
-score_files = list(list.files(path = "./output/scores/", full.names = TRUE))
-# print(score_file)
+# datasets = read_yaml("datasets.yml") 
+# datasets = read_yaml(file_dataset) 
+
+
+list_wd = strsplit(getwd(),'/')[[1]]
+if(list_wd[length(list_wd)] == 'hadaca3_framework'){
+  score_files = list(list.files(path = "./output/scores/", full.names = TRUE))
+
+}else{
+  score_files = list(list.files(pattern = 'score*' ))
+
+}
+
 
 results <- data.frame(
-  # score_file = character()(),
   dataset = character(),
-  preprocessing = character(),
-  feature_selection = character(),
-  # split = character(),
+  ref = character(),
+
+  preprocessing_mixRNA = character(),
+  feature_selection_mixRNA = character(),
+
+  preprocessing_RNA = character(),
+  feature_selection_RNA = character(),
+
+  preprocessing_scRNA = character(),
+  feature_selection_scRNA = character(),
   deconvolution_rna = character(),
+
+  preprocessing_mixMET = character(),
+  feature_selection_mixMET = character(),
+
+  preprocessing_MET = character(),
+  feature_selection_MET = character(),
   deconvolution_met = character(),
+
   late_integration = character(),
   
   aid = numeric(),
@@ -75,28 +100,47 @@ results <- data.frame(
 i = 0 
 for (score_file in score_files[[1]]) {
   # Extract the base name of the file
+
   base_name <- basename(score_file)
 
   # Extract components from the file name
-  #                                    DT   pp   FS   SPIT    DE1      DE2   li
-  components <- str_match(base_name, "(.+)_(.+)_(.+)_(.+)_rna-(.+)_met-(.+)_(.+)_score")[2:8]
-  scores <- read_hdf5(score_file)
 
+  components <- str_match(base_name, 
+  #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
+  "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  
+  
+  # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
+  scores <- read_hdf5(score_file)
   # Append the extracted information to the results data frame
   results <- rbind(results,
     cbind(
      data.frame(
        dataset = components[1],
-       preprocessing = components[2],
-       feature_selection = components[3],
-       deconvolution_rna = components[5],
-       deconvolution_met = components[6],
-       late_integration = components[7],
+       ref = components[2],
+
+       preprocessing_mixRNA = components[3],
+       feature_selection_mixRNA = components[4],
+
+       preprocessing_RNA = components[5],
+       feature_selection_RNA = components[6],
+
+       preprocessing_scRNA = components[7],
+       feature_selection_scRNA = components[8],
+       deconvolution_rna = components[9],
+
+        preprocessing_mixMET = components[10],
+       feature_selection_mixMET = components[11],
+
+       preprocessing_MET = components[12],
+       feature_selection_MET = components[13],
+       deconvolution_met = components[14],
+
+       late_integration = components[15],
        stringsAsFactors = FALSE
      ),
      scores
     ))
-  
   rownames(results) = NULL
 
   i = i +1 
@@ -108,27 +152,41 @@ results %>%
   summarise(GlobalScore = median(score_aggreg)) %>%
   arrange(desc(GlobalScore))
 
-results$preprocessing = factor(results$preprocessing, 
-  levels = unique(results$preprocessing[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
-results$feature_selection = factor(results$feature_selection, 
-  levels = unique(results$feature_selection[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
-results$deconvolution_rna = factor(results$deconvolution_rna, 
-  levels = unique(results$deconvolution_rna[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
-results$deconvolution_met = factor(results$deconvolution_met, 
-  levels = unique(results$deconvolution_met[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
-results$late_integration = factor(results$late_integration, 
-  levels = unique(results$late_integration[order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+
+all_functions = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'preprocessing_RNA', 'feature_selection_RNA', 'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna', 'preprocessing_mixMET', 'feature_selection_mixMET', 'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met', 'late_integration' )
+for( fun in all_functions){
+  results[[fun]] = factor(results[[fun]], 
+  levels = unique(results[[fun]][order(results$score_aggreg[results$dataset=='invitro1'],decreasing = T)])) # sort based on the results on the in vitro dataset
+
+}
 
 
-datatable(results[,c(1:6,23)], options = list(pageLength = 10))
+index_aggreg <- which(names(results) == "score_aggreg")
+
+datatable(
+  results[, c(1:length(all_functions), index_aggreg)],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
 ```
+
 
 
 # Visualisations of the different metrics
 
 ## Aggregated scores
 
-```{r combinaisons_aggregated_scores}
+```{r combinaisons_aggregated_scores, echo=FALSE, eval=FALSE}
 boxplots_pp_aggreg = ggplot(results, aes(x = preprocessing, y = score_aggreg, fill = preprocessing)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
@@ -211,7 +269,7 @@ plotly::layout(
 
 ## MAE
 
-```{r combinaisons_MAE}
+```{r combinaisons_MAE, echo=FALSE, eval=FALSE}
 boxplots_pp_mae = ggplot(results, aes(x = preprocessing, y = mae, fill = preprocessing)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
@@ -294,7 +352,7 @@ plotly::layout(
 
 ## RMSE
 
-```{r combinaisons_RMSE}
+```{r combinaisons_RMSE, echo=FALSE, eval=FALSE}
 boxplots_pp_rmse = ggplot(results, aes(x = preprocessing, y = rmse, fill = preprocessing)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
@@ -377,7 +435,7 @@ plotly::layout(
 
 ## Spearman correlation (row)
 
-```{r combinaisons_spearman_row}
+```{r combinaisons_spearman_row, echo=FALSE, eval=FALSE}
 boxplots_pp_spearman_row = ggplot(results, aes(x = preprocessing, y = spearman_row, fill = preprocessing)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
@@ -460,7 +518,7 @@ plotly::layout(
 
 ## Aitchison distance
 
-```{r combinaisons_aitchison}
+```{r combinaisons_aitchison, echo=FALSE, eval=FALSE}
 boxplots_pp_aitchison = ggplot(results, aes(x = preprocessing, y = aitchison, fill = preprocessing)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +

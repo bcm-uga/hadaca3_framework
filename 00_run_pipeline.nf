@@ -50,7 +50,7 @@ workflow {
 
 
     // ################## Reading yml file and populating CONFIG file. 
-     def CONFIG = [:]
+    def CONFIG = [:]
 
     params.config_files.each { key, filePath ->
         def parsedContent = new YamlSlurper().parse(filePath as File)
@@ -316,15 +316,15 @@ workflow {
     score_input = out_li.map{   meta,file_path  -> 
 
         def dup_meta = meta.clone()
-        def output_name = "score-" + [dup_meta.dataset,dup_meta.ref].join('_')  +
-            ['mixRNA',  dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +    //dup_meta.rna_unit.mixRNA.omic,
-            ['RNA', dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +    //dup_meta.rna_unit.RNA.omic,
-            ['scRNA', dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun,dup_meta.rna_unit.de_fun ].join('_')      +    //dup_meta.rna_unit.scRNA.omic,
-            ['mixMET',  dup_meta.met_unit.mixMET.pp_fun, dup_meta.met_unit.mixMET.fs_fun ].join('_')   +    //dup_meta.rna_unit.mixMET.omic,
-            ['MET', dup_meta.met_unit.MET.pp_fun, dup_meta.met_unit.MET.fs_fun ,dup_meta.met_unit.de_fun].join('_')    +       //dup_meta.rna_unit.MET.omic,
-            '_'+dup_meta.li_fun    +'.h5'
+        def output_name = "score-" + [dup_meta.dataset,dup_meta.ref].join('_')  + '_' +
+            ['mixRNA',  dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +   '_' +  //dup_meta.rna_unit.mixRNA.omic,
+            ['RNA', dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +   '_' +  //dup_meta.rna_unit.RNA.omic,
+            ['scRNA', dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun,dup_meta.rna_unit.de_fun ].join('_')   + '_'    +    //dup_meta.rna_unit.scRNA.omic,
+            ['mixMET',  dup_meta.met_unit.mixMET.pp_fun, dup_meta.met_unit.mixMET.fs_fun ].join('_') + '_'  +    //dup_meta.rna_unit.mixMET.omic,
+            ['MET', dup_meta.met_unit.MET.pp_fun, dup_meta.met_unit.MET.fs_fun ,dup_meta.met_unit.de_fun].join('_')  + '_'  +       //dup_meta.rna_unit.MET.omic,
+            dup_meta.li_fun    +'.h5'
         dup_meta["output"] = output_name
-        tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))
+        tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))//,file(params.config_files.datasets))
      }   
 
     score_out = score_input | Scoring
@@ -342,10 +342,6 @@ workflow {
 
     input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false)).collect(flat: false)
     .combine(Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
-
-
-
-
 
 
     // input_meta.count().view()
@@ -605,6 +601,7 @@ process Late_integration {
     script:
     """
     RCODE="input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
+    path_ogmix='${mix}' ; path_ogref='${reference}' ; 
     output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
@@ -615,6 +612,7 @@ process Late_integration {
     stub:
     """
     RCODE="input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
+    path_ogmix='${mix}' ; path_ogref='${reference}' ; 
     output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
@@ -629,10 +627,10 @@ process Scoring {
     
     input:   
     tuple  val(meta) ,
-    path(prediction),
-    path(groundtruth_file),
-    path(scoring_script),
-    path(utils)
+        path(prediction),
+        path(groundtruth_file),
+        path(scoring_script),
+        path(utils)
 
     output:
     tuple val(meta), path("${meta.output}")
@@ -668,7 +666,8 @@ process Metaanalysis {
         val(meta), 
         path( input_score), 
         path(meta_script), 
-        path(utils) 
+        path(utils), 
+        // path(file_dataset)
     )
     // tuple( tuple(val(meta) ,path(input_score)),
     // path(meta_script),
@@ -681,15 +680,18 @@ process Metaanalysis {
     script:
     """
     RCODE="
-    utils_script ='${utils};
+    score_files = strsplit(trimws('${input_score}'),' ') ; 
+    utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
-    echo $RCODE | Rscript -
+    echo \$RCODE | Rscript -
     """  
+    // file_dataset = '${file_dataset}';
 
     stub:
     """
     RCODE="
-    utils_script ='${utils};
+    score_files = strsplit(trimws('${input_score}'),' ') ; 
+    utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE 
     touch 07_metaanalysis.html

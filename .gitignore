@@ -16,3 +16,5 @@ dag.pdf
 work/*
 .vscode/
 .nextflow*
+
+results/

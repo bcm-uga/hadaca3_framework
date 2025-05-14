@@ -147,7 +147,8 @@ rule metaanalysis:
     log: 
         "logs/07_metaanalysis.Rout"
     shell:"""
-RCODE="score_files = strsplit(trimws('{input.score}'),' ') ; 
+RCODE="
+score_files = strsplit(trimws('{input.score}'),' ') ; 
 utils_script ='utils/data_processing.R';
 rmarkdown::render('{input.metaanalysis_script_file}');"
 echo $RCODE | Rscript - 2>&1 > {log}

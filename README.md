@@ -18,10 +18,11 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5
 
 ```
 <!-- h5py   -->
+<!-- nextflow=24.10.5 -->
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
@@ -76,7 +77,7 @@ snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
 
 Run with another setup: 
 ```
-snakemake -s 00_run_pipeline.smk  --cores 4 -n  --config setup_folder='benchmark/setup1/' 
+snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup1/' 
 ```
 
 
@@ -96,7 +97,7 @@ nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timelin
 
 Run with another setup: 
 ```
-nextflow run 00_run_pipeline.nf --setup_folder benchmark/setup1/
+nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup1/
 ```
 
 
