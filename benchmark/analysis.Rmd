@@ -1,0 +1,88 @@
+---
+title: "HADACA3 Framework Benchamrk between Snakemake and Nextflow"
+subtitle: "Meta analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+```{r loading_pckgs}
+# Load necessary library
+library(ggplot2)
+```
+
+
+# parsing data
+
+```{r}
+
+
+# Create the dataframe
+data <- data.frame(
+  job = rep(c(
+    "cleaning_mix", "cleaning_ref", "features_selection", "late_integration",
+    "metaanalysis", "prediction_deconvolution_met", "prediction_deconvolution_rna",
+    "preprocessing", "scoring"
+  ), times = 8),
+  setup = rep(paste0("setup", 1:8), each = 9),
+  count = c(
+    # setup1
+    1, 1, 5, 4, 1, 2, 2, 5, 4,
+    # setup2
+    2, 1, 7, 8, 1, 4, 4, 7, 8,
+    # setup3
+    4, 1, 11, 16, 1, 8, 8, 11, 16,
+    # setup4
+    2, 1, 16, 128, 1, 64, 4, 10, 128,
+    # setup5
+    2, 1, 16, 384, 1, 64, 4, 10, 384,
+    # setup6
+    2, 1, 16, 512, 1, 64, 4, 10, 512,
+    # setup7
+    2, 1, 26, 4608, 1, 96, 96, 13, 4608,
+    # setup8
+    2, 1, 33, 10368, 1, 216, 96, 13, 10368
+  )
+)
+
+```
+
+
+
+## With linear scale. 
+```{r, eval = FALSE}
+# Plot the bar chart
+ggplot(data, aes(x = job, y = count, fill = setup)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Job Counts by Setup", x = "Job", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## With log scale
+```{r}
+ggplot(data, aes(x = setup, y = count, fill = job)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Job Counts by Setup", x = "Setup", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Plot the stacked bar chart
+ggplot(data, aes(x = setup, y = count, fill = job)) +
+  geom_bar(stat = "identity") +
+  scale_y_log10() + 
+  labs(title = "Job Counts by Setup", x = "Setup", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```

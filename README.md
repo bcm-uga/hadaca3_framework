@@ -77,7 +77,7 @@ snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
 
 Run with another setup: 
 ```
-snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup1/' 
+snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
 ```
 
 
@@ -87,7 +87,6 @@ snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/se
 ```
 nextflow run 00_run_pipeline.nf
 nextflow run 00_run_pipeline.nf -stub -resume  #continue and dry run
-
 ```
 
 To create a a full report of the piple this option could be passed: 
@@ -97,7 +96,7 @@ nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timelin
 
 Run with another setup: 
 ```
-nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup1/
+nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup/1/
 ```
 
 
@@ -191,16 +190,18 @@ For instance, data_list contain prop1 and prop2, *write_global_hdf5(file,data_li
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
 
 
+# Benchmark 
+
+There is an attempt to perfom a benchmark of snakemake vs nextflow. 
+The motivation behind the developpement of nextflow is the mandatory step of DAG creation in snakemake which was very time consuming. 
+
+See the README.md inside benchmark folder. 
+
 ## TODO
 
 * improve handling of hdf5 files to not rewrite unmodified data
-* Sc_concat in preprocess have a warning 'should be sample-normalized' but this is not appearing in the code. 
+
 * how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
-* deal with global feature selection ? It seems it's only to select rows present in all datasets. 
 
 
 Nextflow : 
-* Finalize pipeline A 
-* add the dictionnary of current method (pp,fs) to access information such as... shortname and dependances and other parameters
-* change output of file depending to have the real name instead of the path; 
-* include ref in rna and met unit. 

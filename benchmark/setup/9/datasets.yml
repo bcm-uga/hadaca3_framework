@@ -8,10 +8,10 @@ invitro1 :
 #   groundtruth_file_path : data/groundtruth2_invitro_pdac.h5
 #   path : data/mixes2_invitro_pdac.h5
 
-# invivo1 : 
-#   short_name : VIVO
-#   groundtruth_file_path : data/groundtruth1_invivo_pdac.h5
-#   path : data/mixes1_invivo_pdac.h5
+invivo1 : 
+  short_name : VIVO
+  groundtruth_file_path : data/groundtruth1_invivo_pdac.h5
+  path : data/mixes1_invivo_pdac.h5
 
 # # invivo2 : 
 # #   short_name : VIVO

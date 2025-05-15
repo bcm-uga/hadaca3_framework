@@ -1,0 +1,31 @@
+
+# limean :  #must be a unique ID without "_" ! 
+  # path: late_integration/avg.R
+  # short_name: avg
+
+# liCtSens :  #must be a unique ID  without "_" !
+#   path: late_integration/CTS_ens.R
+#   short_name: CTSe
+
+# TunedH :  #must be a unique ID  without "_" !
+#   path: late_integration/TunedH.R
+#   short_name: TunH
+
+TunedJ :  #must be a unique ID  without "_" !
+  path: late_integration/TunedJ.R 
+  short_name: TunJ
+
+OnlyMet: 
+  path: late_integration/only_met.R 
+  short_name: OMet
+
+OnlyRna: 
+  path: late_integration/only_rna.R 
+  short_name: ORNA
+
+
+
+
+# limeanRMSE :  #must be a unique ID  without "_" !
+#   path: late_integration/mean_rmse.R
+#   short_name: MRMS

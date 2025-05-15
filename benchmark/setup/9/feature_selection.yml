@@ -1,5 +1,5 @@
 
-fsID :  #This is a requiered function
+fsID :  #must be a unique ID without _
   path: feature_selection/ID.R
   short_name: FSID
   omic: [ANY]
