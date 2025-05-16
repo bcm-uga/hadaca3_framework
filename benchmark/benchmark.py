@@ -49,7 +49,8 @@ def run_process(command, bench_path, process_name):
     print(f"Current time: {current_time}")
 
     start_time = time.time()
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     parent = psutil.Process(process.pid)
 
     memory_usage = 0
@@ -74,51 +75,51 @@ def run_process(command, bench_path, process_name):
     time.sleep(1)
     return (start_time, end_time, memory_usage)
 
-def run_process(command, bench_path, process_name):
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Current time: {current_time}")
+# def run_process(command, bench_path, process_name):
+#     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#     print(f"Current time: {current_time}")
 
-    start_time = time.time()
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
-    parent = psutil.Process(process.pid)
+#     start_time = time.time()
+#     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+#     parent = psutil.Process(process.pid)
 
-    # file_path_stdout = bench_path  + process_name + "-stdout.txt"
-    # file_path_err = bench_path  + process_name + "-stderr.txt"
+#     # file_path_stdout = bench_path  + process_name + "-stdout.txt"
+#     # file_path_err = bench_path  + process_name + "-stderr.txt"
 
-    memory_usage = 0
+#     memory_usage = 0
 
-    # with open(file_path_stdout, "w",buffering=1) as f_stdout, open(file_path_err, "w",buffering=1) as f_err:
-    while process.poll() is None:
-        try:
-            # Get all children + the parent itself
-            children = parent.children(recursive=True)
-            all_processes = [parent] + children
-            total_mem = sum(p.memory_info().rss for p in all_processes if p.is_running())
-            memory_usage = max(memory_usage, total_mem / (1024 * 1024))  # in MB
+#     # with open(file_path_stdout, "w",buffering=1) as f_stdout, open(file_path_err, "w",buffering=1) as f_err:
+#     while process.poll() is None:
+#         try:
+#             # Get all children + the parent itself
+#             children = parent.children(recursive=True)
+#             all_processes = [parent] + children
+#             total_mem = sum(p.memory_info().rss for p in all_processes if p.is_running())
+#             memory_usage = max(memory_usage, total_mem / (1024 * 1024))  # in MB
 
-            # # Read and write stdout and stderr incrementally
-            # stdout_line = process.stdout.readline()
-            # stderr_line = process.stderr.readline()
+#             # # Read and write stdout and stderr incrementally
+#             # stdout_line = process.stdout.readline()
+#             # stderr_line = process.stderr.readline()
 
-            # if stdout_line:
-            #     f_stdout.write(stdout_line)
-            # if stderr_line:
-            #     f_err.write(stderr_line)
-            # f_stdout.flush()
-            # f_err.flush()
-        except psutil.NoSuchProcess:    
-            break
+#             # if stdout_line:
+#             #     f_stdout.write(stdout_line)
+#             # if stderr_line:
+#             #     f_err.write(stderr_line)
+#             # f_stdout.flush()
+#             # f_err.flush()
+#         except psutil.NoSuchProcess:    
+#             break
 
-        # Ensure any remaining output is captured
-    stdout, stderr = process.communicate()
-        # if stdout:
-        #     f_stdout.write(stdout)
-        # if stderr:
-        #     f_err.write(stderr)
+#         # Ensure any remaining output is captured
+#     stdout, stderr = process.communicate()
+#         # if stdout:
+#         #     f_stdout.write(stdout)
+#         # if stderr:
+#         #     f_err.write(stderr)
 
-    end_time = time.time()
-    time.sleep(1)
-    return (start_time, end_time, memory_usage)
+#     end_time = time.time()
+#     time.sleep(1)
+#     return (start_time, end_time, memory_usage)
 
 f_res =  open(file_path_res, "w")
 d_result = {}
