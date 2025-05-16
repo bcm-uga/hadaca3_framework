@@ -141,9 +141,20 @@ total                           21098
 ```
 
 ### setup9
-(min dag creation)
+(43min dag creation)
 ```
-
+job                             count
+----------------------------  -------
+cleaning_mix                        2
+cleaning_ref                        1
+features_selection                 33
+late_integration                31104
+metaanalysis                        1
+prediction_deconvolution_met      216
+prediction_deconvolution_rna       96
+preprocessing                      13
+scoring                         31104
+total                           62570
 ```
 
 ### setup10

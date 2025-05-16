@@ -30,8 +30,9 @@ conda_env = "hadaca3framework_env"
 conda_activate = "conda run -n "+ conda_env 
 
 # setup_nb= range(4,7)
-setup_nb= range(1,3)
+# setup_nb= range(1,3)
 # setup_nb= range(2,3)
+setup_nb= range(5,11)
 
 
 
