@@ -12,12 +12,26 @@ program_block_FS <- function(data,path_og_dataset) {
     return(var_sorted_genes)
   }
   top_genes <- determine_variable_genes(og_ref_bulkRNA, nb_fs_rna)
-  
+  top_gene_names <- rownames(og_ref_bulkRNA)[top_genes]
+
   # multi_data$mix$mix_rna = multi_data$mix$mix_rna[top_genes,]
   # multi_data$ref$ref_bulkRNA = multi_data$ref$ref_bulkRNA[top_genes,]
 
+
+  convert_and_filter_sparse_matrix <- function(x, top_gene_names){
+
+    dense_counts <- as.matrix(x$counts)
+    common_genes <- intersect(top_gene_names, rownames(dense_counts))
+
+    subset_counts <- dense_counts[common_genes, , drop = FALSE]
+    sparse_counts <- Matrix(subset_counts, sparse = TRUE)
+
+    return(list(counts = sparse_counts, metadata = x$metadata) )
+  }
+
   if(is.list(data)){
-    data = lapply(data, function(x) list(counts = x$counts[top_genes,], metadata = x$metadata))
+    # data = lapply(data, function(x) list(counts = x$counts[top_genes,], metadata = x$metadata))
+    data = lapply(data, function(x) convert_and_filter_sparse_matrix(x,top_gene_names))
   }else{
     data = data[top_genes,]
   }

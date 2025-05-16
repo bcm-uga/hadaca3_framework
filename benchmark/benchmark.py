@@ -26,10 +26,12 @@ d_cmd = {"nextflow_stub":nextflow_cmd_stub,"snakemake_dry":smk_cmd_dry ,"nextflo
 
 path_setup = 'benchmark/setup/'
 conda_env = "hadaca3framework_env"
+meta_file_path = "07_metaanalysis.html"
+
 
 conda_activate = "conda run -n "+ conda_env 
 
-# setup_nb= range(4,7)
+
 # setup_nb= range(1,3)
 # setup_nb= range(2,3)
 setup_nb= range(5,11)
@@ -40,9 +42,13 @@ bench_path = "benchmark/results/"
 
 file_path_res = bench_path+"data.txt"
 
-# os.chdir("~/projects/hadaca3_framework/")
+##### change directory here
 os.chdir("..")
 print(os.getcwd())
+
+if os.path.exists(meta_file_path):
+    os.remove(meta_file_path)
+
 
 def run_process(command, bench_path, process_name):
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -75,69 +81,22 @@ def run_process(command, bench_path, process_name):
     time.sleep(1)
     return (start_time, end_time, memory_usage)
 
-# def run_process(command, bench_path, process_name):
-#     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     print(f"Current time: {current_time}")
 
-#     start_time = time.time()
-#     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
-#     parent = psutil.Process(process.pid)
 
-#     # file_path_stdout = bench_path  + process_name + "-stdout.txt"
-#     # file_path_err = bench_path  + process_name + "-stderr.txt"
-
-#     memory_usage = 0
-
-#     # with open(file_path_stdout, "w",buffering=1) as f_stdout, open(file_path_err, "w",buffering=1) as f_err:
-#     while process.poll() is None:
-#         try:
-#             # Get all children + the parent itself
-#             children = parent.children(recursive=True)
-#             all_processes = [parent] + children
-#             total_mem = sum(p.memory_info().rss for p in all_processes if p.is_running())
-#             memory_usage = max(memory_usage, total_mem / (1024 * 1024))  # in MB
-
-#             # # Read and write stdout and stderr incrementally
-#             # stdout_line = process.stdout.readline()
-#             # stderr_line = process.stderr.readline()
-
-#             # if stdout_line:
-#             #     f_stdout.write(stdout_line)
-#             # if stderr_line:
-#             #     f_err.write(stderr_line)
-#             # f_stdout.flush()
-#             # f_err.flush()
-#         except psutil.NoSuchProcess:    
-#             break
-
-#         # Ensure any remaining output is captured
-#     stdout, stderr = process.communicate()
-#         # if stdout:
-#         #     f_stdout.write(stdout)
-#         # if stderr:
-#         #     f_err.write(stderr)
-
-#     end_time = time.time()
-#     time.sleep(1)
-#     return (start_time, end_time, memory_usage)
 
 f_res =  open(file_path_res, "w")
 d_result = {}
 
-# compute mean conda activate time 
-# l_time_act =[]
-# l_mem_act=[]
-# for i in range(10) :
-#     cmd = conda_activate + ' ls'
-#     start_time, end_time, memory_usage, stdout, stderr = run_process(cmd.split(' '))
-#     l_time_act.append(end_time - start_time)
-#     l_mem_act.append(memory_usage)
-
-# f_res.write( f"conda : ({str(l_time_act)},{str(l_mem_act)})\n\n")
-# d_result["conda"]=(l_time_act,l_mem_act)
 
 
-
+def check_and_delete_metaanalysis():
+    if os.path.exists(meta_file_path):
+        # Delete the file
+        os.remove(meta_file_path)
+        print(f"Metaanalysis has been deleted successfully, therefor the pipeline was a success.")
+    else:
+        raise ValueError(f"Metaanalysis does not exist,therefor the pipeline did not completed without erros.")
+        
 
 
 
@@ -152,14 +111,8 @@ for i in setup_nb :
         start_time, end_time, memory_usage = run_process(cmd.split(' '), bench_path, process_name)
         
 
-        # if ('snakemake_dry' in w_name ):
-        #     file_path_stdout = bench_path + "stdout"+process_name+".txt"
-        #     with open(file_path_stdout, "w") as f_stdout:
-        #         f_stdout.write(stdout)
-
-        #     file_path_err = bench_path+"stderr"+process_name+".txt"
-        #     with open(file_path_err, "w") as f_err:
-        #         f_err.write(stderr)
+        if ('dry' not in w_name ):
+            check_and_delete_metaanalysis()
         
         d_result[process_name] = (end_time - start_time,memory_usage)
         f_res.write( f"{process_name} : ({end_time - start_time},{memory_usage})\n")

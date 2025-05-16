@@ -4,15 +4,15 @@ fsID :  #This is a requiered function
   short_name: FSID
   omic: [ANY]
 
-Toastnbfs :  #must be a unique ID without _
-  path: feature_selection/TOAST_nbfs.R
-  short_name: TNBF
-  omic: [mixMET,MET]
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBF
+#   omic: [mixMET,MET]
 
-Toastpercent :  #must be a unique ID without _
-  path: feature_selection/TOAST_percent.R
-  short_name: Tper
-  omic: [mixMET,MET]
+# Toastpercent :  #must be a unique ID without _
+#   path: feature_selection/TOAST_percent.R
+#   short_name: Tper
+#   omic: [mixMET,MET]
 
 Toastvst :  #must be a unique ID without _
   path: feature_selection/TOAST_vst.R
