@@ -3,6 +3,20 @@
 
 ## how to run this benchmark 
 
+```
+cd benchmark
+conda activate hadaca3framework_env
+python benchmark.py
+```
+
+## Run the analysis: 
+
+```
+cd benchmark
+conda activate hadaca3framework_env
+Rscript -e "rmarkdown::render('analysis.Rmd')"
+```
+
 ## setup details : 
 
 ### setup1 
@@ -155,9 +169,7 @@ prediction_deconvolution_rna       96
 preprocessing                      13
 scoring                         31104
 total                           62570
-```
-
-### setup10
+```enchmark/
 (85min dag creation)
 ```
 job                             count
