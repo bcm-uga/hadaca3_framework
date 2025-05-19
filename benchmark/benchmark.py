@@ -40,7 +40,6 @@ setup_nb= range(5,11)
 
 bench_path = "benchmark/results/"
 
-file_path_res = bench_path+"data.txt"
 
 ##### change directory here
 os.chdir("..")
