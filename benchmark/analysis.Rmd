@@ -90,6 +90,8 @@ ggplot(data, aes(x = setup, y = count, fill = job)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+
 ## With log scale
 
 ```{r,eval = FALSE}
@@ -113,7 +115,7 @@ ggplot(data, aes(x = setup, y = count, fill = job)) +
 ##  Parse result 
 
 ```{r parse_results}
-file_path <- paste0("results/data1-9.txt")  # Replace with the actual file path
+file_path <- paste0("results/data.txt")  # Replace with the actual file path
 data <- readLines(file_path)
 filtered_data <- data[grepl("^\\w+\\s*:\\s*\\([0-9.]+,[0-9.]+\\)$", data)]
 
@@ -133,6 +135,8 @@ parsed_data <- data.frame(
   ) %>%
   select(setup, workflow, time, memory)
 ```
+
+
 ## plot Time 
 
 

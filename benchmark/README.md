@@ -119,6 +119,9 @@ preprocessing                      10
 scoring                           512
 total                            1122
 ```
+
+
+
 ### setup7
 (4min45 dag creation dry run )
 ```
@@ -169,7 +172,10 @@ prediction_deconvolution_rna       96
 preprocessing                      13
 scoring                         31104
 total                           62570
-```enchmark/
+```
+
+
+### setup 10 
 (85min dag creation)
 ```
 job                             count

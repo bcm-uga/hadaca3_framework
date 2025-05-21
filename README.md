@@ -89,7 +89,7 @@ nextflow run 00_run_pipeline.nf
 nextflow run 00_run_pipeline.nf -stub -resume  #continue and dry run
 ```
 
-To create a a full report of the piple this option could be passed: 
+To create a a full report of the pipeline these options could be passed: 
 ```
 nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timeline 
 ```

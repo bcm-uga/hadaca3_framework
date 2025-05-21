@@ -78,7 +78,8 @@ jobs:
           source "${{ env.CONDA }}" 
           conda activate ${{ env.CONDA_ENV_NAME }}
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
-          snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          nextflow run 00_run_pipeline.nf -resume --with-report
           mkdir -p public
           cp 07_metaanalysis.html public/index.html
       

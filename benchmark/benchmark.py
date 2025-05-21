@@ -15,10 +15,11 @@ nextflow_cmd      = "nextflow run 00_run_pipeline.nf --setup_folder "
 
 
 smk_cmd_dry     = "snakemake --cores 4 --forceall -s 00_run_pipeline.smk -n --config setup_folder="
+smk_dep_cmd_dry     = "snakemake --cores 4 --forceall -s 00_run_pipeline.smk -n --config setup_folder="
 smk_cmd         = "snakemake --cores 4 --forceall -s 00_run_pipeline.smk --config setup_folder="
 smk_cmd_clean   = "snakemake --cores 4 -s 00_run_pipeline.smk -p clean"
 
-d_cmd = {"nextflow_stub":nextflow_cmd_stub,"snakemake_dry":smk_cmd_dry ,"nextflow":nextflow_cmd, "snakemake":smk_cmd}
+d_cmd = {"nextflow_stub":nextflow_cmd_stub,"snakemake_dry":smk_cmd_dry ,"nextflow":nextflow_cmd, "snakemake":smk_cmd,"snakemake_dep_dry":smk_dep_cmd_dry}
 # d_cmd = { "snakemake":smk_cmd }
 # d_cmd = {"nextflow_stub":nextflow_cmd_stub,"nextflow":nextflow_cmd,}
 # d_cmd = {"snakemake_dry":smk_cmd_dry , "snakemake":smk_cmd}
@@ -34,7 +35,8 @@ conda_activate = "conda run -n "+ conda_env
 
 # setup_nb= range(1,3)
 # setup_nb= range(2,3)
-setup_nb= range(5,11)
+# setup_nb= range(5,11)
+setup_nb= range(1,6)
 
 
 
@@ -80,7 +82,7 @@ def run_process(command, bench_path, process_name):
     time.sleep(1)
     return (start_time, end_time, memory_usage)
 
-
+file_path_res = bench_path + "data.txt"
 
 
 f_res =  open(file_path_res, "w")
