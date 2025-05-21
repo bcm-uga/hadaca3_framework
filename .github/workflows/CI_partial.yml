@@ -2,11 +2,7 @@
 on:
   push:
     branches:
-<<<<<<< HEAD
-      - '*' # Adjust this to your default branch
-=======
       - 'main' # Adjust this to your default branch
->>>>>>> multi_blocs
   # schedule:
   #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 

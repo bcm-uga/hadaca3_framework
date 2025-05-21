@@ -1,10 +1,5 @@
 
-<<<<<<< HEAD
-on: 
-  workflow_dispatch: 
-=======
 on:
->>>>>>> multi_blocs
   schedule:
     - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
