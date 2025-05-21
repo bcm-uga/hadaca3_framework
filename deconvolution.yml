@@ -2,11 +2,7 @@
 nnls :  #must be a unique ID
   path: deconvolution/nnls.R
   short_name: NNLS
-  # input: [ANY]
-  # output: [ANY] 
 
-lm :  #must be a unique ID
-  path: deconvolution/lm.R
-  short_name: LM
-  # input: [ANY]
-  # output: [ANY]
+# lm :  #must be a unique ID
+#   path: deconvolution/lm.R
+#   short_name: LM

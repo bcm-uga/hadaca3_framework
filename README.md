@@ -18,10 +18,11 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt r-plotly
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate
 
 ```
-<!-- h5py r-base.conda  -->
+<!-- h5py   -->
+
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
@@ -61,6 +62,8 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 ```
 ## Execute the pipeline: 
 
+### snakemake
+
 ```
 cd ~/projects/hadaca3_framework
 snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
@@ -71,6 +74,32 @@ This pipeline can be visualised by generating its DAG:
 ```
 snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
 ```
+
+Run with another setup: 
+```
+snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
+```
+
+
+
+### N E X T F L O W  
+
+```
+nextflow run 00_run_pipeline.nf
+nextflow run 00_run_pipeline.nf -stub -resume  #continue and dry run
+```
+
+To create a a full report of the pipeline these options could be passed: 
+```
+nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timeline 
+```
+
+Run with another setup: 
+```
+nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup/1/
+```
+
+
 
 ## Blocks description
 
@@ -161,6 +190,18 @@ For instance, data_list contain prop1 and prop2, *write_global_hdf5(file,data_li
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
 
 
+# Benchmark 
+
+There is an attempt to perfom a benchmark of snakemake vs nextflow. 
+The motivation behind the developpement of nextflow is the mandatory step of DAG creation in snakemake which was very time consuming. 
+
+See the README.md inside benchmark folder. 
+
 ## TODO
 
 * improve handling of hdf5 files to not rewrite unmodified data
+
+* how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
+
+
+Nextflow : 

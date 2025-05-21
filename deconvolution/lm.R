@@ -3,7 +3,7 @@
 # pred_RNA = program_blockDE(uni_data = SP_data$RNA)
 # pred_met = program_blockDE(uni_data = SP_data$met)
 
-program_block_DE = function(uni_data) {
+program_block_DE = function(uni_data,path_og_dataset='') {
 
   ##
   ## YOUR CODE BEGINS HERE
@@ -11,7 +11,7 @@ program_block_DE = function(uni_data) {
   # idx_feat corresponds to the intersection of features present in the references and in the mixtures.
   
   mix = uni_data$mix
-  ref = uni_data$ref$bulk
+  ref = uni_data$ref
   idx_feat = intersect(rownames(mix), rownames(ref))
 
 

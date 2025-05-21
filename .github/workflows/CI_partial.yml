@@ -2,7 +2,11 @@
 on:
   push:
     branches:
+<<<<<<< HEAD
       - '*' # Adjust this to your default branch
+=======
+      - 'main' # Adjust this to your default branch
+>>>>>>> multi_blocs
   # schedule:
   #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
@@ -52,7 +56,8 @@ jobs:
           git fetch --all
           git reset --hard ${{ github.sha }}
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
-          snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          nextflow run 00_run_pipeline.nf -resume --with-report
           mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/index.html
       

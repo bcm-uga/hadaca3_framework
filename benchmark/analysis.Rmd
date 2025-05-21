@@ -1,0 +1,229 @@
+---
+title: "HADACA3 Framework Benchamrk between Snakemake and Nextflow"
+subtitle: "Meta analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+```{r loading_pckgs}
+# Load necessary library
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr) 
+library(ggrepel)
+library(scales)
+library(lubridate)
+```
+
+
+# display number of jobs for each setup
+
+```{r setup_data}
+
+data <- data.frame(
+  job = rep(c(
+    "cleaning_mix", "cleaning_ref", "features_selection", "late_integration",
+    "metaanalysis", "prediction_deconvolution_met", "prediction_deconvolution_rna",
+    "preprocessing", "scoring"
+  ), times = 10),
+  # setup = rep(paste0("setup", 1:10), each = 9),
+  setup = rep(paste0(1:10), each = 9),
+  count = c(
+    # setup1
+    1, 1, 5, 4, 1, 2, 2, 5, 4,
+    # setup2
+    2, 1, 7, 8, 1, 4, 4, 7, 8,
+    # setup3
+    4, 1, 11, 16, 1, 8, 8, 11, 16,
+    # setup4
+    2, 1, 16, 128, 1, 64, 4, 10, 128,
+    # setup5
+    2, 1, 16, 384, 1, 64, 4, 10, 384,
+    # setup6
+    2, 1, 16, 512, 1, 64, 4, 10, 512,
+    # setup7
+    2, 1, 26, 4608, 1, 96, 96, 13, 4608,
+    # setup8
+    2, 1, 33, 10368, 1, 216, 96, 13, 10368,
+    # setup9
+    2, 1, 33, 31104, 1, 216, 96, 13, 31104,
+    # setup10
+    2, 1, 33, 62208, 1, 216, 96, 13, 62208
+  )
+)
+# data$setup <- factor(data$setup, levels = paste0("setup", 1:10))
+data$setup <- factor(data$setup, levels =  1:10)
+
+
+totals_setup <- data %>%
+  group_by(setup) %>%
+  summarise(total = sum(count), .groups = "drop")
+
+```
+
+## With linear scale. 
+
+```{r linear_setup_number}
+ggplot(data, aes(x = setup, y = count, fill = job)) +
+  geom_col() +
+  labs(title = "Job Counts by Setup",
+       x = "Setup", y = "Total Count") +
+  # scale_y_log10() + 
+  geom_text(
+    data = totals_setup,
+    aes(x = setup, y = total, label = total),
+    inherit.aes = FALSE,         
+    vjust = -0.25,
+    fontface = "bold"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+## With log scale
+
+```{r,eval = FALSE}
+ggplot(data, aes(x = setup, y = count, fill = job)) +
+  geom_col() +
+  labs(title = "Job Counts by Setup",
+       x = "Setup", y = "Total Count") +
+  scale_y_log10() + 
+  geom_text(
+    data = totals_setup,
+    aes(x = setup, y = total, label = total),
+    inherit.aes = FALSE,         
+    vjust = -0.25,
+    fontface = "bold"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#  Analyse the results
+##  Parse result 
+
+```{r parse_results}
+file_path <- paste0("results/data.txt")  # Replace with the actual file path
+data <- readLines(file_path)
+filtered_data <- data[grepl("^\\w+\\s*:\\s*\\([0-9.]+,[0-9.]+\\)$", data)]
+
+# Parse the data
+parsed_data <- data.frame(
+  line = filtered_data,
+  stringsAsFactors = FALSE
+) %>%
+  mutate(
+    workflow = sub(" .*", "", line),
+    values = sub(".* : \\(", "", line),
+      values = sub("\\)", "", values),
+    time = as.numeric(sub(",.*", "", values)),
+    memory = as.numeric(sub(".*?,", "", values)),
+    setup = as.numeric(sub("\\D+", "", workflow)),
+    workflow= sub("\\d+","",workflow)
+  ) %>%
+  select(setup, workflow, time, memory)
+```
+
+
+## plot Time 
+
+
+```{r prepare_data}
+
+sec_to_hms_pretty <- function(sec, sep = " ") {
+  vapply(sec, function(s) {
+    p  <- seconds_to_period(s)
+    hh <- hour(p)
+    mm <- minute(p)
+    ss <- round(second(p))
+
+    parts <- c(
+      if (hh > 0) sprintf("%d%sh ", hh, sep) else NULL,
+      if (mm > 0 || hh > 0) sprintf("%d%sm ", mm, sep) else NULL,
+      sprintf("%d%ss", ss, sep)
+    )
+    sub(paste0(sep, "$"), "", paste0(parts, collapse = ""))
+  }, FUN.VALUE = character(1))
+}
+
+
+axis_labs <- totals_setup %>%       
+  mutate(label = paste0(setup, " (", total, ")")) %>%
+  mutate(setup = as.integer(setup))
+
+plot_df <- parsed_data %>%
+  mutate(setup = as.integer(setup)) %>%
+  left_join(axis_labs, by = "setup") %>%
+  mutate(time_hms = sec_to_hms_pretty(time))%>%
+   mutate(memory_lbl = comma(round(memory, 0))) 
+```
+
+
+```{r plot_time}
+ggplot(plot_df,
+       aes(x = factor(label, levels = axis_labs$label),
+           y = time,
+           colour = workflow,
+           group  = workflow)) +
+  geom_line(size = 2) +
+  geom_point(size = 4) +
+  geom_text_repel(aes(label = time_hms),
+                  nudge_y  = 0.1,     
+                  nudge_x = - 0.1   , 
+                  min.segment.length = 0,  
+                  size = 3,
+                  box.padding = 0.4,
+                  max.overlaps = Inf) +
+  scale_y_log10(labels = scales::comma) +
+  labs(title   = "Execution Time by Workflow and Setup",
+       x       = "Setup (total jobs)",
+       y       = "Time (seconds, log scale)",
+       colour  = "Workflow") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+## plot memory usage
+
+```{r plot_memory}
+ggplot(plot_df, aes(x = factor(label, levels = axis_labs$label), y = memory, group = workflow, color = workflow)) +
+  geom_line(size = 2) +
+  geom_point(size = 4) +
+  geom_text_repel(aes(label = memory_lbl),
+        nudge_y  = 100,     
+        nudge_x = - 0.4   , 
+        min.segment.length = 0,  
+        size = 3,
+        box.padding = 0.4,
+        max.overlaps = Inf) +
+  labs(title = "Memory used by Workflow and Setup", x = "Setup (total jobs)", y = "Memory (Mo)") +
+  theme_minimal()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,28 +1,18 @@
 
+source(utils_script)
 
-
-source("utils/data_processing.R")
 source(script_file);
 
 
-# pred_RNA = readRDS(input_file_rna)
-# pred_met = readRDS(input_file_met)
+path_og_dataset= list(mix =path_ogmix,ref = path_ogref )
 
-# print(input_need)
-
-# prior_knowledge = list()
-
-# if( input_needed != 'None'){
-#     input_needed = strsplit(input_needed,' +')
-#     prior_knowledge = read_all_hdf5(last_dataset,input_needed)
-
-# }
 
 pred_RNA = read_hdf5(input_file_rna)$pred
+
 pred_met = read_hdf5(input_file_met)$pred
 
-output= program_block_li(prop1 = pred_RNA,prop2 = pred_met,path_dataset = last_dataset )  
+pred= program_block_li(prop1 = pred_RNA,prop2 = pred_met,path_dataset = path_og_dataset )  
 
-# library(arrow)
+if(length(pred) == 0){ stop(paste("Late integration result is empty, script_file = ",script_file) ) }
 
-write_global_hdf5(output_file, list(pred=output))
+write_global_hdf5(output_file, list(pred=pred))

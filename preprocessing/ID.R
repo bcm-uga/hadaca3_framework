@@ -1,7 +1,7 @@
-program_block_PP <- function(multi_data) {
+program_block_PP <- function(data,path_og_dataset='') {
   
 #  multi_data = list(mix = mix,
 #              ref = ref)
   
-  return(multi_data) 
+  return(data) 
 }

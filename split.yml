@@ -1,5 +1,0 @@
-split :
-  path : split/split.R 
-  short_name : split
-  input:  [ANY]
-  output: [ANY]
