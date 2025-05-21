@@ -26,6 +26,8 @@ jobs:
           # echo ${{ github.workspace }}
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}"
+          git fetch --all
+          git reset --hard ${{ github.sha }}
             awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
             [[ "$line" =~ ^# ]] && continue
             [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
@@ -44,18 +46,21 @@ jobs:
             eval "$line"
           done
 
-      - name: Run Snakemake
+      - name: Run pipeline
         run: |
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}" 
           conda activate ${{ env.CONDA_ENV_NAME }}
-          git fetch --all
-          git reset --hard ${{ github.sha }}
+          # git fetch --all
+          # git reset --hard ${{ github.sha }}
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
           nextflow run 00_run_pipeline.nf -resume --with-report
           mkdir -p ${{ github.workspace }}/public
-          cp 07_metaanalysis.html ${{ github.workspace }}/public/index.html
+          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          LATEST_REPORT=$(ls -t report-* | head -n 1)
+          cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
+          cp index.html ${{ github.workspace }}/public/
       
       # name: 
       - name: Check for errors and read logs 
