@@ -73,7 +73,7 @@ jobs:
             eval "$line"
           done
 
-      - name: Run Snakemake
+      - name: Run pipeline
         run: |
           source "${{ env.CONDA }}" 
           conda activate ${{ env.CONDA_ENV_NAME }}
@@ -81,41 +81,45 @@ jobs:
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
           nextflow run 00_run_pipeline.nf -resume --with-report
           mkdir -p public
-          cp 07_metaanalysis.html public/index.html
+          # cp 07_metaanalysis.html public/index.html
+          cp 07_metaanalysis.html /public/metaanalysis.html
+          LATEST_REPORT=$(ls -t report-* | head -n 1)
+          cp $LATEST_REPORT /public/nextflow-report.html
+          cp index.html /public/
       
       # name: 
-      - name: Check for errors and read logs 
-        if: failure()
-        run: |
-          echo "An error occurred. Checking log files for details..."
-          LOG_DIR=".snakemake/log/"
+      # - name: Check for errors and read logs 
+      #   if: failure()
+      #   run: |
+      #     echo "An error occurred. Checking log files for details..."
+      #     LOG_DIR=".snakemake/log/"
 
-          # Find the latest log file
-          LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
+      #     # Find the latest log file
+      #     LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
 
-          # Check if a log file was found
-          if [ -z "$LATEST_LOG" ]; then
-            echo "No log files found in the directory."
-            exit 1
-          fi
-          echo $LOG_DIR$LATEST_LOG
-          ERROR_LOGS=$(grep -A 5 "Error in rule" "$LOG_DIR$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
-          echo $ERROR_LOGS
-          if [ -z "$ERROR_LOGS" ]; then
-            echo "No error logs found in Snakemake log."
-            exit 0
-          fi
+      #     # Check if a log file was found
+      #     if [ -z "$LATEST_LOG" ]; then
+      #       echo "No log files found in the directory."
+      #       exit 1
+      #     fi
+      #     echo $LOG_DIR$LATEST_LOG
+      #     ERROR_LOGS=$(grep -A 5 "Error in rule" "$LOG_DIR$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
+      #     echo $ERROR_LOGS
+      #     if [ -z "$ERROR_LOGS" ]; then
+      #       echo "No error logs found in Snakemake log."
+      #       exit 0
+      #     fi
 
-          # Display the contents of the error logs
-          echo "Errors found in the following log files:"
-          for LOG_FILE in $ERROR_LOGS; do
-            echo "--- $LOG_FILE ---"
-            if [ -f "$LOG_FILE" ]; then
-              cat "$LOG_FILE"
-            else
-              echo "Log file not found: $LOG_FILE"
-            fi
-          done
+      #     # Display the contents of the error logs
+      #     echo "Errors found in the following log files:"
+      #     for LOG_FILE in $ERROR_LOGS; do
+      #       echo "--- $LOG_FILE ---"
+      #       if [ -f "$LOG_FILE" ]; then
+      #         cat "$LOG_FILE"
+      #       else
+      #         echo "Log file not found: $LOG_FILE"
+      #       fi
+      #     done
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -123,47 +127,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
 
-
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v2
-
-#       - name: Set up Miniconda
-#         uses: conda-incubator/setup-miniconda@v2
-#         with:
-#           activate-environment: ${{ env.CONDA_ENV_NAME }}
-#           auto-activate-base: false
-
-#       - name: Create Conda environment
-#         run: |
-#           conda create -y -n ${{ env.CONDA_ENV_NAME }}
-
-#       - name: Activate Conda environment
-#         run: |
-#           conda activate ${{ env.CONDA_ENV_NAME }}
-
-#       - name: Fetch all branches
-#         run: |
-#           git fetch --all
-#           git reset --hard ${{ github.sha }}
-
-#       - name: Execute commands from README
-#         run: |
-#           awk '/```/{if (!first_block_found) {f=!f; first_block_found=1; next} else {exit} } f' README.md | while read -r line; do
-#             [[ "\$line" =~ ^# ]] && continue
-#             [ -z "\$line" ] || [[ "\$line" =~ conda\ create ]] && continue
-#             echo "Executing: \$line"
-#             $line
-#           done
-
-
-#       - name: Prepare artifacts
-#         run: |
-#           mkdir -p public
-#           cp 05_metaanalysis.html public/index.html
-
-#       - name: Upload artifacts
-#         uses: actions/upload-artifact@v2
-#         with:
-#           name: public
-#           path: public/
