@@ -1,0 +1,26 @@
+ppID :  #must be a unique ID
+  path: preprocessing/ID.R
+  short_name: ID
+  omic: [ANY]
+
+
+normalize :  #must be a unique ID
+  path: preprocessing/normalize.R
+  short_name: norm
+  omic: [ANY] #,mixRNA,RNA
+
+
+scScale :  #must be a unique ID
+  path: preprocessing/sc_scale.R
+  short_name: Scsc
+  omic: [ANY]
+
+# metScale :  #must be a unique ID
+#   path: preprocessing/scale_met.R
+#   short_name: metsc
+#   omic: [MET]
+
+# scConcat :  #must be a unique ID
+#   path: preprocessing/sc_concat.R
+#   short_name: ScCo
+#   omic: [scRNA]

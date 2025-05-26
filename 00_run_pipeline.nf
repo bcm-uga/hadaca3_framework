@@ -237,7 +237,6 @@ workflow {
     .combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils))))
 
 
-
     out_de_rna_unit = de_rna_unit | Prediction_deconvolution_rna 
 
     

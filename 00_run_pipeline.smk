@@ -45,6 +45,8 @@ def get_omic(path:str) -> str:
     omic = path.split('/')[-2]
     return(omic)
 
+
+## remove from the name the dataset and omic. 
 def block_combinaison(path:str,add_omics : bool = True)-> str:
     l_path = path.split('/')
     omic = l_path[-2]

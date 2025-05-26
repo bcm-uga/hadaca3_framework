@@ -191,3 +191,46 @@ preprocessing                      13
 scoring                         62208
 total                          124778
 ```
+
+## setup 11 (not benchmarked)
+Only one li fonction ! 
+
+```
+job                             count
+----------------------------  -------
+cleaning_mix                        2
+cleaning_ref                        1
+features_selection                 33
+late_integration                10368
+metaanalysis                        1
+prediction_deconvolution_met      216
+prediction_deconvolution_rna       96
+preprocessing                      13
+scoring                         10368
+total                           21098
+```
+
+## setup all_any 
+nb de fonction : 
+datasets 2 
+pp : 3
+fs  :2
+dec : 2
+li : 1
+
+(125m37,285s)
+
+```
+job                             count
+----------------------------  -------
+cleaning_mix                        2
+cleaning_ref                        1
+features_selection                 42
+late_integration               62 208
+metaanalysis                        1
+prediction_deconvolution_met      144
+prediction_deconvolution_rna      864
+preprocessing                      21
+scoring                        62 208
+total                         125 491
+```
