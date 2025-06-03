@@ -116,6 +116,7 @@ ggplot(data, aes(x = setup, y = count, fill = job)) +
 
 ```{r parse_results}
 file_path <- paste0("results/data1-9.txt")  # Replace with the actual file path
+# file_path <- paste0("results/data.txt")  # Replace with the actual file path
 data <- readLines(file_path)
 filtered_data <- data[grepl("^\\w+\\s*:\\s*\\([0-9.]+,[0-9.]+\\)$", data)]
 

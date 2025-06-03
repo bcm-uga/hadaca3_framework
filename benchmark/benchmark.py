@@ -4,6 +4,7 @@ import os
 import psutil
 import time
 from datetime import datetime
+import shutil
 
 # nb_cores doit être modifié dans nextflow.config. 
 
@@ -36,8 +37,10 @@ conda_activate = "conda run -n "+ conda_env
 # setup_nb= range(1,3)
 # setup_nb= range(2,3)
 # setup_nb= range(5,11)
-setup_nb= range(1,6)
+setup_nb= range(1,11)
 
+
+nb_replica = 3
 
 
 bench_path = "benchmark/results/"
@@ -56,8 +59,9 @@ def run_process(command, bench_path, process_name):
     print(f"Current time: {current_time}")
 
     start_time = time.time()
-    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+    # process = subprocess.Popen(command)
     parent = psutil.Process(process.pid)
 
     memory_usage = 0
@@ -89,6 +93,14 @@ f_res =  open(file_path_res, "w")
 d_result = {}
 
 
+def delete_work_folder():
+    work_folder_path ="work"
+    if os.path.exists(work_folder_path):
+        shutil.rmtree(work_folder_path)
+    nextflow_folder_path =".nextflow/"
+    if os.path.exists(nextflow_folder_path):
+        shutil.rmtree(nextflow_folder_path)
+
 
 def check_and_delete_metaanalysis():
     if os.path.exists(meta_file_path):
@@ -100,32 +112,32 @@ def check_and_delete_metaanalysis():
         
 
 
-
 # for work_flow in [nextflow_cmd_stub,smk_cmd_dry]:
 for i in setup_nb :
     for w_name,work_flow in    d_cmd.items():
-        process_name = w_name+str(i)
-        cmd = conda_activate +  ' '+ work_flow+path_setup+str(i)+'/'
-        # print(cmd)
-        print( w_name+" setup : "+str(i))
+        for rep in range(nb_replica):
+            process_name = w_name+str(i)
+            cmd = conda_activate +  ' '+ work_flow+path_setup+str(i)+'/'
+            # print(cmd)
+            print("replica :" + str(rep+1) +' '+ w_name+" setup : "+str(i))
 
-        start_time, end_time, memory_usage = run_process(cmd.split(' '), bench_path, process_name)
-        
+            # print(cmd)
+            start_time, end_time, memory_usage = run_process(cmd.split(' '), bench_path, process_name)
+            
+            if ('dry' not in w_name ):
+                check_and_delete_metaanalysis()
+            
+            if("nextflow" in w_name):
+                delete_work_folder()
 
-        if ('dry' not in w_name ):
-            check_and_delete_metaanalysis()
-        
-        d_result[process_name] = (end_time - start_time,memory_usage)
-        f_res.write( f"{process_name} : ({end_time - start_time},{memory_usage})\n")
-        
-        
-        print(f"Time elapsed: {end_time - start_time:.4f} seconds")
-        print(f"Memory usage: {memory_usage:.4f} MB\n")
+            d_result[process_name] = (end_time - start_time,memory_usage)
+            f_res.write( f"{process_name} : ({end_time - start_time},{memory_usage})\n")
+            
+            
+            print(f"Time elapsed: {end_time - start_time:.4f} seconds")
+            print(f"Memory usage: {memory_usage:.4f} MB\n")
+            print('\n')
 
-    f_res.write( f"\n")
+        f_res.write( f"\n")
+        print('\n')
 
-
-
-
-# with open(file_path_res, "w") as f:
-#     f.write(str(d_result))
