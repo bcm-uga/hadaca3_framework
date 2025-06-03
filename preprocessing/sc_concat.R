@@ -5,6 +5,7 @@ program_block_PP <- function(data,path_og_dataset='') {
 
 
   warning("should be sample-normalized")
+  
   metadata <- do.call(rbind, lapply(data, function(x) x$metadata))
   ref_scRNA <- lapply(data, function(x) as.matrix(x$counts))
   shared_genes <- Reduce(intersect, lapply(ref_scRNA, rownames))
