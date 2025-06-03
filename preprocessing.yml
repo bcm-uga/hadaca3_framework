@@ -4,42 +4,42 @@ ppID :  #must be a unique ID
   omic: [ANY]
 
 
-scCCAintegration: #must be a unique ID # TOtest scRNA need to be a 
-  path: preprocessing/sc_CCAintegration.R
-  short_name: CCAi
-  omic: [scRNA]
+# scCCAintegration: #must be a unique ID # TOtest scRNA need to be a 
+#   path: preprocessing/sc_CCAintegration.R
+#   short_name: CCAi
+#   omic: [scRNA]
 
-sccluster : # totest
-  path: preprocessing/sc_scluter.R
-  short_name: sccl
-  omic: [scRNA]
+# sccluster : # totest
+#   path: preprocessing/sc_scluter.R
+#   short_name: sccl
+#   omic: [scRNA]
 
-scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA
-  path: preprocessing/sc_pseudobulk.R
-  short_name: sccl
-  omic: [scRNA,RNA]
+# scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA
+#   path: preprocessing/sc_pseudobulk.R
+#   short_name: sccl
+#   omic: [scRNA,RNA]
 
-Scale : #to test #scale with sweep function  #must be a unique ID
-  path: preprocessing/scale.R
-  short_name: scal
-  omic: [ANY]
+# Scale : #to test #scale with sweep function  #must be a unique ID
+#   path: preprocessing/scale.R
+#   short_name: scal
+#   omic: [ANY]
 
-CPM : #to test #
-  path: preprocessing/CPM.R
-  short_name: scal
-  omic: [mixRNA,RNA,scRNA]
+# CPM : #to test #
+#   path: preprocessing/CPM.R
+#   short_name: scal
+#   omic: [mixRNA,RNA,scRNA]
 
-TF: #totest and place. 
-  path: preprocessing/TF.R
-  short_name: TF
-  dependency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
-  omic: [mixRNA,RNA,scRNA]
+# TF: #totest and place. 
+#   path: preprocessing/TF.R
+#   short_name: TF
+#   dependency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
+#   omic: [mixRNA,RNA,scRNA]
 
-LogNorm: #totest . 
-  path: preprocessing/LogNorm.R
-  short_name: LogN
-  # depency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
-  omic: [mixRNA,RNA,scRNA]
+# LogNorm: #totest . 
+#   path: preprocessing/LogNorm.R
+#   short_name: LogN
+#   # depency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
+#   omic: [mixRNA,RNA,scRNA]
 
 # normalize :  #must be a unique ID
 #   path: preprocessing/normalize.R
