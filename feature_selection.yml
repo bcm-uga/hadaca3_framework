@@ -14,12 +14,27 @@ fsID :  #This is a requiered function
 #   short_name: Tper
 #   omic: [mixMET,MET]
 
+# mostmethylated : #totest # Use Original ref_met to get most methylated .  #must be a unique ID without _
+#   path: feature_selection/most_methylated.R
+#   short_name: Mmet
+#   omic: [mixMET,MET]
+
+# maxdiscriminant : #totest # Use Original ref_met to get max discriminant .  #must be a unique ID without _
+#   path: feature_selection/max_discriminant.R
+#   short_name: Mdis
+#   omic: [mixMET,MET]
+
+# SPLSDA : #totest # Use Original ref_met to get max discriminant .  #must be a unique ID without _
+#   path: feature_selection/SPLS-DA.R
+#   short_name: SPLS
+#   omic: [mixMET,MET]
+
 Toastvst :  #must be a unique ID without _
   path: feature_selection/TOAST_vst.R
   short_name: Tvst
   omic: [mixRNA,RNA,scRNA]
 
-# Toastbulknbfs : #TOTEST  #must be a unique ID withou
+# Toastbulknbfs : #TOTEST  #must be a unique ID without underscore
 #   path: feature_selection/TOAST_bulk_nbfs.R
 #   short_name: Tbnf
 #   omic: [mixRNA,RNA,scRNA]
@@ -35,3 +50,28 @@ Toastvst :  #must be a unique ID without _
 #   # dependence : teamH_scSignature.csv top100.
 #   short_name: T100
 #   omic: [mixNA,RNA,scRNA]
+
+
+
+
+
+
+
+#### dealing/creating other refs 
+
+# scSPLSDA : #TODO #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
+#   path: feature_selection/sc_SPLS-DA.R
+#   short_name: scSD
+#   omic: [mixRNA,RNA,scRNA]
+
+# scpseudobulk : #TODO ##
+#   path: feature_selection/sc_pseudobulk.R
+#   short_name: scps
+#   omic: [mixRNA,RNA,scRNA]
+
+
+# scteamH : #TODO #return ref_teamH 
+#   path: feature_selection/sc_teamH.R
+#   short_name: TH
+#   dependency : [baselines/attachement/teamH_scSignature.csv]
+#   omic: [mixRNA,RNA,scRNA]
