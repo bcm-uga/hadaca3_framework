@@ -48,7 +48,6 @@ params.utils = "utils/data_processing.R"
 
 workflow { 
 
-
     // ################## Reading yml file and populating CONFIG file. 
     def CONFIG = [:]
 
@@ -82,7 +81,6 @@ workflow {
 
     
     out_cleaned_ref = ref_input | Cleaning_ref 
-
 
     dataset_tuple = []
     CONFIG.datasets.each{dt,dtv-> 
@@ -242,8 +240,8 @@ workflow {
     
 // ################## Generate combinaison for the MET unit 
 
-    fs_mixMET = out_fs.filter{meta,_ -> meta.omic=='mixMET'  }
-    fs_MET =out_fs.filter{meta,_ -> meta.omic=='MET'  }
+    fs_mixMET = out_fs.filter{meta,a -> meta.omic=='mixMET'  }
+    fs_MET =out_fs.filter{meta,a -> meta.omic=='MET'  }
 
     deco_path_met =  []
     CONFIG.deconvolution.each {de,dev -> deco_path_met.add( [ [de_fun : de]  , file(dev.path)])}

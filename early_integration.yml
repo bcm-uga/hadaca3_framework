@@ -1,12 +1,10 @@
+# OnlyMet: 
+#   path: late_integration/only_met.R 
+#   short_name: OMet
+
+OnlyRna: 
+  path: late_integration/only_rna.R 
+  short_name: ORNA
 
 
-# nnls :  #must be a unique ID
-#   path: decovolution/nnls.R
-#   short_name: NNLS
-#   input:
-#     RNA: 0
-#     MET: 0
-#   output:
-#     RNA: 0
-#     MET: 0
-#     scRNA: 0
+# The idea would be to add a omic field that says which omic the functino will integrate 

@@ -7,6 +7,8 @@ path_og_dataset= list(mix =mixes_file,ref = reference_file )
 
 omic_name = omic2list_name[[omic]]
 # omic_name = omic
+
+## Read either mix or ref. 
 split_result <- strsplit(mixes_file, "/")[[1]]
 if (any(split_result != 'none')){
     data = read_mix_hdf5(mixes_file)[[omic_name]]
@@ -15,8 +17,6 @@ if (any(split_result != 'none')){
 }
 
 
-# print(mixes_file)
-# print(reference_file)
 
 ppblock = program_block_PP(data,path_og_dataset)
 

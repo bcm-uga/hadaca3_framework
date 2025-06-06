@@ -14,6 +14,7 @@ program_block_PP <- function(data,path_og_dataset='') {
     }
     
     sc_list <- lapply(seq_along(data), function(x) {
+      # the next line has issue : 
       sc_dataset <- CreateSeuratObject(counts = data[[x]]$counts, project = names(data)[x])
       sc_dataset$cell_type <- data[[x]]$metadata$cell_type
       sc_dataset$subjectname <- paste0(names(data)[x],data[[x]]$metadata$sample)
