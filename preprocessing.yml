@@ -3,7 +3,11 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-
+LogNorm: #totest 
+  path: preprocessing/LogNorm.R
+  short_name: LogN
+  # omic: [mixRNA,RNA,scRNA]
+  omic: [ANY]
 
 
 
@@ -14,7 +18,7 @@ ppID :  #must be a unique ID
 
 # CPM : #to test #
 #   path: preprocessing/CPM.R
-#   short_name: scal
+#   short_name: cpm
 #   omic: [mixRNA,RNA,scRNA]
 
 # TF: #totest and place. 
@@ -23,11 +27,7 @@ ppID :  #must be a unique ID
 #   dependency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
 #   omic: [mixRNA,RNA,scRNA]
 
-# LogNorm: #totest # Resolve depe issue and combin . 
-#   path: preprocessing/LogNorm.R
-#   short_name: LogN
-#   # depency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
-#   omic: [mixRNA,RNA,scRNA]
+
 
 # sccluster : # toDebug seura create object
 #   path: preprocessing/sc_cluster.R
@@ -38,6 +38,9 @@ ppID :  #must be a unique ID
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
 #   omic: [scRNA]
+
+
+
 
 ### working functions 
 

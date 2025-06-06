@@ -169,7 +169,7 @@ for( fun in all_functions){
 index_aggreg <- which(names(results) == "score_aggreg")
 
 datatable(
-  results[, c(1:length(all_functions), index_aggreg)],
+  results[, c(1:length(all_functions)+2, index_aggreg)],
   extensions = 'Buttons',
   options = list(
     pageLength = 10,
