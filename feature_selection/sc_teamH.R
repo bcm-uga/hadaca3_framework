@@ -3,6 +3,7 @@ program_block_FS <- function(data,path_og_dataset='') {
 
 
   og_ref_bulkRNA  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_bulkRNA')$ref_bulkRNA
+  og_mix_rna  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_bulkRNA')$ref_bulkRNA
 
   warning("This method uses a single-cell signature from team H")
   avg_expression_df <- read.csv("baselines/attachement/teamH_scSignature.csv", row.names = 1)

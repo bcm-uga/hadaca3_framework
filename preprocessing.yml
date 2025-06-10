@@ -3,28 +3,27 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-LogNorm: #totest 
-  path: preprocessing/LogNorm.R
-  short_name: LogN
-  # omic: [mixRNA,RNA,scRNA]
-  omic: [ANY]
+# LogNorm: #totest 
+#   path: preprocessing/LogNorm.R
+#   short_name: LogN
+#   omic: [ANY]
 
 
-
-# scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA
-#   path: preprocessing/sc_pseudobulk.R
-#   short_name: scpseu
-#   omic: [scRNA,RNA]
-
-# CPM : #to test #
-#   path: preprocessing/CPM.R
-#   short_name: cpm
+# sc_binarypseudobulk_log : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
+#   path: preprocessing/sc_binarypseudobulk_log.R
+#   short_name: scbpl
+#   create: [ref_binarypseudobulk_log]
 #   omic: [mixRNA,RNA,scRNA]
 
-# TF: #totest and place. 
-#   path: preprocessing/TF.R
-#   short_name: TF
-#   dependency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
+# scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
+#   path: preprocessing/sc_pseudobulk.R
+#   short_name: scpseu
+#   create: [ref_pseudobulk]
+#   omic: [scRNA,RNA]
+
+# CPM : #to test # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
 #   omic: [mixRNA,RNA,scRNA]
 
 
@@ -32,11 +31,13 @@ LogNorm: #totest
 # sccluster : # toDebug seura create object
 #   path: preprocessing/sc_cluster.R
 #   short_name: sccl
+#   create : [ref_cluster]
 #   omic: [scRNA]
 
 # scCCAintegration: #must be a unique ID # Need to Debug 
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
+#   create : [ref_integrated]
 #   omic: [scRNA]
 
 
@@ -61,7 +62,15 @@ LogNorm: #totest
 #   omic: [scRNA]
 
 
-# scConcat :  #must be a unique ID
+# scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
 #   path: preprocessing/sc_concat.R
 #   short_name: ScCo
+#   create : [ref_concat]
 #   omic: [scRNA]
+
+# TF: #to deal with, it  changes genes list so they they are only compatible with mix, bulk rna and scRNA coming from the samre 
+#   path: preprocessing/TF.R
+#   short_name: TF
+#   dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
+#   omic: [mixRNA,RNA,scRNA]
+

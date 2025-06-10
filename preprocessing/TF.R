@@ -1,5 +1,6 @@
-program_block_PP <- function(data,path_og_dataset='') {
+program_block_PP <- function(data,path_og_dataset='',omic='') {
   
+  # og_ref_scrna  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_scRNA')$ref_scRNA
 
     warning("This method uses a priori knowledge from team H")
     library(decoupleR)
@@ -41,21 +42,34 @@ program_block_PP <- function(data,path_og_dataset='') {
       return(x)
     }
     
-    network = readRDS("baselines/attachement/teamHtfrna_network_modules.rds")
+
+
+
+
+    if(omic == 'ref_scRNA'){
+      net = decoupleR::get_collectri(organism = "human", split_complexes = F)
+      
+      ref_scRNA_metadata = lapply(data, function(x) x$metadata)
+      data = lapply(data, function(x) ADImpute::NormalizeTPM(x$counts, log = T))
+      data = lapply(data, function(x) compute.TFs.activity(x, universe = net))
+      data = lapply(data, function(x) create_tfs_modules(x, network))
+      data = lapply(data, function(x) t(minMax(x)))
+      data = lapply(seq_along(data), function(x)
+        list(counts = data[[x]], metadata = ref_scRNA_metadata[[x]]))
+      # data = lapply(data, function(x) list(counts = x$counts[hvg,], metadata = x$metadata))
     
-    ref_scRNA_metadata = lapply(ref_scRNA, function(x) x$metadata)
-    net = decoupleR::get_collectri(organism = "human", split_complexes = F)
-    mix_rna = ADImpute::NormalizeTPM(mix_rna, log = T)
-    ref_scRNA = lapply(ref_scRNA, function(x) ADImpute::NormalizeTPM(x$counts, log = T))
-    mix_rna = compute.TFs.activity(mix_rna, universe = net)
-    ref_scRNA = lapply(ref_scRNA, function(x) compute.TFs.activity(x, universe = net))
-    mix_rna = create_tfs_modules(mix_rna, network)
-    ref_scRNA = lapply(ref_scRNA, function(x) create_tfs_modules(x, network))
-    mix_rna = t(minMax(mix_rna))
-    ref_scRNA = lapply(ref_scRNA, function(x) t(minMax(x)))
-    ref_scRNA = lapply(seq_along(ref_scRNA), function(x)
-      list(counts = ref_scRNA[[x]], metadata = ref_scRNA_metadata[[x]]))
+    }else if(omic == 'ref_bulkRNA'){
+      ref_bulkRNA = readRDS("teamHtfrna_ref_modules.rds")
+    }else{ 
+      net = decoupleR::get_collectri(organism = "human", split_complexes = F)
+
+      # network = readRDS("preprocessing/attachement/teamHtfrna_network_modules.rds")
+      network = readRDS("teamHtfrna_network_modules.rds")
+      data = ADImpute::NormalizeTPM(data, log = T)
+      data = compute.TFs.activity(data, universe = net)
+      data = create_tfs_modules(data, network)
+      data = t(minMax(data))
+    }
     
-    ref_bulkRNA = readRDS("baselines/attachement/teamHtfrna_ref_modules.rds")
   return(data) 
 }

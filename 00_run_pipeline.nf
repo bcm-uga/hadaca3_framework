@@ -103,16 +103,21 @@ workflow {
 //     // ################## Generate combinaison and prediction for the preprocess 
 
 
-
     pp_mix_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
+        // println(ppv.getOrDefault('dependency','none'))
         params.mixomics.each { omic ->
             if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
                 pp_mix_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
+                    create : ppv.getOrDefault('create','none')
                     ],
-                    file(ppv['path'])))
+                    file(ppv['path']),
+                    tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
+                    // file(ppv.getOrDefault('dependency','none'))
+                    // file("preprocessing/attachement/*")
+                    ))
             }
         }
     }
@@ -120,12 +125,12 @@ workflow {
     pp_mix = Channel.fromList( pp_mix_path)
     .combine(out_mix)
     .combine(out_cleaned_ref)
-    .map{pp_meta,pp_file,mix_meta,mix_file,ref_met,ref_file ->
+    .map{pp_meta,pp_file,file_dep,mix_meta,mix_file,ref_met,ref_file ->
         def dup_pp_meta = pp_meta.clone()
         dup_pp_meta['dataset'] = mix_meta.id
         dup_pp_meta['ref']=ref_met.id
         dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
-        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+        tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     pp_ref_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
@@ -134,22 +139,29 @@ workflow {
                 pp_ref_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
+                    create : ppv.getOrDefault('create','none')
                     ],
                 file(ppv['path']),
-                file('none')))
+                tuple(ppv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+
+                file('none')
+                ))
             }
         }
     }
+
     pp_ref =  Channel.fromList( pp_ref_path)
     .combine(out_cleaned_ref)
-    .map{pp_meta,pp_file,mix_file,ref_met,ref_file ->
+    .map{pp_meta,pp_file,file_dep,mix_file,ref_met,ref_file ->
         def dup_pp_meta = pp_meta.clone() 
         dup_pp_meta['dataset'] = 'none'
         dup_pp_meta['ref']=ref_met.id
         dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic, dup_pp_meta.dataset, ref_met.id,   dup_pp_meta.pp_fun ].join('_')+'.h5'
-        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+        tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     
+    // pp_ref.view()
+
     out_pp = pp_ref.concat(pp_mix) | Preprocessing
 
 
@@ -158,19 +170,24 @@ workflow {
 
     fs_files = out_pp.map { meta , last_pp_file ->
         def results = []
+        pp_created_ 
+
         CONFIG['features_selection'].each { fs, fsv ->
             def dup_meta = meta.clone() 
+            def need = fsv.getOrDefault('need','none')
 
             if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')) {
                 dup_meta['fs_fun'] = fs
                 results.add( 
-                                [
-                                    dup_meta,
-                                file(fsv['path']),
-                                file(last_pp_file),
-                                file(params.wrapper.script_03),
-                                file(params.utils)
-                                ]
+                    [
+                        dup_meta,
+                        file(fsv['path']),
+                        file(last_pp_file),
+                        file(params.wrapper.script_03),
+                        file(params.utils),
+                        tuple(fsv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+
+                    ]
                 )
             }   
          }
@@ -183,17 +200,17 @@ workflow {
 
     complete_fs_files = fs_files
     .combine(out_mix_with_none)
-    .filter { fs_meta, a,b,c,d, dataset_meta, dataset_file ->
+    .filter { fs_meta, a,b,c,d,e, dataset_meta, dataset_file ->
         fs_meta.dataset == dataset_meta.id 
     }
     .combine(out_cleaned_ref)
-    .filter {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+    .filter {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
         fs_meta.ref == ref_meta.id 
     }
-    .map {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+    .map {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_fs_meta = fs_meta.clone()
         dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
-        tuple(dup_fs_meta, a,b,c,d,dataset_file,ref_file )
+        tuple(dup_fs_meta, a,b,c,d,e,dataset_file,ref_file )
     }
 
     out_fs = complete_fs_files | Features_selection
@@ -422,6 +439,7 @@ process Preprocessing {
     input:
     tuple val(meta),
         path(pp_script), 
+        path(dependency),
         path(mix), 
         path(reference), 
         path(wrapper02),
@@ -462,6 +480,7 @@ process Features_selection {
             path(file_input),
             path(wrapper03),
             path(utils),
+            path(files_dep),
             path(mix), 
             path(reference),
             )
@@ -661,7 +680,7 @@ process Metaanalysis {
     input:   
     tuple( 
         val(meta), 
-        path( input_score), 
+        path(input_score), 
         path(meta_script), 
         path(utils), 
         // path(file_dataset)

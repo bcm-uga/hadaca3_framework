@@ -1,4 +1,4 @@
-program_block_PP <- function(data,path_og_dataset='') {
+program_block_PP <- function(data,path_og_dataset='',omic='') {
   
     library(Seurat)
     #Error should come from this line. 
