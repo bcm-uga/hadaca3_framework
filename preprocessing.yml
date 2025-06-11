@@ -17,7 +17,7 @@ ppID :  #must be a unique ID
 
 # scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
 #   path: preprocessing/sc_pseudobulk.R
-#   short_name: scpseu
+#   short_name: scp
 #   create: [ref_pseudobulk]
 #   omic: [scRNA,RNA]
 
@@ -28,11 +28,11 @@ ppID :  #must be a unique ID
 
 
 
-# sccluster : # toDebug seura create object
-#   path: preprocessing/sc_cluster.R
-#   short_name: sccl
-#   create : [ref_cluster]
-#   omic: [scRNA]
+sccluster : # toDebug seura create object
+  path: preprocessing/sc_cluster.R
+  short_name: sccl
+  create : [ref_cluster]
+  omic: [scRNA]
 
 # scCCAintegration: #must be a unique ID # Need to Debug 
 #   path: preprocessing/sc_CCAintegration.R

@@ -111,7 +111,8 @@ workflow {
                 pp_mix_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
-                    create : ppv.getOrDefault('create','none')
+                    pp_create : ppv.getOrDefault('create','none'),
+                    pp_omics : ppv.omic             
                     ],
                     file(ppv['path']),
                     tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
@@ -139,7 +140,8 @@ workflow {
                 pp_ref_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
-                    create : ppv.getOrDefault('create','none')
+                    pp_create : ppv.getOrDefault('create','none'),
+                    pp_omics : ppv.omic
                     ],
                 file(ppv['path']),
                 tuple(ppv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
@@ -170,25 +172,44 @@ workflow {
 
     fs_files = out_pp.map { meta , last_pp_file ->
         def results = []
-        pp_created_ 
+        def pp_create = meta.pp_create ;
+        if (pp_create instanceof List) {
+            pp_create = meta.pp_create[0] ; 
+        }
 
+        def pp_omics = meta.pp_omics ;  
+        // println(pp_omics)
         CONFIG['features_selection'].each { fs, fsv ->
             def dup_meta = meta.clone() 
-            def need = fsv.getOrDefault('need','none')
+            // def pp_create = dup_meta.pp_create  ; 
+            // def pp_omics = dup_meta.pp_omics ;  
+            // dup_meta["fs_need"] = fsv.getOrDefault('need','none')
+            def fs_need = fsv.getOrDefault('need',['none'])
+            def fs_omic_need = fsv.getOrDefault('omic_need',['none'])
+            // println(fs_omic_need)
+            if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')    ) {
+                // println( dup_meta.omic + ' ' + dup_meta.pp_fun + ' ' + pp_create + ' ; ' + fs + ' ' + fs_need + ' ' +   fs_need.contains(pp_create) )
+                // fs need contains pp_create (works also for none)
+                // OR the omic being computed is not never created but fs need another kind of omic therfor not in pp_omicS and pp_create is not special
+                if( 
+                    // (fs_need == 'none' && pp_create =='none') ||
+                 (fs_need.contains(pp_create)  && (fs_omic_need.contains(dup_meta.omic) || fs_omic_need.contains('ANY') || fs_omic_need.contains('none')  )) || 
+                 (pp_create == 'none' && !fs_omic_need.contains(dup_meta.omic))
+                //  (!pp_omics.contains(dup_meta.omic) && pp_create=='none' && !pp_omics.contains('ANY'))  
+                 ){
+                    dup_meta['fs_fun'] = fs
+                    results.add( 
+                        [
+                            dup_meta,
+                            file(fsv['path']),
+                            file(last_pp_file),
+                            file(params.wrapper.script_03),
+                            file(params.utils),
+                            tuple(fsv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
 
-            if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')) {
-                dup_meta['fs_fun'] = fs
-                results.add( 
-                    [
-                        dup_meta,
-                        file(fsv['path']),
-                        file(last_pp_file),
-                        file(params.wrapper.script_03),
-                        file(params.utils),
-                        tuple(fsv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
-
-                    ]
-                )
+                        ]
+                    )
+                }
             }   
          }
         return results
@@ -212,6 +233,9 @@ workflow {
         dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
         tuple(dup_fs_meta, a,b,c,d,e,dataset_file,ref_file )
     }
+
+    complete_fs_files.view{ v-> v[0].output } 
+
 
     out_fs = complete_fs_files | Features_selection
 

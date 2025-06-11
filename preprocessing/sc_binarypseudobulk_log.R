@@ -1,5 +1,5 @@
 program_block_PP <- function(data,path_og_dataset='',omic='') {
-    if(omic == 'ref_scRNA' ){ # is.list(data)
+  if(omic == 'ref_scRNA' ){ # is.list(data)
     if (!"edgeR" %in% rownames(installed.packages())) {
       library(BiocManager)
       BiocManager::install("edgeR")
@@ -41,12 +41,12 @@ program_block_PP <- function(data,path_og_dataset='',omic='') {
         counts=log2(1+pseudobulks_normalized),
         metadata=pseudobulks_metadata))
       
-    }else{
+  }else{
      data = log2(1+data)
     # mix_rna = log2(1+mix_rna)
     # ref_bulkRNA = log2(1+ref_bulkRNA)
 
-    }
+  }
   
   return(data) 
 }
