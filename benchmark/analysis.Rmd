@@ -115,8 +115,8 @@ ggplot(data, aes(x = setup, y = count, fill = job)) +
 ##  Parse result 
 
 ```{r parse_results}
-file_path <- paste0("results/data1-9.txt")  # Replace with the actual file path
-# file_path <- paste0("results/data.txt")  # Replace with the actual file path
+# file_path <- paste0("results/data1-9.txt")  # Replace with the actual file path
+file_path <- paste0("results/data.txt")  # Replace with the actual file path
 data <- readLines(file_path)
 filtered_data <- data[grepl("^\\w+\\s*:\\s*\\([0-9.]+,[0-9.]+\\)$", data)]
 
@@ -146,14 +146,16 @@ parsed_data <- data.frame(
 sec_to_hms_pretty <- function(sec, sep = " ") {
   vapply(sec, function(s) {
     p  <- seconds_to_period(s)
+    dd <- day(p)
     hh <- hour(p)
     mm <- minute(p)
     ss <- round(second(p))
 
     parts <- c(
-      if (hh > 0) sprintf("%d%sh ", hh, sep) else NULL,
-      if (mm > 0 || hh > 0) sprintf("%d%sm ", mm, sep) else NULL,
-      sprintf("%d%ss", ss, sep)
+      if(dd>0) sprintf("%d%sd ", dd, sep) else NULL,
+      if (hh > 0 || dd > 0 ) sprintf("%d%sh ", hh, sep) else NULL,
+      if (dd == 0 && (mm > 0 || hh > 0)) sprintf("%d%sm ", mm, sep) else NULL,
+      if (dd>0 || hh >0) NULL else sprintf("%d%ss", ss, sep)
     )
     sub(paste0(sep, "$"), "", paste0(parts, collapse = ""))
   }, FUN.VALUE = character(1))
