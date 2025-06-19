@@ -17,8 +17,12 @@ program_block_FS <- function(data,path_og_dataset='') {
           
 
   if(is.list(data)){
+  # og_ref_bulkRNA  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_bulkRNA')$ref_bulkRNA
+
   data <- list("ref_teamH"=list(counts=as.matrix(avg_expression_df[common_genes,colnames(ref_bulkRNA)]),
-                    metadata=data.frame(cell_type=colnames(ref_bulkRNA),
+                                       metadata=data.frame(cell_type=colnames(ref_bulkRNA),
+                                                           sample=NA)))
+
     # data = lapply(data, function(x) list(counts = x$counts[top_genes,], metadata = x$metadata))
   }else{
     data = data[common_genes,]

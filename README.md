@@ -20,11 +20,8 @@ conda activate hadaca3framework_env
 
 mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes bioconductor-OmnipathR 
 
-
-Rscript -e "remotes::install_github('saezlab/decoupleR')"
-
-
 ```
+<!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
 <!-- bioconductor-ADImpute -->
 <!-- bioconductor-viper -->
 <!-- BiocManager::install("ADImpute") -->
@@ -134,44 +131,88 @@ This framework contains several blocks
 
 
 ## Data types : 
-The input and output of each block  
-We have two types of data : 
- * Multi_data :  This format contains several mulli-omics such as metylation mixes and rna mix. This data organisation looks like this : 
+
+Each fonctions, preprocess , features selection..., is dealing with one only one kind of omic : (mixRNA,mixMET,ref_MET,ref_bulkRNA,ref_scRNA).
+In this code, the omic name RNA, MET, scRNA reffers to ref_bulkRNA, ref_MET, and ref_scRNA respectively. 
+ref_scRNA contains 3 differents datasets, and therefor are offen differenciated in the code using is.list
+
+
 ```
-multi_data
-├── mix
-│   ├── mix_rna
-│   └── mix_met
-└── ref
-    ├── ref_bulkRNA
-    ├── ref_met
-    └── ref_scRNA
-        ├── ref_sc_peng
-        ├── ref_sc_baron
-        └── ref_sc_raghavan
+ref_scRNA
+├── ref_sc_peng
+├── ref_sc_baron
+└── ref_sc_raghavan
 ```
 
 
- * Uni-data : contains only one type of omics. 
-```
-uni_data
-├── mix
-└── ref
-    ├── ref_bulkRNA
-    ├── ref_met
-    └── ref_scRNA
-        ├── ref_sc_peng
-        ├── ref_sc_baron
-        └── ref_sc_raghavan
-```
-prediction : contains only the prediction table. 
 
 
 ## Snakemake shenanigan.
 
 The snakeme make will create combinaison between compatible functions inside each block. 
 
-To complete
+A normal user, should not edit the pipeine code directly, to add and remove functions use the corresponding yml files and populate the folder accordingly. 
+
+The yml should contains these fields :
+```{yml}
+normalize : 
+  path: preprocessing/normalize.R
+  short_name: norm
+  omic: [mixMET,MET]
+```
+
+- *normalize* is the unique function name, 
+- *path* is the relative path from the hadaca3_framework folder
+- *short_name* is a 4 or 5 letters name of the function used in info graphy to make it more readable
+- *omic*: contains a list of the omic that is function accept and will modify. It can take only one like [scRNA] or several [mixRNA,RNA,scRNA] or even take all the omic with the keyword [ANY]. 
+
+Beware, functions that handle multi omics such as [ANY] or [mixRNA,RNA,scRNA] has to handle each of the omic individually. 
+
+Indeed, each fonction of each block have the same function header that looks like  :
+```
+program_block_PP <- function(data,path_og_dataset='',omic='') {
+    ...
+  return(data) 
+}
+```
+with
+- *data* being a single omic type also specified with the variable called *omic* . The same omic type has to be returend by this function during its execution !
+- *path_og_dataset* being a list with the path of mixes and references (ref_bulk,ref_met, ref_scRNA) with the original mix datasets and reference data. In the case of a reference omics being computed (one of [RNA,scRNA,MET]), the original mix dataset is set to **none**.
+
+To use these paths, use the provided read function **read_all_ref_hdf5(path)** or **read_hdf5(path)** from *utils/data_processing.R*. The file *utils/data_processing.R* is already loaded, so there is no need to source it.   
+
+for exemple we can load the reference bulkRNA like this 
+```
+og_ref_bulkRNA  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_bulkRNA')$ref_bulkRNA
+or 
+og_ref_bulkRNA  =  read_hdf5(path_og_dataset$ref)$ref_bulkRNA 
+```
+
+There are other optionnal fields that can be specified in the yml : 
+```
+function1 : 
+    create : [ref_concat]
+    dependency : [file1,file2]
+    omic  : [scRNA]
+
+function2 :
+    need: [ref_cluster]
+    omic_need : [scRNA]
+    omic : [mixRNA,RNA,scRNA]
+```
+The field  *dependency* contains a list of file that can be read during the function execution. The path in the field dependency is a relitive path, whereas the path in the function code will only be the file name. 
+For instance dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]  in the yml mean that the file "teamHtfrna_network_modules.rds" and "teamHtfrna_ref_modules.rds" are readble in the function code with a code like : `readRDS("teamHtfrna_ref_modules.rds")`.
+
+The Field *create*, means it will create a new kinds of omic. 
+*need* and *omic_need* is meant to specified that this fonction need on omic of the kind (omic_need). 
+Functions with the field *need* will be linked with the previous fonction that created this omic of the same kind, or, if the fonction is handling a different omic than the one created in the previous function, his omic created will be passed in the *og_dataset_path*. If the omic needed is a mix, its path will be under *og_dataset_path$mix* and under *og_dataset_path$ref*.
+
+
+For exemple : 
+The function1 create the omic ref_concat of the type scRNA. Function2 need this omic to compute. Nonetheless, function2 handle three differents omics [mixRNA,RNA,scRNA].
+- When function2 is handling **"scRNA"** omic, and since, function2 need that omic, function2 will only be linked with the output of function1 or any other function that create the omic *ref_cluster* . 
+- When function2 is handling **mixRNA**, function2 will be linked with any output previous block that outputed the omic **mixRNA**! however the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*.
+- When function2 is handling **RNA**, function2 will be linked with any output previous block that outputed the omic **RNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*. 
 
 
 
@@ -209,12 +250,14 @@ All data should have HDF5 format with a compression level set to 6 and 'gzip' as
 # Benchmark 
 
 There is an attempt to perfom a benchmark of snakemake vs nextflow. 
-The motivation behind the developpement of nextflow is the mandatory step of DAG creation in snakemake which was very time consuming. 
+The motivation behind the developpement of nextflow is the mandatory step of DAG creation in snakemake which is very time consuming. 
 
 See the README.md inside benchmark folder. 
 
 ## TODO
 
 
-
+* Decovolution need
+* early integration 
+* test the function. 
 * how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
