@@ -68,7 +68,11 @@ sccluster : # toDebug seura create object
 #   create : [ref_concat]
 #   omic: [scRNA]
 
-# TF: #to deal with, it  changes genes list so they they are only compatible with mix, bulk rna and scRNA coming from the samre 
+
+
+### Working but need to chagne decovolution... 
+
+# TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction. .. 
 #   path: preprocessing/TF.R
 #   short_name: TF
 #   dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]

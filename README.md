@@ -74,24 +74,6 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 ```
 ## Execute the pipeline: 
 
-### snakemake
-
-```
-cd ~/projects/hadaca3_framework
-snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
-```
-
-This pipeline can be visualised by generating its DAG:
-```
-snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
-```
-
-Run with another setup: 
-```
-snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
-```
-
 
 
 ### N E X T F L O W  
@@ -109,6 +91,24 @@ nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timelin
 Run with another setup: 
 ```
 nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup/1/
+```
+
+### snakemake  DEPRECATED not dealing with dependencies...
+
+```
+cd ~/projects/hadaca3_framework
+snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
+snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
+```
+
+This pipeline can be visualised by generating its DAG:
+```
+snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
+```
+
+Run with another setup: 
+```
+snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
 ```
 
 
@@ -150,6 +150,8 @@ multi_data
         ├── ref_sc_baron
         └── ref_sc_raghavan
 ```
+
+
  * Uni-data : contains only one type of omics. 
 ```
 uni_data
@@ -170,6 +172,8 @@ prediction : contains only the prediction table.
 The snakeme make will create combinaison between compatible functions inside each block. 
 
 To complete
+
+
 
 ## HDF5 format.
 
@@ -211,9 +215,6 @@ See the README.md inside benchmark folder.
 
 ## TODO
 
-* improve handling of hdf5 files to not rewrite unmodified data
+
 
 * how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
-
-
-Nextflow : 

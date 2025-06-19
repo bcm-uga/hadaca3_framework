@@ -5,8 +5,6 @@ fsID :  #This is a requiered function
   omic: [ANY]
 
 
-
-
 # Toastnbfs :  #must be a unique ID without _
 #   path: feature_selection/TOAST_nbfs.R
 #   short_name: TNBF
@@ -46,7 +44,7 @@ fsID :  #This is a requiered function
 
 #### dealing/ with other refs 
 SCcluster: #TODO
-  path: feature_selection/TOAST_vst.R
+  path: feature_selection/sc_cluster.R
   short_name: SCCL
   need: [ref_cluster]
   omic_need : [scRNA]
@@ -67,7 +65,7 @@ SCcluster: #TODO
 
 ### Special traitment needed
 
-# scteamH : = #return ref_teamH 
+# scteamH :  #return ref_teamH 
 #   path: feature_selection/sc_teamH.R
 #   short_name: TH
 #   Create : [ref_teamH]
