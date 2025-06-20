@@ -16,28 +16,6 @@ RNA= 'ref_bulkRNA',
 scRNA= 'ref_scRNA' ) 
 
 
-# write_sparse_matrix <- function(group,path,counts,meta){
-#     #  =  dataset_name 
-#     h5createGroup(path, group)
-#     h5createDataset(path, dataset =  paste0(group,'/data'), dims = length(counts@x) , storage.mode = "integer")
-#     h5write(counts@x, file=path, name=paste0(group, "/data"))
-#     h5write(dim(counts), file=path, name=paste0(group, "/shape"))
-#     h5createDataset(path, dataset = paste0(group,'/indices'), dims = length(counts@i), storage.mode = "integer")
-#     h5write(counts@i, file=path, name=paste0(group, "/indices"))
-#     h5write(counts@p, file=path, name=paste0(group, "/indptr"))
-#     if (!is.null(rownames(counts))) {
-#       h5write(rownames(counts), file=path, name=paste0(group, "/genes"))
-#     }
-
-#     if (!is.null(colnames(counts))) {
-#       h5write(colnames(counts), file=path, name=paste0(group, "/cell"))
-#     }
-
-#     h5write(meta, file=path , name=paste0( group,"/meta"  ))
-# }
-
-
-
 write_data_frame <- function(name, path,data){
     h5createGroup(path, name)
     h5write(data, file = path, name = paste0(name, "/data"))
@@ -75,25 +53,7 @@ write_all_ref_hdf5 <- function(path, ref_all) {
     meta =   ref_all$ref_scRNA[[dataset]]$metadata
     
     write_sparse_matrix(paste0( 'ref_scRNA/' , dataset  ), path,counts,meta)
-    
-    # group =  paste0( 'ref_scRNA/' , dataset  )
-    # h5createGroup(path, group)
-    # h5createDataset(path, dataset =  paste0(group,'/data'), dims = length(counts@x) , storage.mode = "integer")
-    # h5write(counts@x, file=path, name=paste0(group, "/data"))
-    # h5write(dim(counts), file=path, name=paste0(group, "/shape"))
-    # h5createDataset(path, dataset = paste0(group,'/indices'), dims = length(counts@i), storage.mode = "integer")
-    # h5write(counts@i, file=path, name=paste0(group, "/indices"))
-    # h5write(counts@p, file=path, name=paste0(group, "/indptr"))
 
-    # if (!is.null(rownames(counts))) {
-    #   h5write(rownames(counts), file=path, name=paste0(group, "/genes"))
-    # }
-
-    # if (!is.null(colnames(counts))) {
-    #   h5write(colnames(counts), file=path, name=paste0(group, "/cell"))
-    # }
-
-    # h5write(meta, file=path , name=paste0( group,"/meta"  ))
   }
 
 }
@@ -177,26 +137,6 @@ read_all_ref_hdf5 <- function(path,to_read=c('ref_bulkRNA','ref_met','ref_scRNA'
     for (dataset in datasets) {
       scRNA = read_sparse_matrix(paste0('ref_scRNA/',dataset), file_structure[[dataset]],path)
 
-      # group <- paste0('ref_scRNA/', dataset)
-
-      # counts_data <- as.numeric(h5read(path, paste0(group, "/data")))
-      # counts_shape <- as.integer(h5read(path, paste0(group, "/shape")))
-      # counts_indices <- as.integer(h5read(path, paste0(group, "/indices")))
-      # counts_indptr <- as.integer(h5read(path, paste0(group, "/indptr")))
-
-      # cells = h5read(path, paste0(group, "/cell"))
-      # counts <- new("dgCMatrix",
-      #               x = counts_data,
-      #               i = counts_indices,
-      #               p = counts_indptr,
-      #               Dim = counts_shape,
-      #               Dimnames = list(
-      #                 h5read(path, paste0(group, "/genes")),
-      #                 cells
-      #               ))
-
-      # meta <- h5read(path, paste0(group, "/meta"))
-      # rownames(meta) = cells
       ref_scRNA[[dataset]] <- list(
         counts = scRNA$counts,
         metadata = scRNA$meta
@@ -235,28 +175,6 @@ write_all_hdf5 <- function(path, combined_data){
   write_all_ref_hdf5(path, combined_data$ref)
 }
 
-
-
-# write_global_hdf5 <- function(path, data_list) {
-#   # Create the HDF5 file
-#   h5createFile(path)
-
-#   # Iterate over each named element in the data_list
-#   for (name in names(data_list)) {
-
-#     if(name == "ref_scRNA"){
-#       h5createGroup(path, 'ref_scRNA/')
-#         for (dataset in names(data_list[[name]])){
-#           counts = data_list[[name]][[dataset]]$counts
-#           meta =   data_list[[name]][[dataset]]$metadata
-          
-#           write_sparse_matrix(paste0( 'ref_scRNA/' , dataset  ), path,counts,meta)
-#         }
-#     }else{
-#       write_data_frame(name,path,data_list[[name]])
-#     }
-#   }
-# }
 
 write_sparse_matrix <- function(group, path, counts, meta, data = NULL, scale_data = NULL) {
   h5createGroup(path, group)
@@ -327,7 +245,8 @@ write_global_hdf5 <- function(path, data_list) {
             seurat_obj <- data_list[[name]][[dataset]][[field]]
             seurat_field_name <- field
             group_seurat = paste0('ref_scRNA/', dataset,'/',field)
-            h5createGroup(paste0(path,group), field)
+            # h5createGroup(path,paste0(path,group), field)
+            h5createGroup(path,group_seurat)
 
             break
           }
@@ -415,7 +334,7 @@ read_sparse_matrix <- function(group,group_structure, path) {
       # data_values <- as.numeric(h5read(path, paste0(group, "/normalized_data")))
       data <- counts
       data@x <- as.numeric(h5read(path, paste0(group, "/normalized_data")))
-      seurat_obj[["RNA"]] <- SetAssayData(seurat_obj[["RNA"]], slot = "data", new.data = data)
+      seurat_obj[["RNA"]] <- SetAssayData(seurat_obj[["RNA"]], layer = "data", new.data = data)
 
       # seurat_obj[["RNA"]]@data <- data
     }
@@ -425,7 +344,7 @@ read_sparse_matrix <- function(group,group_structure, path) {
       scale_data <- counts
       scale_data@x <- scale_values
       # seurat_obj[["RNA"]]@scale.data <- scale_data
-      seurat_obj[["RNA"]] <- SetAssayData(seurat_obj[["RNA"]], slot = "scale.data", new.data = scaled_data)
+      seurat_obj[["RNA"]] <- SetAssayData(seurat_obj[["RNA"]], layer = "scale.data", new.data = scaled_data)
 
     }
 
@@ -448,10 +367,17 @@ read_hdf5 <- function(path) {
 
       for (dataset in names(file_structure[[name]])) {
         seuratobj_or_counts_n_metadata <- read_sparse_matrix(paste0('ref_scRNA/', dataset), file_structure[[name]][[dataset]] , path)
-        # ref_scRNA[[dataset]] <- list(
-        #   seurat_clustered = seurat_obj
-        # )
+        
+        ## check if there is another data inside here !  TODO change this with a metadata list in the root of this file... 
+        expected_names <- c("cell", "data", "genes", "indices", "indptr", "meta", "shape")
+        actual_names <- names(file_structure[[name]][[dataset]])
+        unexpected_names = actual_names[!actual_names %in% expected_names]
 
+        print(unexpected_names)
+
+        for(field in unexpected_names ){
+          seuratobj_or_counts_n_metadata[[field]] = read_sparse_matrix(paste0('ref_scRNA/', dataset,'/',field), file_structure[[name]][[dataset]][[field]] , path)
+        }
         ref_scRNA[[dataset]] = seuratobj_or_counts_n_metadata
       }
 

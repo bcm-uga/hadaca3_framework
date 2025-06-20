@@ -28,7 +28,7 @@ program_block_PP <- function(data,path_og_dataset='',omic='') {
     data = list("ref_cluster"=list(counts=seurat_merge@assays$RNA$counts,
                                         metadata=data.frame(cell_type=seurat_merge$cell_type,
                                                             sample=seurat_merge$sample,
-                                                            dataset=seurat_merge$dataset)),
-                  "seurat_clustered"=seurat_merge)
+                                                            dataset=seurat_merge$dataset),
+                                                            "seurat_clustered"=seurat_merge) )
   return(data) 
 }
