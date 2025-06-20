@@ -239,12 +239,12 @@ workflow {
     // out_pp_create_filtered.view()
 
     complete_fs_files.branch{fs_meta, a,b,c,d,e,dataset_file,ref_file  -> 
-        simple_fs : fs_meta.fs_need =='none'
+        simple_fs : (fs_meta.fs_need =='none'  ||   fs_meta.omic in fs_meta.fs_omic_need )
         fs_dependency_MET : 'mixMET' in  fs_meta.fs_need || 'MET' in  fs_meta.fs_need
         fs_dependency_RNA : true 
     }.set { fs_branch }
 
-    // fs_branch.fs_dependency_RNA.view()
+    // fs_branch.simple_fs.view{v-> v[0].fs_omic_need}
     // fs_branch.fs_dependency_MET.count()
 
     // out_pp_create_filtered.view()

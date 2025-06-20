@@ -3,10 +3,6 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-LogNorm: #totest 
-  path: preprocessing/LogNorm.R
-  short_name: LogN
-  omic: [ANY]
 
 
 # sc_binarypseudobulk_log : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
@@ -28,11 +24,11 @@ LogNorm: #totest
 
 
 
-# sccluster : # toDebug seura create object
-#   path: preprocessing/sc_cluster.R
-#   short_name: sccl
-#   create : [ref_cluster]
-#   omic: [scRNA]
+sccluster : # toDebug seura create object
+  path: preprocessing/sc_cluster.R
+  short_name: sccl
+  create : [ref_cluster]
+  omic: [scRNA]
 
 # scCCAintegration: #must be a unique ID # Need to Debug 
 #   path: preprocessing/sc_CCAintegration.R
@@ -44,6 +40,11 @@ LogNorm: #totest
 
 
 ### working functions 
+
+# LogNorm: #is working
+#   path: preprocessing/LogNorm.R
+#   short_name: LogN
+#   omic: [ANY]
 
 # Scale :  #scale with sweep function  #must be a unique ID
 #   path: preprocessing/scale.R

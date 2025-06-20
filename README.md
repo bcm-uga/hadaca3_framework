@@ -147,9 +147,9 @@ ref_scRNA
 
 
 
-## Snakemake shenanigan.
+## Nexflow shenanigan.
 
-The snakeme make will create combinaison between compatible functions inside each block. 
+The piepline code will create combinaison between compatible functions inside each block. 
 
 A normal user, should not edit the pipeine code directly, to add and remove functions use the corresponding yml files and populate the folder accordingly. 
 
@@ -161,9 +161,9 @@ normalize :
   omic: [mixMET,MET]
 ```
 
-- *normalize* is the unique function name, 
-- *path* is the relative path from the hadaca3_framework folder
-- *short_name* is a 4 or 5 letters name of the function used in info graphy to make it more readable
+- *normalize* is a unique function name, 
+- *path* is a relative path from the hadaca3_framework folder
+- *short_name* is a 4 or 5 letters short name of the function, this is used to display graphs to make it more readable
 - *omic*: contains a list of the omic that is function accept and will modify. It can take only one like [scRNA] or several [mixRNA,RNA,scRNA] or even take all the omic with the keyword [ANY]. 
 
 Beware, functions that handle multi omics such as [ANY] or [mixRNA,RNA,scRNA] has to handle each of the omic individually. 
@@ -213,6 +213,8 @@ The function1 create the omic ref_concat of the type scRNA. Function2 need this 
 - When function2 is handling **"scRNA"** omic, and since, function2 need that omic, function2 will only be linked with the output of function1 or any other function that create the omic *ref_cluster* . 
 - When function2 is handling **mixRNA**, function2 will be linked with any output previous block that outputed the omic **mixRNA**! however the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*.
 - When function2 is handling **RNA**, function2 will be linked with any output previous block that outputed the omic **RNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*. 
+
+
 
 
 
