@@ -436,7 +436,7 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 ```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_fsMET_aggreg = ggplot(results, aes(x = feature_selection_mixMET, y = score_aggreg, fill = feature_selection_mixMET)) +
+boxplots_fsMET_aggreg = ggplot(results_li, aes(x = feature_selection_mixMET, y = score_aggreg, fill = feature_selection_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -529,7 +529,7 @@ plotly::layout(
 ### PP
 ```{r combinaisons_MAE_PP, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_ppMET_mae = ggplot(results, aes(x = preprocessing_mixMET , y = mae, fill = preprocessing_mixMET)) +
+boxplots_ppMET_mae = ggplot(results_li, aes(x = preprocessing_mixMET , y = mae, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -556,7 +556,7 @@ plotly::layout( # boxplotlys_ppMET_aggreg =
 )
 
 #### RNA
-boxplots_ppRNA_mae = ggplot(results, aes(x = preprocessing_mixRNA , y = mae, fill = preprocessing_mixRNA)) +
+boxplots_ppRNA_mae = ggplot(results_li, aes(x = preprocessing_mixRNA , y = mae, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -681,7 +681,7 @@ plotly::layout(
 
 ```{r combinaisons_RMSE_PP, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_ppMET_rmse = ggplot(results, aes(x = preprocessing_mixMET , y = rmse, fill = preprocessing_mixMET)) +
+boxplots_ppMET_rmse = ggplot(results_li, aes(x = preprocessing_mixMET , y = rmse, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -708,7 +708,7 @@ plotly::layout( # boxplotlys_ppMET_aggreg =
 )
 
 #### RNA
-boxplots_ppRNA_rmse = ggplot(results, aes(x = preprocessing_mixRNA , y = rmse, fill = preprocessing_mixRNA)) +
+boxplots_ppRNA_rmse = ggplot(results_li, aes(x = preprocessing_mixRNA , y = rmse, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -861,7 +861,7 @@ plotly::layout( # boxplotlys_ppMET_aggreg =
 )
 
 #### RNA
-boxplots_ppRNA_spearman_row = ggplot(results, aes(x = preprocessing_mixRNA , y = spearman_row, fill = preprocessing_mixRNA)) +
+boxplots_ppRNA_spearman_row = ggplot(results_li, aes(x = preprocessing_mixRNA , y = spearman_row, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -892,7 +892,7 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 ```{r combinaisons_spearman_row_FS, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_fsMET_spearman_row = ggplot(results, aes(x = feature_selection_mixMET, y = spearman_row, fill = feature_selection_mixMET)) +
+boxplots_fsMET_spearman_row = ggplot(results_li, aes(x = feature_selection_mixMET, y = spearman_row, fill = feature_selection_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -985,7 +985,7 @@ plotly::layout(
 
 ```{r combinaisons_aitchison_PP, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_ppMET_aitchison = ggplot(results, aes(x = preprocessing_mixMET , y = aitchison, fill = preprocessing_mixMET)) +
+boxplots_ppMET_aitchison = ggplot(results_li, aes(x = preprocessing_mixMET , y = aitchison, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -1044,7 +1044,7 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 ```{r combinaisons_aitchison_FS, echo=FALSE, eval=TRUE}
 #### MET
-boxplots_fsMET_aitchison = ggplot(results, aes(x = feature_selection_mixMET, y = aitchison, fill = feature_selection_mixMET)) +
+boxplots_fsMET_aitchison = ggplot(results_li, aes(x = feature_selection_mixMET, y = aitchison, fill = feature_selection_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
