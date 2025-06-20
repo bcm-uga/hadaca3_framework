@@ -54,6 +54,9 @@ jobs:
       #     git fetch --all
       #     git reset --hard ${{ github.sha }}
       
+      - name: Set PAT
+        run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
+        
       - name: Execute commands from README
         run: |
           source "${{ env.CONDA }}"

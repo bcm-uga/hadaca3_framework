@@ -15,5 +15,7 @@ program_block_FS <- function(data,path_og_dataset='') {
     mix_rna = mix_rna[choose_markers_scRNA,]
     ref_bulkRNA = ref_bulkRNA[choose_markers_scRNA,]
     ref_scRNA = lapply(ref_scRNA, function(x) list(counts = x$counts[choose_markers_scRNA,], metadata = x$metadata))
+    
+    return(data)
 }
 

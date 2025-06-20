@@ -4,15 +4,6 @@ fsID :  #This is a requiered function
   short_name: FSID
   omic: [ANY]
 
-# Toastnbfs :  #must be a unique ID without _
-#   path: feature_selection/TOAST_nbfs.R
-#   short_name: TNBF
-#   omic: [mixMET,MET]
-
-# Toastpercent :  #must be a unique ID without _
-#   path: feature_selection/TOAST_percent.R
-#   short_name: Tper
-#   omic: [mixMET,MET]
 
 # mostmethylated : #totest # Use Original ref_met to get most methylated .  #must be a unique ID without _
 #   path: feature_selection/most_methylated.R
@@ -24,44 +15,20 @@ fsID :  #This is a requiered function
 #   short_name: Mdis
 #   omic: [mixMET,MET]
 
-# SPLSDA : #totest # Use Original ref_met to get max discriminant .  #must be a unique ID without _
+# SPLSDA : #totest  #must be a unique ID without _
 #   path: feature_selection/SPLS-DA.R
 #   short_name: SPLS
 #   omic: [mixMET,MET]
-
-Toastvst :  #must be a unique ID without _
-  path: feature_selection/TOAST_vst.R
-  short_name: Tvst
-  omic: [mixRNA,RNA,scRNA]
 
 # Toastbulknbfs : #TOTEST  #must be a unique ID without underscore
 #   path: feature_selection/TOAST_bulk_nbfs.R
 #   short_name: Tbnf
 #   omic: [mixRNA,RNA,scRNA]
 
-# SCcluster: #TODO
-#   path: feature_selection/TOAST_vst.R
-#   short_name: SCCL
-#   dependances: "ref_cluster"
-#   omic: [mixRNA,RNA,scRNA]
-
-# top100 :  #must be a unique ID without _
-#   path: feature_selection/top100.R
-#   # dependence : teamH_scSignature.csv top100.
-#   short_name: T100
-#   omic: [mixNA,RNA,scRNA]
-
-
-
-
-
-
-
-#### dealing/creating other refs 
-
 # scSPLSDA : #TODO #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
 #   path: feature_selection/sc_SPLS-DA.R
 #   short_name: scSD
+#   need : [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
 #   omic: [mixRNA,RNA,scRNA]
 
 # scpseudobulk : #TODO ##
@@ -70,8 +37,34 @@ Toastvst :  #must be a unique ID without _
 #   omic: [mixRNA,RNA,scRNA]
 
 
-# scteamH : #TODO #return ref_teamH 
+#####  working function : 
+# SCcluster: 
+#   path: feature_selection/sc_cluster.R
+#   short_name: SCCL
+#   need: [ref_cluster]
+#   omic_need : [scRNA]
+#   omic: [mixRNA,RNA,scRNA]
+
+# Toastvst :  #must be a unique ID without _
+#   path: feature_selection/TOAST_vst.R
+#   short_name: Tvst
+#   omic: [mixRNA,RNA,scRNA]
+
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBF
+#   omic: [mixMET,MET]
+
+# Toastpercent :  #must be a unique ID without _
+#   path: feature_selection/TOAST_percent.R
+#   short_name: Tper
+#   omic: [mixMET,MET]
+
+### Special traitment needed
+
+# scteamH :  #return ref_teamH 
 #   path: feature_selection/sc_teamH.R
 #   short_name: TH
+#   Create : [ref_teamH]
 #   dependency : [baselines/attachement/teamH_scSignature.csv]
 #   omic: [mixRNA,RNA,scRNA]
