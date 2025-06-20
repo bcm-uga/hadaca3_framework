@@ -524,12 +524,12 @@ workflow {
 
     score_input_ei = out_ei_de.map{ ei_meta, ei_file ->
         def dup_ei_de_meta = ei_meta.clone()
-        def output_name = "score-ei-" + [dup_ei_de_meta.dataset,dup_ei_de_meta.ref].join('_')  +
-            [dup_ei_de_meta.mixRNA.pp_fun, dup_ei_de_meta.mixRNA.fs_fun ].join('_')   +
-            [dup_ei_de_meta.RNA.pp_fun, dup_ei_de_meta.RNA.fs_fun ].join('_')           +
-            [dup_ei_de_meta.scRNA.pp_fun, dup_ei_de_meta.scRNA.fs_fun].join('_')      +
-            [dup_ei_de_meta.mixMET.pp_fun, dup_ei_de_meta.mixMET.fs_fun ].join('_')   +
-            [dup_ei_de_meta.MET.pp_fun, dup_ei_de_meta.MET.fs_fun , dup_ei_de_meta.ei_fun, dup_ei_de_meta.de_fun ].join('_') +'.h5'
+        def output_name = "score-ei-" + [dup_ei_de_meta.dataset,dup_ei_de_meta.ref].join('_') + '_' +
+            ['mixRNA',dup_ei_de_meta.mixRNA.pp_fun, dup_ei_de_meta.mixRNA.fs_fun ].join('_')  + '_' +
+            ['RNA',dup_ei_de_meta.RNA.pp_fun, dup_ei_de_meta.RNA.fs_fun ].join('_')           + '_' +
+            ['scRNA',dup_ei_de_meta.scRNA.pp_fun, dup_ei_de_meta.scRNA.fs_fun].join('_')      + '_' +
+            ['mixMET',dup_ei_de_meta.mixMET.pp_fun, dup_ei_de_meta.mixMET.fs_fun ].join('_')  + '_' +
+            ['MET',dup_ei_de_meta.MET.pp_fun, dup_ei_de_meta.MET.fs_fun , dup_ei_de_meta.ei_fun, dup_ei_de_meta.de_fun ].join('_') +'.h5'
 
         dup_ei_de_meta["output"] = output_name
         tuple(dup_ei_de_meta,ei_file,file(CONFIG.datasets[dup_ei_de_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))
