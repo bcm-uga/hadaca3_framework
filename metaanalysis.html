@@ -4015,202 +4015,51 @@ challenge hadaca</h1>
 <div id="aggregated-and-atomic-scores-per-method" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Aggregated and atomic
 scores per method</h1>
-<pre class="r"><code>library(yaml)
-library(DT)
-library(stringr)
-library(dplyr)
-#&gt; 
+<pre><code>#&gt; 
 #&gt; Attaching package: &#39;dplyr&#39;
 #&gt; The following objects are masked from &#39;package:stats&#39;:
 #&gt; 
 #&gt;     filter, lag
 #&gt; The following objects are masked from &#39;package:base&#39;:
 #&gt; 
-#&gt;     intersect, setdiff, setequal, union
-library(ggplot2)
-
-source(utils_script)
-
-# source(&quot;utils/data_processing.R&quot;)
-theme_set(theme_light())</code></pre>
-<pre class="r"><code>
-# datasets = read_yaml(&quot;datasets.yml&quot;) 
-# print(score_file)
-
-# datasets = read_yaml(&quot;datasets.yml&quot;) 
-# datasets = read_yaml(file_dataset) 
-
-
-list_wd = strsplit(getwd(),&#39;/&#39;)[[1]]
-# Snakemake script : the current working dir is hadaca3_framework
-if(list_wd[length(list_wd)] == &#39;hadaca3_framework&#39;){
-  score_files = list(list.files(path = &quot;./output/scores/&quot;, full.names = TRUE))
-
-# nextflow script :
-}else{
-  score_files = list(list.files(pattern = &#39;score*&#39; ))
-
-}
-
-
-results &lt;- data.frame(
-  dataset = character(),
-  ref = character(),
-
-  preprocessing_mixRNA = character(),
-  feature_selection_mixRNA = character(),
-
-  preprocessing_RNA = character(),
-  feature_selection_RNA = character(),
-
-  preprocessing_scRNA = character(),
-  feature_selection_scRNA = character(),
-  deconvolution_rna = character(),
-
-  preprocessing_mixMET = character(),
-  feature_selection_mixMET = character(),
-
-  preprocessing_MET = character(),
-  feature_selection_MET = character(),
-  deconvolution_met = character(),
-  late_integration = character(),
-  
-  aid = numeric(),
-  aid_norm = numeric(),
-  aitchison = numeric(),
-  aitchison_norm = numeric(),
-  jsd = numeric(),
-  jsd_norm = numeric(),
-  mae = numeric(),
-  mae_norm = numeric(),
-  pearson_col = numeric(),
-  pearson_col_norm = numeric(),
-  pearson_row = numeric(),
-  pearson_row_norm = numeric(),
-  pearson_tot = numeric(),
-  pearson_tot_norm = numeric(),
-  rmse = numeric(),
-  rmse_norm = numeric(),
-  score_aggreg = numeric(),
-  sdid = numeric(),
-  sdid_norm = numeric(),
-  spearman_col = numeric(),
-  spearman_col_norm = numeric(),
-  spearman_row = numeric(),
-  spearman_row_norm = numeric(),
-  spearman_tot = numeric(),
-  spearman_tot_norm = numeric()
-)
-
-
-i = 0 
-for (score_file in score_files[[1]]) {
-  # Extract the base name of the file
-
-  base_name &lt;- basename(score_file)
-
-  # Extract components from the file name
-
-  components &lt;- str_match(base_name, 
-  #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
-  &quot;score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5&quot;)[2:16]
-  
-  
-  # components &lt;- str_match(base_name, &quot;score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)&quot;)[2:8]
-  scores &lt;- read_hdf5(score_file)
-  # Append the extracted information to the results data frame
-  results &lt;- rbind(results,
-    cbind(
-     data.frame(
-       dataset = components[1],
-       ref = components[2],
-
-       preprocessing_mixRNA = components[3],
-       feature_selection_mixRNA = components[4],
-
-       preprocessing_RNA = components[5],
-       feature_selection_RNA = components[6],
-
-       preprocessing_scRNA = components[7],
-       feature_selection_scRNA = components[8],
-       deconvolution_rna = components[9],
-
-        preprocessing_mixMET = components[10],
-       feature_selection_mixMET = components[11],
-
-       preprocessing_MET = components[12],
-       feature_selection_MET = components[13],
-       deconvolution_met = components[14],
-
-       late_integration = components[15],
-       stringsAsFactors = FALSE
-     ),
-     scores
-    ))
-  rownames(results) = NULL
-
-  i = i +1 
-}
-
-results %&gt;%
-  # filter(dc==2) %&gt;%
-  group_by(late_integration) %&gt;%
-  summarise(GlobalScore = median(score_aggreg)) %&gt;%
-  arrange(desc(GlobalScore))
-#&gt; # A tibble: 2 × 2
+#&gt;     intersect, setdiff, setequal, union</code></pre>
+<pre><code>#&gt; # A tibble: 1 × 2
 #&gt;   late_integration GlobalScore
 #&gt;   &lt;chr&gt;                  &lt;dbl&gt;
-#&gt; 1 limean                 0.553
-#&gt; 2 &lt;NA&gt;                   0.510
-
-
-all_functions = c(&#39;preprocessing_mixRNA&#39;, &#39;feature_selection_mixRNA&#39;, &#39;preprocessing_RNA&#39;, &#39;feature_selection_RNA&#39;, &#39;preprocessing_scRNA&#39;, &#39;feature_selection_scRNA&#39;, &#39;deconvolution_rna&#39;, &#39;preprocessing_mixMET&#39;, &#39;feature_selection_mixMET&#39;, &#39;preprocessing_MET&#39;, &#39;feature_selection_MET&#39;, &#39;deconvolution_met&#39;, &#39;late_integration&#39; )
-for( fun in all_functions){
-  results[[fun]] = factor(results[[fun]], 
-  levels = unique(results[[fun]][order(results$score_aggreg[results$dataset==&#39;invitro1&#39;],decreasing = T)])) # sort based on the results on the in vitro dataset
-
-}
-
-
-index_aggreg &lt;- which(names(results) == &quot;score_aggreg&quot;)
-
-datatable(
-  results[, c(1:length(all_functions)+2, index_aggreg)],
-  extensions = &#39;Buttons&#39;,
-  options = list(
-    pageLength = 10,
-    dom = &#39;Bfrtip&#39;,  # This includes the Buttons extension in the layout
-    buttons = list(
-      list(
-        extend = &#39;colvis&#39;,
-        text = &#39;Show/Hide Columns&#39;,
-        columns = &#39;:not(:first-child)&#39;  # This allows all columns except the first to be toggled
-      )
-    )
-  )
-)</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-cb5bb87070747d758c84" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-cb5bb87070747d758c84">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"data":[["1","2","3"],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[null,null,null],[0.6605002304261952,0.359329916624232,0.5527317625147194]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>preprocessing_mixRNA<\/th>\n      <th>feature_selection_mixRNA<\/th>\n      <th>preprocessing_RNA<\/th>\n      <th>feature_selection_RNA<\/th>\n      <th>preprocessing_scRNA<\/th>\n      <th>feature_selection_scRNA<\/th>\n      <th>deconvolution_rna<\/th>\n      <th>preprocessing_mixMET<\/th>\n      <th>feature_selection_mixMET<\/th>\n      <th>preprocessing_MET<\/th>\n      <th>feature_selection_MET<\/th>\n      <th>deconvolution_met<\/th>\n      <th>late_integration<\/th>\n      <th>score_aggreg<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"dom":"Bfrtip","buttons":[{"extend":"colvis","text":"Show/Hide Columns","columns":":not(:first-child)"}],"columnDefs":[{"className":"dt-right","targets":14},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"preprocessing_mixRNA","targets":1},{"name":"feature_selection_mixRNA","targets":2},{"name":"preprocessing_RNA","targets":3},{"name":"feature_selection_RNA","targets":4},{"name":"preprocessing_scRNA","targets":5},{"name":"feature_selection_scRNA","targets":6},{"name":"deconvolution_rna","targets":7},{"name":"preprocessing_mixMET","targets":8},{"name":"feature_selection_mixMET","targets":9},{"name":"preprocessing_MET","targets":10},{"name":"feature_selection_MET","targets":11},{"name":"deconvolution_met","targets":12},{"name":"late_integration","targets":13},{"name":"score_aggreg","targets":14}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+#&gt; 1 limean                 0.553</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-bd3dd488a14da28d5640" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-bd3dd488a14da28d5640">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"data":[["1"],["ppID"],["fsID"],["ppID"],["fsID"],["ppID"],["fsID"],["nnls"],["ppID"],["fsID"],["ppID"],["fsID"],["nnls"],["limean"],[0.5527317625147194]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>preprocessing_mixRNA<\/th>\n      <th>feature_selection_mixRNA<\/th>\n      <th>preprocessing_RNA<\/th>\n      <th>feature_selection_RNA<\/th>\n      <th>preprocessing_scRNA<\/th>\n      <th>feature_selection_scRNA<\/th>\n      <th>deconvolution_rna<\/th>\n      <th>preprocessing_mixMET<\/th>\n      <th>feature_selection_mixMET<\/th>\n      <th>preprocessing_MET<\/th>\n      <th>feature_selection_MET<\/th>\n      <th>deconvolution_met<\/th>\n      <th>late_integration<\/th>\n      <th>score_aggreg<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"dom":"Bfrtip","buttons":[{"extend":"colvis","text":"Show/Hide Columns","columns":":not(:first-child)"}],"columnDefs":[{"className":"dt-right","targets":14},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"preprocessing_mixRNA","targets":1},{"name":"feature_selection_mixRNA","targets":2},{"name":"preprocessing_RNA","targets":3},{"name":"feature_selection_RNA","targets":4},{"name":"preprocessing_scRNA","targets":5},{"name":"feature_selection_scRNA","targets":6},{"name":"deconvolution_rna","targets":7},{"name":"preprocessing_mixMET","targets":8},{"name":"feature_selection_mixMET","targets":9},{"name":"preprocessing_MET","targets":10},{"name":"feature_selection_MET","targets":11},{"name":"deconvolution_met","targets":12},{"name":"late_integration","targets":13},{"name":"score_aggreg","targets":14}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="visualisations-of-the-different-metrics" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> Visualisations of the
+<div id="early-integration_table" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Early
+integration_table</h1>
+<pre><code>#&gt; # A tibble: 2 × 2
+#&gt;   early_integration GlobalScore
+#&gt;   &lt;chr&gt;                   &lt;dbl&gt;
+#&gt; 1 OnlyMet                 0.661
+#&gt; 2 OnlyRna                 0.359</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-7e8a47d29630ecc19cd0" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-7e8a47d29630ecc19cd0">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"data":[["1","2"],["ppID","ppID"],["fsID","fsID"],["ppID","ppID"],["fsID","fsID"],["ppID","ppID"],["fsID","fsID"],["ppID","ppID"],["fsID","fsID"],["ppID","ppID"],["fsID","fsID"],["OnlyMet","OnlyRna"],["nnls","nnls"],[0.6605002304261952,0.359329916624232]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>preprocessing_mixRNA<\/th>\n      <th>feature_selection_mixRNA<\/th>\n      <th>preprocessing_RNA<\/th>\n      <th>feature_selection_RNA<\/th>\n      <th>preprocessing_scRNA<\/th>\n      <th>feature_selection_scRNA<\/th>\n      <th>preprocessing_mixMET<\/th>\n      <th>feature_selection_mixMET<\/th>\n      <th>preprocessing_MET<\/th>\n      <th>feature_selection_MET<\/th>\n      <th>early_integration<\/th>\n      <th>deconvolution<\/th>\n      <th>score_aggreg<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"dom":"Bfrtip","buttons":[{"extend":"colvis","text":"Show/Hide Columns","columns":":not(:first-child)"}],"columnDefs":[{"className":"dt-right","targets":13},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"preprocessing_mixRNA","targets":1},{"name":"feature_selection_mixRNA","targets":2},{"name":"preprocessing_RNA","targets":3},{"name":"feature_selection_RNA","targets":4},{"name":"preprocessing_scRNA","targets":5},{"name":"feature_selection_scRNA","targets":6},{"name":"preprocessing_mixMET","targets":7},{"name":"feature_selection_mixMET","targets":8},{"name":"preprocessing_MET","targets":9},{"name":"feature_selection_MET","targets":10},{"name":"early_integration","targets":11},{"name":"deconvolution","targets":12},{"name":"score_aggreg","targets":13}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="visualisations-of-the-different-metrics" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Visualisations of the
 different metrics</h1>
-<div id="aggregated-scores" class="section level2" number="2.1">
-<h2><span class="header-section-number">2.1</span> Aggregated
+<div id="aggregated-scores" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Aggregated
 scores</h2>
 </div>
-<div id="mae" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> MAE</h2>
+<div id="mae" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> MAE</h2>
 </div>
-<div id="rmse" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> RMSE</h2>
+<div id="rmse" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> RMSE</h2>
 </div>
-<div id="spearman-correlation-row" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Spearman correlation
+<div id="spearman-correlation-row" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> Spearman correlation
 (row)</h2>
 </div>
-<div id="aitchison-distance" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> Aitchison
+<div id="aitchison-distance" class="section level2" number="3.5">
+<h2><span class="header-section-number">3.5</span> Aitchison
 distance</h2>
 </div>
 </div>
