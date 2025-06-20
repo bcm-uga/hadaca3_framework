@@ -20,6 +20,8 @@ conda activate hadaca3framework_env
 
 mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes bioconductor-OmnipathR 
 
+Rscript -e 'remotes::install_github("immunogenomics/presto")'
+
 ```
 <!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
 <!-- bioconductor-ADImpute -->
@@ -43,18 +45,48 @@ The section describes which data are needed to execute the entire pipeline and p
 mkdir -p ~/projects/hadaca3_framework/data
 cd ~/projects/hadaca3_framework/data
 
-# from CIMENT/GRICAD cluster using rsync and cargo node
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
-rsync -auvP cargo:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
+# from CIMENT/GRICAD cluster using rsync and dahu node
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicopseudobulk_pdac.h5 . 
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invitro_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_invivo_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletNoDep_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletNoDep4CTsource_pdac.h5 . 
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletNoDep6CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth1_insilicodirichletEMFAImmuneLowProp_pdac.h5 .
+
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletCopule_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicopseudobulk_pdac.h5 . 
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_invitro_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_invivo_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletNoDep_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletNoDep4CTsource_pdac.h5 . 
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletNoDep6CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/groundtruth2_insilicodirichletEMFAImmuneLowProp_pdac.h5 .
+
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletCopule_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicopseudobulk_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invitro_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_invivo_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletNoDep_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletNoDep4CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletNoDep6CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes1_insilicodirichletEMFAImmuneLowProp_pdac.h5 .
+
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletCopule_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletEMFA_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicopseudobulk_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_invitro_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_invivo_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletNoDep_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletNoDep4CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletNoDep6CTsource_pdac.h5 .
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/mixes2_insilicodirichletEMFAImmuneLowProp_pdac.h5 .
+
+rsync -auvP dahu.ciment:/bettik/hombergn/projects/hadaca3_framework/data/ref.h5 .
 
 # from internet using wget
 wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/groundtruth1_insilicodirichletCopule_pdac.h5

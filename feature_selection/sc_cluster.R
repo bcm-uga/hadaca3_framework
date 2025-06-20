@@ -28,7 +28,8 @@ program_block_FS <- function(data,path_og_dataset='') {
     sc_markers = FindAllMarkers(og_ref$seurat_clustered, assay = NULL, features = NULL,
                           logfc.threshold = 0.1, test.use = "wilcox", slot = "data")
     sc_markers = sc_markers[which(sc_markers$p_val_adj < 0.05 & sc_markers$pct.1>0.6 & sc_markers$pct.2<0.3), ]$gene
-      data = data[sc_markers,]
+    
+    data = data[sc_markers,]
     }
 
  
