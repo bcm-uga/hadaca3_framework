@@ -23,15 +23,16 @@ library(DT)
 library(stringr)
 library(dplyr)
 library(ggplot2)
+theme_set(theme_light())
 
 source(utils_script)
-
-# source("utils/data_processing.R")
-theme_set(theme_light())
+#source("utils/data_processing.R")
 ```
 
 
+
 ```{r Late_integration pipeline,echo=FALSE}
+
 
 # datasets = read_yaml("datasets.yml") 
 # print(score_file)
@@ -158,11 +159,17 @@ results_li %>%
   arrange(desc(GlobalScore))
 
 
+
 all_functions_li = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'preprocessing_RNA', 'feature_selection_RNA', 'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna', 'preprocessing_mixMET', 'feature_selection_mixMET', 'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met', 'late_integration' )
 for( fun in all_functions_li){
   results_li[[fun]] = factor(results_li[[fun]], 
   levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset=='invitro1'],decreasing = T)])) # sort based on the results_li on the in vitro dataset
+}
 
+all_data_used = c('dataset', 'ref')
+for(data_used in all_data_used){
+  results_li[[data_used]] = factor(results_li[[data_used]], 
+  levels = unique(results_li[[data_used]])) # levels will be alphabeticaly ordered
 }
 
 
@@ -185,6 +192,23 @@ datatable(
 )
 ```
 
+```{r all_combinaisons_dataset_aff, echo=FALSE}
+datatable(
+  results[, c(1:length(all_functions)+2, index_aggreg)],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
 
 
 # Early integration_table 
@@ -312,7 +336,12 @@ all_functions_ei = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'prepro
 for( fun in all_functions_ei){
   results_ei[[fun]] = factor(results_ei[[fun]], 
   levels = unique(results_ei[[fun]][order(results_ei$score_aggreg[results_ei$dataset=='invitro1'],decreasing = T)])) # sort based on the results_ei on the in vitro dataset
+}
 
+all_data_used = c('dataset', 'ref')
+for(data_used in all_data_used){
+  all_functions_ei[[data_used]] = factor(all_functions_ei[[data_used]], 
+  levels = unique(all_functions_ei[[data_used]])) # levels will be alphabeticaly ordered
 }
 
 
@@ -337,11 +366,44 @@ datatable(
 
 # Visualisations of the different metrics
 
+
 ## Aggregated scores
+
+### PP
+
+```{r combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_ppMET_aggreg = ggplot(results_li, aes(x = preprocessing_mixMET , y = score_aggreg, fill = preprocessing_mixMET)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score (-> 1), per dataset",
+    x = "Methods",
+    y = "Aggregated score",
+    fill = "Preprocessing for mixMET:"
+  )
+plotly::layout( # boxplotlys_ppMET_aggreg = 
+  plotly::ggplotly(boxplots_ppMET_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
 
 
 ```{r combinaisons_aggregated_scores, echo=FALSE, eval=FALSE}
-boxplots_pp_aggreg = ggplot(results_li, aes(x = preprocessing, y = score_aggreg, fill = preprocessing)) +
+#### RNA
+boxplots_pp_aggreg = ggplot(results_li, aes(x = preprocessing_mixRNA, y = score_aggreg, fill = preprocessing_mixRNA)) +
+
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -351,13 +413,13 @@ boxplots_pp_aggreg = ggplot(results_li, aes(x = preprocessing, y = score_aggreg,
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aggregated score, per dataset",
+    title = "Aggregated score (-> 1), per dataset",
     x = "Methods",
-    y = "Score",
-    fill = "Preprocessing"
+    y = "Aggregated score",
+    fill = "Preprocessing for mixRNA:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_pp_aggreg), 
+plotly::layout( # boxplotlys_ppRNA_aggreg = 
+  plotly::ggplotly(boxplots_ppRNA_aggreg), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -367,7 +429,14 @@ plotly::layout(
     orientation = 'h')
 )
 
-boxplots_fs_aggreg = ggplot(results_li, aes(x = feature_selection, y = score_aggreg, fill = feature_selection)) +
+#plotly::subplot(boxplots_ppMET_aggreg, boxplots_ppRNA_aggreg, nrows=1) marche pas trop car pas 2 titres différents mais je pourrai essayer de mettre des sous-titres
+```
+
+### FS
+
+```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_fsMET_aggreg = ggplot(results, aes(x = feature_selection_mixMET, y = score_aggreg, fill = feature_selection_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -377,13 +446,13 @@ boxplots_fs_aggreg = ggplot(results_li, aes(x = feature_selection, y = score_agg
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aggregated score, per dataset",
+    title = "Aggregated score (-> 1), per dataset",
     x = "Methods",
-    y = "Score",
-    fill = "Feature selection"
+    y = "Aggregated score",
+    fill = "Feature selection for mixMET"
   )
 plotly::layout(
-  plotly::ggplotly(boxplots_fs_aggreg), 
+  plotly::ggplotly(boxplots_fsMET_aggreg), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -392,6 +461,40 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
+
+
+#### RNA
+boxplots_fsRNA_aggreg = ggplot(results_li, aes(x = feature_selection_mixRNA, y = score_aggreg, fill = feature_selection_mixRNA)) +
+
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score (-> 1), per dataset",
+    x = "Methods",
+    y = "Aggregated score",
+    fill = "Feature selection for mixRNA:"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsRNA_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### LI
+
+```{r combinaisons_aggregated_scores_LI, echo=FALSE, eval=TRUE}
 
 boxplots_li_aggreg = ggplot(results_li, aes(x = late_integration, y = score_aggreg, fill = late_integration)) +
   geom_boxplot() +
@@ -403,9 +506,9 @@ boxplots_li_aggreg = ggplot(results_li, aes(x = late_integration, y = score_aggr
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aggregated score, per dataset",
+    title = "Aggregated score (-> 1), per dataset",
     x = "Methods",
-    y = "Score",
+    y = "Aggregated score",
     fill = "Late integration"
   )
 plotly::layout(
@@ -423,10 +526,10 @@ plotly::layout(
 
 ## MAE
 
-
-```{r combinaisons_MAE, echo=FALSE, eval=FALSE}
-
-boxplots_pp_mae = ggplot(results_li, aes(x = preprocessing, y = mae, fill = preprocessing)) +
+### PP
+```{r combinaisons_MAE_PP, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_ppMET_mae = ggplot(results, aes(x = preprocessing_mixMET , y = mae, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -436,13 +539,13 @@ boxplots_pp_mae = ggplot(results_li, aes(x = preprocessing, y = mae, fill = prep
     legend.position = "bottom"
   ) +
   labs(
-    title = "Estimation error, per dataset",
+    title = "Estimation error (-> 0), per dataset",
     x = "Methods",
     y = "MAE",
-    fill = "Preprocessing"
+    fill = "Preprocessing for mixMET:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_pp_mae), 
+plotly::layout( # boxplotlys_ppMET_aggreg = 
+  plotly::ggplotly(boxplots_ppMET_mae), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -452,7 +555,8 @@ plotly::layout(
     orientation = 'h')
 )
 
-boxplots_fs_mae = ggplot(results_li, aes(x = feature_selection, y = mae, fill = feature_selection)) +
+#### RNA
+boxplots_ppRNA_mae = ggplot(results, aes(x = preprocessing_mixRNA , y = mae, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -462,13 +566,13 @@ boxplots_fs_mae = ggplot(results_li, aes(x = feature_selection, y = mae, fill = 
     legend.position = "bottom"
   ) +
   labs(
-    title = "Estimation error, per dataset",
+    title = "Estimation error (-> 0), per dataset",
     x = "Methods",
     y = "MAE",
-    fill = "Feature selection"
+    fill = "Preprocessing for mixRNA:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_fs_mae), 
+plotly::layout( # boxplotlys_ppRNA_aggreg = 
+  plotly::ggplotly(boxplots_ppRNA_mae), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -477,6 +581,71 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
+```
+
+### FS
+
+
+#### MET
+boxplots_fsMET_mae = ggplot(results_li, aes(x = feature_selection_mixMET, y = mae, fill = feature_selection_mixMET)) +
+
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error (-> 0), per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Feature selection for mixMET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsMET_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+
+#### RNA
+boxplots_fsRNA_mae = ggplot(results_li, aes(x = feature_selection_mixRNA, y = mae, fill = feature_selection_mixRNA)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error (-> 0), per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Feature selection for mixRNA:"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsRNA_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### LI
+
+```{r combinaisons_MAE_LI, echo=FALSE, eval=TRUE}
 
 boxplots_li_mae = ggplot(results_li, aes(x = late_integration, y = mae, fill = late_integration)) +
   geom_boxplot() +
@@ -488,7 +657,7 @@ boxplots_li_mae = ggplot(results_li, aes(x = late_integration, y = mae, fill = l
     legend.position = "bottom"
   ) +
   labs(
-    title = "Estimation error, per dataset",
+    title = "Estimation error (-> 0), per dataset",
     x = "Methods",
     y = "MAE",
     fill = "Late integration"
@@ -508,10 +677,11 @@ plotly::layout(
 
 ## RMSE
 
+### PP
 
-```{r combinaisons_RMSE, echo=FALSE, eval=FALSE}
-
-boxplots_pp_rmse = ggplot(results_li, aes(x = preprocessing, y = rmse, fill = preprocessing)) +
+```{r combinaisons_RMSE_PP, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_ppMET_rmse = ggplot(results, aes(x = preprocessing_mixMET , y = rmse, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -521,13 +691,13 @@ boxplots_pp_rmse = ggplot(results_li, aes(x = preprocessing, y = rmse, fill = pr
     legend.position = "bottom"
   ) +
   labs(
-    title = "Root mean squared error, per dataset",
+    title = "Root mean squared error (-> 0), per dataset",
     x = "Methods",
     y = "RMSE",
-    fill = "Preprocessing"
+    fill = "Preprocessing for mixMET:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_pp_rmse), 
+plotly::layout( # boxplotlys_ppMET_aggreg = 
+  plotly::ggplotly(boxplots_ppMET_rmse), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -537,7 +707,8 @@ plotly::layout(
     orientation = 'h')
 )
 
-boxplots_fs_rmse = ggplot(results_li, aes(x = feature_selection, y = rmse, fill = feature_selection)) +
+#### RNA
+boxplots_ppRNA_rmse = ggplot(results, aes(x = preprocessing_mixRNA , y = rmse, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -547,13 +718,13 @@ boxplots_fs_rmse = ggplot(results_li, aes(x = feature_selection, y = rmse, fill 
     legend.position = "bottom"
   ) +
   labs(
-    title = "Root mean squared error, per dataset",
+    title = "Root mean squared error (-> 0), per dataset",
     x = "Methods",
     y = "RMSE",
-    fill = "Feature selection"
+    fill = "Preprocessing for mixRNA:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_fs_rmse), 
+plotly::layout( # boxplotlys_ppRNA_aggreg = 
+  plotly::ggplotly(boxplots_ppRNA_rmse), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -562,6 +733,71 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
+```
+
+### FS
+
+
+```{r combinaisons_RMSE_FS, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_fsMET_rmse = ggplot(results_li, aes(x = feature_selection_mixMET, y = rmse, fill = feature_selection_mixMET)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error (-> 0), per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Feature selection for mixMET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsMET_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### RNA
+boxplots_fsRNA_rmse = ggplot(results_li, aes(x = feature_selection_mixRNA, y = rmse, fill = feature_selection_mixRNA)) +
+
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error (-> 0), per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Feature selection for mixRNA:"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsRNA_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### LI
+
+```{r combinaisons_RMSE_LI, echo=FALSE, eval=TRUE}
 
 boxplots_li_rmse = ggplot(results_li, aes(x = late_integration, y = rmse, fill = late_integration)) +
   geom_boxplot() +
@@ -573,7 +809,7 @@ boxplots_li_rmse = ggplot(results_li, aes(x = late_integration, y = rmse, fill =
     legend.position = "bottom"
   ) +
   labs(
-    title = "Root mean squared error, per dataset",
+    title = "Root mean squared error (-> 0), per dataset",
     x = "Methods",
     y = "RMSE",
     fill = "Late integration"
@@ -593,9 +829,12 @@ plotly::layout(
 
 ## Spearman correlation (row)
 
-```{r combinaisons_spearman_row, echo=FALSE, eval=FALSE}
+### PP
 
-boxplots_pp_spearman_row = ggplot(results_li, aes(x = preprocessing, y = spearman_row, fill = preprocessing)) +
+
+```{r combinaisons_spearman_row_PP, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_ppMET_spearman_row = ggplot(results_li, aes(x = preprocessing_mixMET , y = spearman_row, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -605,13 +844,13 @@ boxplots_pp_spearman_row = ggplot(results_li, aes(x = preprocessing, y = spearma
     legend.position = "bottom"
   ) +
   labs(
-    title = "Cell types correlation, per dataset",
+    title = "Spearman cell types correlation (-> 1), per dataset",
     x = "Methods",
     y = "Spearman correlation (row)",
-    fill = "Preprocessing"
+    fill = "Preprocessing for mixMET:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_pp_spearman_row), 
+plotly::layout( # boxplotlys_ppMET_aggreg = 
+  plotly::ggplotly(boxplots_ppMET_spearman_row), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -621,7 +860,8 @@ plotly::layout(
     orientation = 'h')
 )
 
-boxplots_fs_spearman_row = ggplot(results_li, aes(x = feature_selection, y = spearman_row, fill = feature_selection)) +
+#### RNA
+boxplots_ppRNA_spearman_row = ggplot(results, aes(x = preprocessing_mixRNA , y = spearman_row, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -631,13 +871,13 @@ boxplots_fs_spearman_row = ggplot(results_li, aes(x = feature_selection, y = spe
     legend.position = "bottom"
   ) +
   labs(
-    title = "Cell types correlation, per dataset",
+    title = "Spearman cell types correlation (-> 1), per dataset",
     x = "Methods",
     y = "Spearman correlation (row)",
-    fill = "Feature selection"
+    fill = "Preprocessing for mixRNA:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_fs_spearman_row), 
+plotly::layout( # boxplotlys_ppRNA_aggreg = 
+  plotly::ggplotly(boxplots_ppRNA_spearman_row), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -646,6 +886,70 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
+```
+
+### FS
+
+```{r combinaisons_spearman_row_FS, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_fsMET_spearman_row = ggplot(results, aes(x = feature_selection_mixMET, y = spearman_row, fill = feature_selection_mixMET)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Spearman cell types correlation (-> 1), per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Feature selection for mixMET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsMET_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+
+#### RNA
+boxplots_fsRNA_spearman_row = ggplot(results_li, aes(x = feature_selection_mixRNA, y = spearman_row, fill = feature_selection_mixRNA)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Spearman cell types correlation (-> 1), per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Feature selection for mixRNA:"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsRNA_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### LI
+
+```{r combinaisons_spearman_row_LI, echo=FALSE, eval=TRUE}
 
 boxplots_li_spearman_row = ggplot(results_li, aes(x = late_integration, y = spearman_row, fill = late_integration)) +
   geom_boxplot() +
@@ -657,7 +961,7 @@ boxplots_li_spearman_row = ggplot(results_li, aes(x = late_integration, y = spea
     legend.position = "bottom"
   ) +
   labs(
-    title = "Cell types correlation, per dataset",
+    title = "Spearman cell types correlation (-> 1), per dataset",
     x = "Methods",
     y = "Spearman correlation (row)",
     fill = "Late integration"
@@ -677,10 +981,11 @@ plotly::layout(
 
 ## Aitchison distance
 
+### PP
 
-```{r combinaisons_aitchison, echo=FALSE, eval=FALSE}
-
-boxplots_pp_aitchison = ggplot(results_li, aes(x = preprocessing, y = aitchison, fill = preprocessing)) +
+```{r combinaisons_aitchison_PP, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_ppMET_aitchison = ggplot(results, aes(x = preprocessing_mixMET , y = aitchison, fill = preprocessing_mixMET)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -690,13 +995,13 @@ boxplots_pp_aitchison = ggplot(results_li, aes(x = preprocessing, y = aitchison,
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aitchison distance, per dataset",
+    title = "Aitchison distance (-> 0), per dataset",
     x = "Methods",
     y = "Aitchison distance",
-    fill = "Preprocessing"
+    fill = "Preprocessing for mixMET:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_pp_aitchison), 
+plotly::layout( # boxplotlys_ppMET_aggreg = 
+  plotly::ggplotly(boxplots_ppMET_aitchison), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -706,7 +1011,9 @@ plotly::layout(
     orientation = 'h')
 )
 
-boxplots_fs_aitchison = ggplot(results_li, aes(x = feature_selection, y = aitchison, fill = feature_selection)) +
+
+#### RNA
+boxplots_ppRNA_aitchison = ggplot(results_li, aes(x = preprocessing_mixRNA , y = aitchison, fill = preprocessing_mixRNA)) +
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
   theme(
@@ -716,13 +1023,13 @@ boxplots_fs_aitchison = ggplot(results_li, aes(x = feature_selection, y = aitchi
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aitchison distance, per dataset",
+    title = "Aitchison distance (-> 0), per dataset",
     x = "Methods",
     y = "Aitchison distance",
-    fill = "Feature selection"
+    fill = "Preprocessing for mixRNA:"
   )
-plotly::layout(
-  plotly::ggplotly(boxplots_fs_aitchison), 
+plotly::layout( # boxplotlys_ppRNA_aggreg = 
+  plotly::ggplotly(boxplots_ppRNA_aitchison), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -731,6 +1038,70 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
+```
+
+### FS
+
+```{r combinaisons_aitchison_FS, echo=FALSE, eval=TRUE}
+#### MET
+boxplots_fsMET_aitchison = ggplot(results, aes(x = feature_selection_mixMET, y = aitchison, fill = feature_selection_mixMET)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance (-> 0), per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Feature selection for mixMET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsMET_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+
+#### RNA
+boxplots_fsRNA_aitchison = ggplot(results_li, aes(x = feature_selection_mixRNA, y = aitchison, fill = feature_selection_mixRNA)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance (-> 0), per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Feature selection for mixRNA:"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_fsRNA_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### LI
+
+```{r combinaisons_aitchison_LI, echo=FALSE, eval=TRUE}
 
 boxplots_li_aitchison = ggplot(results_li, aes(x = late_integration, y = aitchison, fill = late_integration)) +
   geom_boxplot() +
@@ -742,7 +1113,7 @@ boxplots_li_aitchison = ggplot(results_li, aes(x = late_integration, y = aitchis
     legend.position = "bottom"
   ) +
   labs(
-    title = "Aitchison distance, per dataset",
+    title = "Aitchison distance (-> 0), per dataset",
     x = "Methods",
     y = "Aitchison distance",
     fill = "Late integration"
@@ -757,6 +1128,4 @@ plotly::layout(
     # yanchor = 'bottom',
     orientation = 'h')
 )
-
 ```
-
