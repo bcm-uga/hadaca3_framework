@@ -192,24 +192,6 @@ datatable(
 )
 ```
 
-```{r all_combinaisons_dataset_aff, echo=FALSE}
-datatable(
-  results[, c(1:length(all_functions)+2, index_aggreg)],
-  extensions = 'Buttons',
-  options = list(
-    pageLength = 10,
-    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
-    buttons = list(
-      list(
-        extend = 'colvis',
-        text = 'Show/Hide Columns',
-        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
-      )
-    )
-  )
-)
-```
-
 
 # Early integration_table 
 ```{r Early_integration pipeline,echo=FALSE}
@@ -338,11 +320,11 @@ for( fun in all_functions_ei){
   levels = unique(results_ei[[fun]][order(results_ei$score_aggreg[results_ei$dataset=='invitro1'],decreasing = T)])) # sort based on the results_ei on the in vitro dataset
 }
 
-all_data_used = c('dataset', 'ref')
-for(data_used in all_data_used){
-  all_functions_ei[[data_used]] = factor(all_functions_ei[[data_used]], 
-  levels = unique(all_functions_ei[[data_used]])) # levels will be alphabeticaly ordered
-}
+# all_data_used = c('dataset', 'ref')
+# for(data_used in all_data_used){
+#   all_functions_ei[[data_used]] = factor(all_functions_ei[[data_used]], 
+#   levels = unique(all_functions_ei[[data_used]])) # levels will be alphabeticaly ordered
+# }
 
 
 index_aggreg <- which(names(results_ei) == "score_aggreg")
