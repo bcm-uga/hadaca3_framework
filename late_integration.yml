@@ -1,7 +1,7 @@
 
-# limean :  #must be a unique ID without "_" ! 
-#   path: late_integration/avg.R
-#   short_name: avg
+limean :  #must be a unique ID without "_" ! 
+  path: late_integration/avg.R
+  short_name: avg
 
 # liCtSens :  #must be a unique ID  without "_" !
 #   path: late_integration/CTS_ens.R
@@ -15,17 +15,22 @@
 #   path: late_integration/TunedJ.R 
 #   short_name: TunJ
 
+
+
+
+
+
+
+# limeanRMSE :  #TO debug #must be a unique ID  without "_" !
+#   path: late_integration/mean_rmse.R
+#   short_name: MRMS
+
+
+### with early integration done, we should maybe remove this from here ! 
 # OnlyMet: 
 #   path: late_integration/only_met.R 
 #   short_name: OMet
 
-OnlyRna: 
-  path: late_integration/only_rna.R 
-  short_name: ORNA
-
-
-
-
-# limeanRMSE :  #must be a unique ID  without "_" !
-#   path: late_integration/mean_rmse.R
-#   short_name: MRMS
+# OnlyRna: 
+#   path: late_integration/only_rna.R 
+#   short_name: ORNA

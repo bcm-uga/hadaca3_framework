@@ -196,7 +196,7 @@ normalize :
 - *normalize* is a unique function name, 
 - *path* is a relative path from the hadaca3_framework folder
 - *short_name* is a 4 or 5 letters short name of the function, this is used to display graphs to make it more readable
-- *omic*: contains a list of the omic that is function accept and will modify. It can take only one like [scRNA] or several [mixRNA,RNA,scRNA] or even take all the omic with the keyword [ANY]. 
+- *omic*: contains a list of the omic that this function accept and will modify. It can take only one omic such as [scRNA] or several [mixRNA,RNA,scRNA] or even take all omics with the keyword [ANY]. 
 
 Beware, functions that handle multi omics such as [ANY] or [mixRNA,RNA,scRNA] has to handle each of the omic individually. 
 
@@ -208,7 +208,7 @@ program_block_PP <- function(data,path_og_dataset='',omic='') {
 }
 ```
 with
-- *data* being a single omic type also specified with the variable called *omic* . The same omic type has to be returend by this function during its execution !
+- *data* being a single omic type also specified within the variable called *omic* . The same omic type has to be returend by this function during its execution !
 - *path_og_dataset* being a list with the path of mixes and references (ref_bulk,ref_met, ref_scRNA) with the original mix datasets and reference data. In the case of a reference omics being computed (one of [RNA,scRNA,MET]), the original mix dataset is set to **none**.
 
 To use these paths, use the provided read function **read_all_ref_hdf5(path)** or **read_hdf5(path)** from *utils/data_processing.R*. The file *utils/data_processing.R* is already loaded, so there is no need to source it.   

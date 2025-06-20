@@ -5,16 +5,6 @@ fsID :  #This is a requiered function
   omic: [ANY]
 
 
-# Toastnbfs :  #must be a unique ID without _
-#   path: feature_selection/TOAST_nbfs.R
-#   short_name: TNBF
-#   omic: [mixMET,MET]
-
-# Toastpercent :  #must be a unique ID without _
-#   path: feature_selection/TOAST_percent.R
-#   short_name: Tper
-#   omic: [mixMET,MET]
-
 # mostmethylated : #totest # Use Original ref_met to get most methylated .  #must be a unique ID without _
 #   path: feature_selection/most_methylated.R
 #   short_name: Mmet
@@ -30,25 +20,10 @@ fsID :  #This is a requiered function
 #   short_name: SPLS
 #   omic: [mixMET,MET]
 
-# Toastvst :  #must be a unique ID without _
-#   path: feature_selection/TOAST_vst.R
-#   short_name: Tvst
-#   omic: [mixRNA,RNA,scRNA]
-
 # Toastbulknbfs : #TOTEST  #must be a unique ID without underscore
 #   path: feature_selection/TOAST_bulk_nbfs.R
 #   short_name: Tbnf
 #   omic: [mixRNA,RNA,scRNA]
-
-
-
-#### dealing/ with other refs 
-SCcluster: #TODO
-  path: feature_selection/sc_cluster.R
-  short_name: SCCL
-  need: [ref_cluster]
-  omic_need : [scRNA]
-  omic: [mixRNA,RNA,scRNA]
 
 # scSPLSDA : #TODO #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
 #   path: feature_selection/sc_SPLS-DA.R
@@ -62,6 +37,28 @@ SCcluster: #TODO
 #   omic: [mixRNA,RNA,scRNA]
 
 
+#####  working function : 
+# SCcluster: 
+#   path: feature_selection/sc_cluster.R
+#   short_name: SCCL
+#   need: [ref_cluster]
+#   omic_need : [scRNA]
+#   omic: [mixRNA,RNA,scRNA]
+
+# Toastvst :  #must be a unique ID without _
+#   path: feature_selection/TOAST_vst.R
+#   short_name: Tvst
+#   omic: [mixRNA,RNA,scRNA]
+
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBF
+#   omic: [mixMET,MET]
+
+# Toastpercent :  #must be a unique ID without _
+#   path: feature_selection/TOAST_percent.R
+#   short_name: Tper
+#   omic: [mixMET,MET]
 
 ### Special traitment needed
 
