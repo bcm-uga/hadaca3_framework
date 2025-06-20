@@ -1,7 +1,7 @@
-program_block_PP <- function(data,path_og_dataset='') {
+program_block_PP <- function(data,path_og_dataset='',omic='') {
   
     library(Seurat)
-    #Error should come from this line. 
+    #Error is coming from this line. 
     seurat_single = lapply(data, function(x) CreateSeuratObject(x$counts, meta.data=x$metadata))
     
     # Merge all
@@ -29,6 +29,6 @@ program_block_PP <- function(data,path_og_dataset='') {
                                         metadata=data.frame(cell_type=seurat_merge$cell_type,
                                                             sample=seurat_merge$sample,
                                                             dataset=seurat_merge$dataset),
-                                        seurat_clustered=seurat_merge))
+                                                            "seurat_clustered"=seurat_merge) )
   return(data) 
 }

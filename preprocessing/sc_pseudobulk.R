@@ -1,4 +1,4 @@
-program_block_PP <- function(data,path_og_dataset='') {
+program_block_PP <- function(data,path_og_dataset='',omic='') {
   
     warning("maybe integrate the data first...")
     # calculate average profile for each cell type from the single cell data

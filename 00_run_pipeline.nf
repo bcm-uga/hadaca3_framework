@@ -103,16 +103,22 @@ workflow {
 //     // ################## Generate combinaison and prediction for the preprocess 
 
 
-
     pp_mix_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
+        // println(ppv.getOrDefault('dependency','none'))
         params.mixomics.each { omic ->
             if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
                 pp_mix_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
+                    pp_create : ppv.getOrDefault('create','none'),
+                    pp_omics : ppv.omic             
                     ],
-                    file(ppv['path'])))
+                    file(ppv['path']),
+                    tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
+                    // file(ppv.getOrDefault('dependency','none'))
+                    // file("preprocessing/attachement/*")
+                    ))
             }
         }
     }
@@ -120,12 +126,12 @@ workflow {
     pp_mix = Channel.fromList( pp_mix_path)
     .combine(out_mix)
     .combine(out_cleaned_ref)
-    .map{pp_meta,pp_file,mix_meta,mix_file,ref_met,ref_file ->
+    .map{pp_meta,pp_file,file_dep,mix_meta,mix_file,ref_met,ref_file ->
         def dup_pp_meta = pp_meta.clone()
         dup_pp_meta['dataset'] = mix_meta.id
         dup_pp_meta['ref']=ref_met.id
         dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
-        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+        tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     pp_ref_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
@@ -134,23 +140,32 @@ workflow {
                 pp_ref_path.add(tuple(
                     [ pp_fun: pp,
                     omic: omic, 
+                    pp_create : ppv.getOrDefault('create','none'),
+                    pp_omics : ppv.omic
                     ],
                 file(ppv['path']),
-                file('none')))
+                tuple(ppv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+
+                file('none')
+                ))
             }
         }
     }
+
     pp_ref =  Channel.fromList( pp_ref_path)
     .combine(out_cleaned_ref)
-    .map{pp_meta,pp_file,mix_file,ref_met,ref_file ->
+    .map{pp_meta,pp_file,file_dep,mix_file,ref_met,ref_file ->
         def dup_pp_meta = pp_meta.clone() 
         dup_pp_meta['dataset'] = 'none'
         dup_pp_meta['ref']=ref_met.id
         dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic, dup_pp_meta.dataset, ref_met.id,   dup_pp_meta.pp_fun ].join('_')+'.h5'
-        tuple(dup_pp_meta,pp_file,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
+        tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     
-    out_pp = pp_ref.concat(pp_mix) | Preprocessing
+    // pp_ref.view()
+
+    // out_pp = pp_ref.concat(pp_mix) | Preprocessing
+    out_pp = pp_ref.mix(pp_mix) | Preprocessing
 
 
 //     // ################## Generate combinaison and prediction for  features selection
@@ -158,45 +173,141 @@ workflow {
 
     fs_files = out_pp.map { meta , last_pp_file ->
         def results = []
+        def pp_create = meta.pp_create ;
+        if (pp_create instanceof List) {
+            pp_create = meta.pp_create[0] ; 
+        }
+
+        def pp_omics = meta.pp_omics ;  
+        // println(pp_omics)
         CONFIG['features_selection'].each { fs, fsv ->
             def dup_meta = meta.clone() 
-
-            if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')) {
-                dup_meta['fs_fun'] = fs
-                results.add( 
-                                [
-                                    dup_meta,
-                                file(fsv['path']),
-                                file(last_pp_file),
-                                file(params.wrapper.script_03),
-                                file(params.utils)
-                                ]
-                )
+            // def pp_create = dup_meta.pp_create  ; 
+            // def pp_omics = dup_meta.pp_omics ;  
+            dup_meta["fs_need"] = fsv.getOrDefault('need','none')
+            dup_meta["fs_omic_need"] = fsv.getOrDefault('omic_need',['none'])
+            def fs_need = fsv.getOrDefault('need',['none'])
+            def fs_omic_need = fsv.getOrDefault('omic_need',['none'])
+            if (fsv['omic'].contains(dup_meta.omic) || fsv['omic'].contains('ANY')    ) {
+                // println( dup_meta.omic + ' ' + dup_meta.pp_fun + ' ' + pp_create + ' ; ' + fs + ' ' + fs_need + ' ' +   fs_need.contains(pp_create) )
+                // fs need contains pp_create (works also for none)
+                // OR the omic being computed is not never created but fs need another kind of omic therfor not in pp_omicS and pp_create is not special
+                if( 
+                 (fs_need.contains(pp_create)  && (fs_omic_need.contains(dup_meta.omic) || fs_omic_need.contains('ANY') || fs_omic_need.contains('none') )) || 
+                 (pp_create == 'none' && !fs_omic_need.contains(dup_meta.omic))
+                 ){
+                    dup_meta['fs_fun'] = fs
+                    results.add( 
+                        [
+                            dup_meta,
+                            file(fsv['path']),
+                            file(last_pp_file),
+                            file(params.wrapper.script_03),
+                            file(params.utils),
+                            tuple(fsv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+                        ]
+                    )
+                }
             }   
          }
         return results
     }.flatMap()
+
+
     
 
     out_mix_with_none = out_mix.concat(Channel.of(tuple( [id:'none'],file('none'))))
-    
-
     complete_fs_files = fs_files
     .combine(out_mix_with_none)
-    .filter { fs_meta, a,b,c,d, dataset_meta, dataset_file ->
+    .filter { fs_meta, a,b,c,d,e, dataset_meta, dataset_file ->
         fs_meta.dataset == dataset_meta.id 
     }
     .combine(out_cleaned_ref)
-    .filter {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+    .filter {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
         fs_meta.ref == ref_meta.id 
     }
-    .map {fs_meta, a,b,c,d, dataset_meta, dataset_file, ref_meta, ref_file ->
+    .map {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_fs_meta = fs_meta.clone()
         dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
-        tuple(dup_fs_meta, a,b,c,d,dataset_file,ref_file )
+        tuple(dup_fs_meta, a,b,c,d,e,dataset_file,ref_file )
     }
 
-    out_fs = complete_fs_files | Features_selection
+    out_pp_create_filtered = out_pp.filter{pp_meta, out_file -> 
+        pp_meta.pp_create !='none'
+    }
+    
+    // out_pp_create_filtered.view()
+
+    complete_fs_files.branch{fs_meta, a,b,c,d,e,dataset_file,ref_file  -> 
+        simple_fs : (fs_meta.fs_need =='none'  ||   fs_meta.omic in fs_meta.fs_omic_need )
+        fs_dependency_MET : 'mixMET' in  fs_meta.fs_need || 'MET' in  fs_meta.fs_need
+        fs_dependency_RNA : true 
+    }.set { fs_branch }
+
+    // fs_branch.simple_fs.view{v-> v[0].fs_omic_need}
+    // fs_branch.fs_dependency_MET.count()
+
+    // out_pp_create_filtered.view()
+
+    
+    fs_RNA = fs_branch.fs_dependency_RNA
+    .combine(out_pp_create_filtered)
+    .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
+        pp_meta.create in fs_meta.need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
+    }
+    .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
+        if( "mixRNA" in  fs_meta.omic_need   ){
+            tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
+        }else { //place the ref in ref. 
+            tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
+        }
+    }
+
+    fs_MET = fs_branch.fs_dependency_MET
+    .combine(out_pp_create_filtered)
+    .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
+        pp_meta.create in fs_meta.need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
+    }
+    .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
+        if( "mixMET" in  fs_meta.omic_need   ){
+            tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
+        }else { //place the pp_file in ref. 
+            tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
+        }
+    }
+
+
+    // fs_RNA.view()
+    
+    // fs_RNA.count()
+
+
+
+    // fs_branch.fs_dependency_RNA.view{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file -> 
+    // println(fs_meta.omic)
+    // println(fs_meta.fs_omic_need)
+    // println(fs_meta.omic !in fs_meta.fs_omic_need   )
+    
+    // }
+    // .filter { fs_meta, a,b,c,d,e, dataset_meta, dataset_file ->
+    //     fs_meta.dataset == dataset_meta.id 
+    // }
+    // .combine(out_cleaned_ref)
+    // .filter {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
+    //     fs_meta.ref == ref_meta.id 
+    // }
+    // .map {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
+    //     def dup_fs_meta = fs_meta.clone()
+    //     dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
+    //     tuple(dup_fs_meta, a,b,c,d,e,dataset_file,ref_file )
+    // }
+
+
+    // complete_fs_files.view{ v-> v[0].output } 
+
+
+    out_fs =  fs_branch.simple_fs.mix(fs_MET , fs_RNA) | Features_selection
+    // out_fs = complete_fs_files | Features_selection
 
 
 
@@ -422,6 +533,7 @@ process Preprocessing {
     input:
     tuple val(meta),
         path(pp_script), 
+        path(dependency),
         path(mix), 
         path(reference), 
         path(wrapper02),
@@ -462,6 +574,7 @@ process Features_selection {
             path(file_input),
             path(wrapper03),
             path(utils),
+            path(files_dep),
             path(mix), 
             path(reference),
             )
@@ -661,7 +774,7 @@ process Metaanalysis {
     input:   
     tuple( 
         val(meta), 
-        path( input_score), 
+        path(input_score), 
         path(meta_script), 
         path(utils), 
         // path(file_dataset)

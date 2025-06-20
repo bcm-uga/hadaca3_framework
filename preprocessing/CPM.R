@@ -1,4 +1,4 @@
-program_block_PP <- function(data,path_og_dataset='') {
+program_block_PP <- function(data,path_og_dataset='',omic='') {
   
   
   # Sequence depth normalization for RNA

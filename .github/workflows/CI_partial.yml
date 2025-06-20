@@ -2,7 +2,7 @@
 on:
   push:
     branches:
-      - 'main' # Adjust this to your default branch
+      - '*' # Adjust this to your default branch
   # schedule:
   #   - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
 
@@ -20,6 +20,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
+      - name: Set PAT
+        run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
     
       - name: Execute commands from README
         run: |
@@ -27,6 +29,9 @@ jobs:
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}"
           git fetch --all
+
+          # Sys.setenv(GITHUB_PAT = "${{ secrets.PAT_CI }}")
+
           git reset --hard ${{ github.sha }}
             awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
             [[ "$line" =~ ^# ]] && continue
@@ -35,6 +40,8 @@ jobs:
             eval "$line"
           done
       
+
+
       # shell: bash
       - name: download data
         run: |

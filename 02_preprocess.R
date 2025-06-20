@@ -18,7 +18,7 @@ if (any(split_result != 'none')){
 
 
 
-ppblock = program_block_PP(data,path_og_dataset)
+ppblock = program_block_PP(data,path_og_dataset,omic = omic_name)
 
 if(length(ppblock) == 0){
     stop(paste("result data in Preprocess is empty, script_file = ",script_file ))

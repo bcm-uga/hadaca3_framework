@@ -3,46 +3,48 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-LogNorm: #totest 
-  path: preprocessing/LogNorm.R
-  short_name: LogN
-  # omic: [mixRNA,RNA,scRNA]
-  omic: [ANY]
 
 
+# sc_binarypseudobulk_log : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
+#   path: preprocessing/sc_binarypseudobulk_log.R
+#   short_name: scbpl
+#   create: [ref_binarypseudobulk_log]
+#   omic: [mixRNA,RNA,scRNA]
 
-# scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA
+# scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
 #   path: preprocessing/sc_pseudobulk.R
-#   short_name: scpseu
+#   short_name: scp
+#   create: [ref_pseudobulk]
 #   omic: [scRNA,RNA]
 
-# CPM : #to test #
+# CPM : #to test # Sequence depth normalization for RNA
 #   path: preprocessing/CPM.R
 #   short_name: cpm
 #   omic: [mixRNA,RNA,scRNA]
 
-# TF: #totest and place. 
-#   path: preprocessing/TF.R
-#   short_name: TF
-#   dependency : [teamHtfrna_network_modules.rds,teamHtfrna_ref_modules.rds]
-#   omic: [mixRNA,RNA,scRNA]
 
 
-
-# sccluster : # toDebug seura create object
-#   path: preprocessing/sc_cluster.R
-#   short_name: sccl
-#   omic: [scRNA]
+sccluster : # toDebug seura create object
+  path: preprocessing/sc_cluster.R
+  short_name: sccl
+  create : [ref_cluster]
+  omic: [scRNA]
 
 # scCCAintegration: #must be a unique ID # Need to Debug 
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
+#   create : [ref_integrated]
 #   omic: [scRNA]
 
 
 
 
 ### working functions 
+
+# LogNorm: #is working
+#   path: preprocessing/LogNorm.R
+#   short_name: LogN
+#   omic: [ANY]
 
 # Scale :  #scale with sweep function  #must be a unique ID
 #   path: preprocessing/scale.R
@@ -61,7 +63,19 @@ LogNorm: #totest
 #   omic: [scRNA]
 
 
-# scConcat :  #must be a unique ID
+# scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
 #   path: preprocessing/sc_concat.R
 #   short_name: ScCo
+#   create : [ref_concat]
 #   omic: [scRNA]
+
+
+
+### Working but need to chagne decovolution... 
+
+# TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction. .. 
+#   path: preprocessing/TF.R
+#   short_name: TF
+#   dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
+#   omic: [mixRNA,RNA,scRNA]
+
