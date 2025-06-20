@@ -47,7 +47,7 @@ if(list_wd[length(list_wd)] == 'hadaca3_framework'){
 
 # nextflow script :
 }else{
-  score_files = list(list.files(pattern = 'score*' ))
+  score_files = list(list.files(pattern = 'score-li*' ))
 
 }
 
