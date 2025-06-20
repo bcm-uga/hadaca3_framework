@@ -373,8 +373,6 @@ read_hdf5 <- function(path) {
         actual_names <- names(file_structure[[name]][[dataset]])
         unexpected_names = actual_names[!actual_names %in% expected_names]
 
-        print(unexpected_names)
-
         for(field in unexpected_names ){
           seuratobj_or_counts_n_metadata[[field]] = read_sparse_matrix(paste0('ref_scRNA/', dataset,'/',field), file_structure[[name]][[dataset]][[field]] , path)
         }

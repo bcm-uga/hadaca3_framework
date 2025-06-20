@@ -1,10 +1,8 @@
-# OnlyMet: 
-#   path: late_integration/only_met.R 
-#   short_name: OMet
+OnlyMet: 
+  path: early_integration/only_met.R 
+  short_name: OMet
 
 OnlyRna: 
-  path: late_integration/only_rna.R 
+  path: early_integration/only_rna.R 
   short_name: ORNA
 
-
-# The idea would be to add a omic field that says which omic the functino will integrate 

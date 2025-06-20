@@ -34,6 +34,8 @@ params.wrapper = [
     script_03 : '03_features_selection.R',
     script_04_rna : '04_decovolution_RNA_unit_pipA.R',
     script_04_met : '04_decovolution_MET_unit_pipA.R',
+    script_04_early : '04_Early_integration_pipB.R',
+    script_05_early_deco : '05_early_decovolution.R',
     script_05 : '05_late_integration_A.R',
     script_06 : '06_scoring.R',
     script_07 : '07_metaanalysis.Rmd'
@@ -62,9 +64,6 @@ workflow {
     // ################## Computing cleaned mix and ref cleand and generating a tuple with key as the dataset or ref name and output file. 
 
     def utils_channel =  Channel.fromPath(params.utils)
-
-    // computing ref 
-
 
     ref_input = Channel.of (
         tuple(     
@@ -116,8 +115,6 @@ workflow {
                     ],
                     file(ppv['path']),
                     tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
-                    // file(ppv.getOrDefault('dependency','none'))
-                    // file("preprocessing/attachement/*")
                     ))
             }
         }
@@ -236,18 +233,13 @@ workflow {
         pp_meta.pp_create !='none'
     }
     
-    // out_pp_create_filtered.view()
 
+    // Separate into branch if the og_path should be changed to a pp_output. 
     complete_fs_files.branch{fs_meta, a,b,c,d,e,dataset_file,ref_file  -> 
         simple_fs : (fs_meta.fs_need =='none'  ||   fs_meta.omic in fs_meta.fs_omic_need )
         fs_dependency_MET : 'mixMET' in  fs_meta.fs_need || 'MET' in  fs_meta.fs_need
         fs_dependency_RNA : true 
     }.set { fs_branch }
-
-    // fs_branch.simple_fs.view{v-> v[0].fs_omic_need}
-    // fs_branch.fs_dependency_MET.count()
-
-    // out_pp_create_filtered.view()
 
     
     fs_RNA = fs_branch.fs_dependency_RNA
@@ -258,7 +250,7 @@ workflow {
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
         if( "mixRNA" in  fs_meta.omic_need   ){
             tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
-        }else { //place the ref in ref. 
+        }else { //place the ref in ref of og_path.... 
             tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
         }
     }
@@ -322,11 +314,20 @@ workflow {
     fs_RNA =out_fs.filter{meta,_ -> meta.omic=='RNA'}
     fs_scRNA = out_fs.filter{meta,_ -> meta.omic=='scRNA'}
 
-    de_rna_unit = 
-    de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
-    .filter{ meta_de,  de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+    rna_unit = 
+    fs_mixRNA.combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
+    .filter{ meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
     }
+
+    // de_rna_unit = 
+    // de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
+    // .filter{ meta_de,  de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+    //     meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
+    // }
+
+    de_rna_unit = 
+    de_channel.combine(rna_unit)
     .map{ meta_de, de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file->
         // def meta_unit_rna = 
         def dup_meta_de =meta_de.clone()
@@ -343,10 +344,12 @@ workflow {
         dup_meta_de.output =output_name
         tuple(dup_meta_de,de_script,file_input_mix, file_input_RNA,file_input_scRNA, dataset_file,ref_file)
     }
-    .combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils))))
+    
 
 
-    out_de_rna_unit = de_rna_unit | Prediction_deconvolution_rna 
+    out_de_rna_unit = 
+    de_rna_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils)))) 
+    | Prediction_deconvolution_rna 
 
     
 // ################## Generate combinaison for the MET unit 
@@ -359,12 +362,18 @@ workflow {
 
     de_channel_met = Channel.fromList(deco_path_met)
 
-
-    de_met_unit = 
-    de_channel_met.combine(fs_mixMET).combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)
-    .filter{ meta_de,  de_script, meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+    met_unit=  
+    fs_mixMET.combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)    
+    .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
     }
+
+    de_met_unit = 
+    de_channel_met.combine(met_unit)
+    // de_channel_met.combine(fs_mixMET).combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)
+    // .filter{ meta_de,  de_script, meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+    //     meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
+    // }
     .map{meta_de, de_script, meta_mix,file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_meta_de = meta_de.clone()
         dup_meta_de['mixMET'] = meta_mix
@@ -378,10 +387,12 @@ workflow {
         dup_meta_de.output =output_name
         tuple(dup_meta_de, de_script,file_input_mix, file_input_MET, dataset_file,ref_file)
     }
-    .combine(Channel.of(tuple(file(params.wrapper.script_04_met),file(params.utils))))
+    
 
 
-    out_de_met_unit= de_met_unit | Prediction_deconvolution_met
+    out_de_met_unit= 
+    de_met_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_met),file(params.utils))))
+     | Prediction_deconvolution_met
 
 // ################## Generate combinaison for late integration
 
@@ -393,12 +404,12 @@ workflow {
     li_combinaison = 
     li_channel.combine(out_de_rna_unit).combine(out_de_met_unit)
     .combine(out_mix).combine(out_cleaned_ref)
-    .filter{m, li_dic, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
+    .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
         meta_rna.dataset == dataset_meta.id &&         meta_met.dataset == dataset_meta.id && 
         meta_rna.ref == ref_meta.id         &&         meta_met.ref ==ref_meta.id
     }
     .map{
-        li_meta,li_path,meta_rna, file_rna , meta_met, file_met ,dataset_meta, dataset_file, ref_meta, ref_file ->
+        li_meta,li_file,meta_rna, file_rna , meta_met, file_met ,dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_li_meta = li_meta.clone()
         dup_li_meta['dataset'] = meta_rna.dataset
         dup_li_meta['ref'] = meta_rna.ref
@@ -412,19 +423,95 @@ workflow {
             [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')   +
             [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ,dup_li_meta.met_unit.de_fun].join('_')           +'.h5'
         dup_li_meta["output"] = output_name
-        tuple( dup_li_meta,li_path , file_rna , file_met, dataset_file,ref_file )
+        tuple( dup_li_meta,li_file , file_rna , file_met, dataset_file,ref_file )
     }.combine(Channel.of(tuple(file(params.wrapper.script_05),file(params.utils))))
 
 
     out_li = li_combinaison | Late_integration 
 
 
+// ################################  Early integration and deconvolution path
+
+
+    ei_path =  []
+    CONFIG.early_integration.each {ei,eiv -> ei_path.add([ [ei_fun:ei ] , file(eiv.path)])}
+    
+
+    ei_channel = Channel.fromList(ei_path)
+
+    ei_combinaison = 
+    ei_channel.combine(rna_unit).combine(met_unit)
+    .filter{meta_ei, ei_file,     
+            meta_mixRNA, file_input_mixRNA,    meta_RNA,file_input_RNA,    meta_scRNA,file_input_scRNA,    dataset_meta_rna, dataset_file_rna,    ref_meta_rna, ref_file_rna,   
+            meta_mixMET, file_input_mixMET, meta_MET,file_input_MET,  dataset_meta_MET, dataset_file_MET, ref_meta_MET, ref_file_MET -> 
+        
+        dataset_meta_rna.id == dataset_meta_MET.id && ref_meta_rna.id == ref_meta_MET.id
+    }.map{ meta_ei, ei_file,     
+           meta_mixRNA, file_input_mixRNA,    meta_RNA,file_input_RNA,    meta_scRNA,file_input_scRNA,    dataset_meta_rna, dataset_file_rna,    ref_meta_rna, ref_file_rna,   
+           meta_mixMET, file_input_mixMET, meta_MET,file_input_MET,  dataset_meta_MET, dataset_file_MET, ref_meta_MET, ref_file_MET -> 
+        def dup_meta_ei = meta_ei.clone() 
+        dup_meta_ei['dataset'] = dataset_meta_rna.id
+        dup_meta_ei['ref'] = ref_meta_rna.id
+
+        dup_meta_ei['mixRNA'] = meta_mixRNA
+        dup_meta_ei['RNA'] = meta_RNA
+        dup_meta_ei['scRNA'] = meta_scRNA
+        dup_meta_ei['mixMET'] = meta_mixMET
+        dup_meta_ei['MET'] = meta_MET
+        // dup_meta_ei['rna_unit'] = meta_rna
+        // dup_meta_ei['met_unit'] = meta_met
+
+        def output_name = "out-li-" + [dup_meta_ei.dataset,dup_meta_ei.ref].join('_')  +
+            [dup_meta_ei.mixRNA.pp_fun, dup_meta_ei.mixRNA.fs_fun ].join('_')   +
+            [dup_meta_ei.RNA.pp_fun, dup_meta_ei.RNA.fs_fun ].join('_')           +
+            [dup_meta_ei.scRNA.pp_fun, dup_meta_ei.scRNA.fs_fun].join('_')      +
+            [dup_meta_ei.mixMET.pp_fun, dup_meta_ei.mixMET.fs_fun ].join('_')   +
+            [dup_meta_ei.MET.pp_fun, dup_meta_ei.MET.fs_fun , dup_meta_ei.ei_fun ].join('_')           +'.h5'
+        dup_meta_ei["output"] = output_name
+
+        tuple(
+           dup_meta_ei, ei_file,     
+        file_input_mixRNA,    file_input_RNA,    file_input_scRNA,      
+           file_input_mixMET, file_input_MET,  dataset_file_MET, ref_file_MET
+        )
+    }
+    .combine(Channel.of(tuple(file(params.wrapper.script_04_early),file(params.utils))))
+
+    ei_out = ei_combinaison | early_integration
+
+// ################## Deconvolution of the early integration. 
+
+
+    ei_decon_path =  []
+    CONFIG.deconvolution.each {de,dev -> ei_decon_path.add( [ [de_fun : de]  , file(dev.path)])}
+    
+    de_channel_EI = 
+    Channel.fromList(ei_decon_path)
+    .combine(ei_out)
+    .map{de_meta , de_file, ei_meta, ei_file -> 
+        def dup_de_meta = ei_meta.clone()
+        dup_de_meta["de_fun"] = de_meta.de_fun
+        def output_name = "out-li-" + [dup_de_meta.dataset,dup_de_meta.ref].join('_')  +
+            [dup_de_meta.mixRNA.pp_fun, dup_de_meta.mixRNA.fs_fun ].join('_')   +
+            [dup_de_meta.RNA.pp_fun, dup_de_meta.RNA.fs_fun ].join('_')           +
+            [dup_de_meta.scRNA.pp_fun, dup_de_meta.scRNA.fs_fun].join('_')      +
+            [dup_de_meta.mixMET.pp_fun, dup_de_meta.mixMET.fs_fun ].join('_')   +
+            [dup_de_meta.MET.pp_fun, dup_de_meta.MET.fs_fun , dup_de_meta.ei_fun, dup_de_meta.de_fun ].join('_') +'.h5'
+
+        dup_de_meta["output"] = output_name
+        tuple(dup_de_meta,de_file,ei_file)
+    }
+    .combine(Channel.of(tuple(file(params.wrapper.script_05_early_deco),file(params.utils))))
+
+    out_ei_de = de_channel_EI | decovolution_EI
+
+    // ei_de_out.view()
+
 // ################## Generate score 
 
-    score_input = out_li.map{   meta,file_path  -> 
-
+    score_input_li = out_li.map{   meta,file_path  -> 
         def dup_meta = meta.clone()
-        def output_name = "score-" + [dup_meta.dataset,dup_meta.ref].join('_')  + '_' +
+        def output_name = "score-li-" + [dup_meta.dataset,dup_meta.ref].join('_')  + '_' +
             ['mixRNA',  dup_meta.rna_unit.mixRNA.pp_fun, dup_meta.rna_unit.mixRNA.fs_fun ].join('_')   +   '_' +  //dup_meta.rna_unit.mixRNA.omic,
             ['RNA', dup_meta.rna_unit.RNA.pp_fun, dup_meta.rna_unit.RNA.fs_fun ].join('_')           +   '_' +  //dup_meta.rna_unit.RNA.omic,
             ['scRNA', dup_meta.rna_unit.scRNA.pp_fun, dup_meta.rna_unit.scRNA.fs_fun,dup_meta.rna_unit.de_fun ].join('_')   + '_'    +    //dup_meta.rna_unit.scRNA.omic,
@@ -435,7 +522,20 @@ workflow {
         tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))//,file(params.config_files.datasets))
      }   
 
-    score_out = score_input | Scoring
+    score_input_ei = out_ei_de.map{ ei_meta, ei_file ->
+        def dup_ei_de_meta = ei_meta.clone()
+        def output_name = "score-ei-" + [dup_ei_de_meta.dataset,dup_ei_de_meta.ref].join('_')  +
+            [dup_ei_de_meta.mixRNA.pp_fun, dup_ei_de_meta.mixRNA.fs_fun ].join('_')   +
+            [dup_ei_de_meta.RNA.pp_fun, dup_ei_de_meta.RNA.fs_fun ].join('_')           +
+            [dup_ei_de_meta.scRNA.pp_fun, dup_ei_de_meta.scRNA.fs_fun].join('_')      +
+            [dup_ei_de_meta.mixMET.pp_fun, dup_ei_de_meta.mixMET.fs_fun ].join('_')   +
+            [dup_ei_de_meta.MET.pp_fun, dup_ei_de_meta.MET.fs_fun , dup_ei_de_meta.ei_fun, dup_ei_de_meta.de_fun ].join('_') +'.h5'
+
+        dup_ei_de_meta["output"] = output_name
+        tuple(dup_ei_de_meta,ei_file,file(CONFIG.datasets[dup_ei_de_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))
+    }
+
+    score_out = score_input_li.mix(score_input_ei) | Scoring
 
 
 // ################## Generate Metaanalysis
@@ -691,14 +791,17 @@ process Prediction_deconvolution_met {
     """
 }
 
-process Late_integration {
+process early_integration {
     cpus 1
     
     input:
     tuple val(meta),
-    path(script_li),
-    path(input_file_rna), 
-    path(input_file_met),
+    path(script_ei),
+    path(file_input_mix_rna),
+    path(file_input_rna),
+    path(file_input_scrna),
+    path(file_input_mix_met),
+    path(file_input_met),
     path(mix), 
     path(reference), 
     path(wrapper04),
@@ -710,12 +813,59 @@ process Late_integration {
 
     script:
     """
-    RCODE="input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
+    RCODE="
+    input_file_mix_rna='${file_input_mix_rna}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
+    input_file_mix_met='${file_input_mix_met}'; input_file_met='${file_input_met}';
+    path_ogmix='${mix}' ; path_ogref='${reference}' ;
+    output_file='${meta.output}'; 
+    script_file='${script_ei}'; 
+    utils_script='${utils}'; 
+    source('${wrapper04}');"
+    echo \$RCODE | Rscript - 
+    """
+
+    stub:
+    """
+    RCODE="
+    input_file_mix_rna='${file_input_mix_rna}'; input_file_rna='${file_input_rna}'; input_file_sc='${file_input_scrna}';
+    input_file_mix_met='${file_input_mix_met}'; input_file_met='${file_input_met}';
+    path_ogmix='${mix}' ; path_ogref='${reference}' ; 
+    output_file='${meta.output}'; 
+    script_file='${script_ei}'; 
+    utils_script='${utils}'; 
+    source('${wrapper04}');"
+    echo \$RCODE
+    touch ${meta.output}
+    """
+}
+
+process Late_integration {
+    cpus 1
+    
+    input:
+    tuple val(meta),
+    path(script_li),
+    path(input_file_rna), 
+    path(input_file_met),
+    path(mix), 
+    path(reference), 
+    path(wrapper05),
+    path(utils)
+
+    output:
+    tuple val(meta), path("${meta.output}")
+
+
+    script:
+    """
+    RCODE="
+    
+    input_file_rna='${input_file_rna}'; input_file_met='${input_file_met}'; 
     path_ogmix='${mix}' ; path_ogref='${reference}' ; 
     output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
-    source('${wrapper04}');"
+    source('${wrapper05}');"
     echo \$RCODE | Rscript - 
     """
 
@@ -726,11 +876,49 @@ process Late_integration {
     output_file='${meta.output}'; 
     script_file='${script_li}'; 
     utils_script='${utils}'; 
-    source('${wrapper04}');"
+    source('${wrapper05}');"
     echo \$RCODE
     touch ${meta.output}
     """
 }
+
+process decovolution_EI {
+    cpus 1
+     input:
+        tuple val(meta),
+        path(de_script), 
+        path(uni_data),
+        path(wrapper05_deco),
+        path(utils)
+
+    output:
+    tuple val(meta), path("${meta.output}")
+
+    script:
+    """
+        RCODE="
+        path_uni_data='${uni_data}';
+        output_file='${meta.output}';
+        script_de='${de_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper05_deco}');"
+        echo \$RCODE | Rscript - 
+    """
+
+    stub:
+    """
+        RCODE="
+        path_uni_data='${uni_data}';
+        output_file='${meta.output}';
+        script_de='${de_script}'; 
+        utils_script='${utils}'; 
+        source('${wrapper05_deco}');"
+        echo \$RCODE 
+        touch ${meta.output}
+    """
+}
+
+
 
 process Scoring {
     cpus 1

@@ -42,14 +42,6 @@ fsID :  #This is a requiered function
 
 
 
-#### dealing/ with other refs 
-SCcluster: #TODO
-  path: feature_selection/sc_cluster.R
-  short_name: SCCL
-  need: [ref_cluster]
-  omic_need : [scRNA]
-  omic: [mixRNA,RNA,scRNA]
-
 # scSPLSDA : #TODO #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
 #   path: feature_selection/sc_SPLS-DA.R
 #   short_name: scSD
@@ -61,6 +53,14 @@ SCcluster: #TODO
 #   short_name: scps
 #   omic: [mixRNA,RNA,scRNA]
 
+
+#working functin : 
+# SCcluster: 
+#   path: feature_selection/sc_cluster.R
+#   short_name: SCCL
+#   need: [ref_cluster]
+#   omic_need : [scRNA]
+#   omic: [mixRNA,RNA,scRNA]
 
 
 ### Special traitment needed

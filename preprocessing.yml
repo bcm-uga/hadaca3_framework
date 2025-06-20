@@ -22,14 +22,6 @@ ppID :  #must be a unique ID
 #   short_name: cpm
 #   omic: [mixRNA,RNA,scRNA]
 
-
-
-sccluster : # toDebug seura create object
-  path: preprocessing/sc_cluster.R
-  short_name: sccl
-  create : [ref_cluster]
-  omic: [scRNA]
-
 # scCCAintegration: #must be a unique ID # Need to Debug 
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
@@ -40,6 +32,12 @@ sccluster : # toDebug seura create object
 
 
 ### working functions 
+
+# sccluster : #  seura create object
+#   path: preprocessing/sc_cluster.R
+#   short_name: sccl
+#   create : [ref_cluster]
+#   omic: [scRNA]
 
 # LogNorm: #is working
 #   path: preprocessing/LogNorm.R
