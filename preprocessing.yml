@@ -69,7 +69,7 @@ ppID :  #must be a unique ID
 
 
 
-### Working but need to chagne decovolution... 
+### Working but need to change further steps and install decoupleR on the CI.
 
 # TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction. .. 
 #   path: preprocessing/TF.R
