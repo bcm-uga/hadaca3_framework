@@ -48,7 +48,6 @@ if(list_wd[length(list_wd)] == 'hadaca3_framework'){
 # nextflow script :
 }else{
   score_files = list(list.files(pattern = 'score-li*' ))
-
 }
 
 
@@ -113,7 +112,7 @@ for (score_file in score_files[[1]]) {
   components <- str_match(base_name, 
   #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
   # "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
-  "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   
   
   # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
@@ -159,6 +158,13 @@ results_li %>%
   arrange(desc(GlobalScore))
 
 
+all_data_used = c('dataset', 'ref')
+for(data_used in all_data_used){
+  results_li[[data_used]] = factor(results_li[[data_used]], 
+  levels = unique(results_li[[data_used]])) # levels will be alphabeticaly ordered
+}
+
+
 
 all_functions_li = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'preprocessing_RNA', 'feature_selection_RNA', 'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna', 'preprocessing_mixMET', 'feature_selection_mixMET', 'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met', 'late_integration' )
 for( fun in all_functions_li){
@@ -166,11 +172,6 @@ for( fun in all_functions_li){
   levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset=='invitro1'],decreasing = T)])) # sort based on the results_li on the in vitro dataset
 }
 
-all_data_used = c('dataset', 'ref')
-for(data_used in all_data_used){
-  results_li[[data_used]] = factor(results_li[[data_used]], 
-  levels = unique(results_li[[data_used]])) # levels will be alphabeticaly ordered
-}
 
 
 index_aggreg <- which(names(results_li) == "score_aggreg")
@@ -193,7 +194,7 @@ datatable(
 ```
 
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
+```{r Early_integration pipeline,echo=FALSE}
 
 list_wd = strsplit(getwd(),'/')[[1]]
 # Snakemake script : the current working dir is hadaca3_framework
@@ -321,8 +322,8 @@ for( fun in all_functions_ei){
 
 # all_data_used = c('dataset', 'ref')
 # for(data_used in all_data_used){
-#   all_functions_ei[[data_used]] = factor(all_functions_ei[[data_used]], 
-#   levels = unique(all_functions_ei[[data_used]])) # levels will be alphabeticaly ordered
+#   results_ei[[data_used]] = factor(results_ei[[data_used]], 
+#   levels = unique(results_ei[[data_used]])) # levels will be alphabeticaly ordered
 # }
 
 
@@ -354,6 +355,7 @@ datatable(
 ### PP
 
 ```{r combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE}
+
 #### MET
 boxplots_ppMET_aggreg = ggplot(results_li, aes(x = preprocessing_mixMET , y = score_aggreg, fill = preprocessing_mixMET)) +
   geom_boxplot() +
@@ -416,6 +418,7 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 ### FS
 
 ```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
+
 #### MET
 boxplots_fsMET_aggreg = ggplot(results_li, aes(x = feature_selection_mixMET, y = score_aggreg, fill = feature_selection_mixMET)) +
   geom_boxplot() +

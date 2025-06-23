@@ -39,10 +39,10 @@ ppID :  #must be a unique ID
 #   create : [ref_cluster]
 #   omic: [scRNA]
 
-# LogNorm: #is working
-#   path: preprocessing/LogNorm.R
-#   short_name: LogN
-#   omic: [ANY]
+LogNorm: #is working
+  path: preprocessing/LogNorm.R
+  short_name: LogN
+  omic: [ANY]
 
 # Scale :  #scale with sweep function  #must be a unique ID
 #   path: preprocessing/scale.R
