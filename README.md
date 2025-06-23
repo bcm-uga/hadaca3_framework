@@ -18,7 +18,12 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env     
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes bioconductor-OmnipathR 
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes bioconductor-OmnipathR
+
+# For MacOS M1 users
+mamba install -y  -c bioconda -c conda-forge -c snakemake python r-base=4.4 r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes
+R
+install.packages('coda.base', dependencies = TRUE) # install the binary, not the source
 
 Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
