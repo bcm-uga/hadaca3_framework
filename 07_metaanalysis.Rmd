@@ -26,9 +26,8 @@ library(ggplot2)
 theme_set(theme_light())
 
 source(utils_script)
-#source("utils/data_processing.R")
+# source("utils/data_processing.R")
 ```
-
 
 
 ```{r Late_integration pipeline,echo=FALSE}
@@ -113,7 +112,8 @@ for (score_file in score_files[[1]]) {
 
   components <- str_match(base_name, 
   #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
-  "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  # "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   
   
   # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
@@ -192,9 +192,8 @@ datatable(
 )
 ```
 
-
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE}
+```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
 
 list_wd = strsplit(getwd(),'/')[[1]]
 # Snakemake script : the current working dir is hadaca3_framework
@@ -346,6 +345,7 @@ datatable(
 )
 ```
 
+
 # Visualisations of the different metrics
 
 
@@ -381,10 +381,8 @@ plotly::layout( # boxplotlys_ppMET_aggreg =
     orientation = 'h')
 )
 
-
-```{r combinaisons_aggregated_scores, echo=FALSE, eval=FALSE}
 #### RNA
-boxplots_pp_aggreg = ggplot(results_li, aes(x = preprocessing_mixRNA, y = score_aggreg, fill = preprocessing_mixRNA)) +
+boxplots_ppRNA_aggreg = ggplot(results_li, aes(x = preprocessing_mixRNA, y = score_aggreg, fill = preprocessing_mixRNA)) +
 
   geom_boxplot() +
   facet_wrap(~ dataset, scales = "free_x") +
@@ -413,6 +411,7 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 #plotly::subplot(boxplots_ppMET_aggreg, boxplots_ppRNA_aggreg, nrows=1) marche pas trop car pas 2 titres différents mais je pourrai essayer de mettre des sous-titres
 ```
+
 
 ### FS
 
@@ -567,8 +566,9 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 ### FS
 
-
+```{r combinaisons_MAE_FS, echo=FALSE, eval=TRUE}
 #### MET
+
 boxplots_fsMET_mae = ggplot(results_li, aes(x = feature_selection_mixMET, y = mae, fill = feature_selection_mixMET)) +
 
   geom_boxplot() +
