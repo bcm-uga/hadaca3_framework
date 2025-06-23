@@ -23,6 +23,10 @@ mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmar
 Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 ```
+
+For MacOS M1 users, try:
+mamba install -y  -c bioconda -c conda-forge -c snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 r-quadprog r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes
+
 <!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
 <!-- bioconductor-ADImpute -->
 <!-- bioconductor-viper -->
