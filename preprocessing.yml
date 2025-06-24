@@ -21,7 +21,7 @@ ppID :  #must be a unique ID
 # scCCAintegration: # integration of sc datasets with CCA
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
-#   create : [ref_integrated]
+#   create: [ref_integrated]
 #   omic: [scRNA]
 
 # CPM : # Sequence depth normalization for RNA
@@ -32,7 +32,7 @@ ppID :  #must be a unique ID
 # sccluster : #  seurat created object
 #   path: preprocessing/sc_cluster.R
 #   short_name: sccl
-#   create : [ref_cluster]
+#   create: [ref_cluster]
 #   omic: [scRNA]
 
 LogNorm: #is working
@@ -60,7 +60,7 @@ LogNorm: #is working
 # scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
 #   path: preprocessing/sc_concat.R
 #   short_name: ScCo
-#   create : [ref_concat]
+#   create: [ref_concat]
 #   omic: [scRNA]
 
 
