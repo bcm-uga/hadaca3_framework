@@ -148,26 +148,26 @@ snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/se
 
 This framework contains several blocks
 
-- **preprocessing** :  This block is responsible for preparing the raw data for analysis. It may include tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input multi_data and return multi-data (see below for details).
+- **preprocessing** :  This block is responsible for preparing the raw data for analysis. It includes tasks such as cleaning the data (handling missing values, removing duplicates), normalizing or scaling features, encoding categorical variables, and other transformations to make the data suitable for modeling. This block takes as input multi_data and returns multi-data (see below for details).
   
-- **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) from the dataset to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features. This block takes as input multi_data and return multi-data (see below for details).
+- **feature_selection** : This block focuses on selecting the most relevant features (genes or Cpg sites) to use in the model. It helps in reducing the dimensionality of the data, improving model performance, and reducing overfitting by eliminating irrelevant or redundant features. This block takes as input multi_data and returns multi-data (see below for details).
   
-- **deconvolution** : This block contain the algorithm that deconvoluate, such as lm, rlr, nnls...  This block takes as input uni-data and return a prediction (see below for details).
+- **deconvolution** : This block contains the algorithm that does the deconvolution, such as lm, rlr, nnls...  This block takes as input uni-data and returns a prediction (see below for details).
   
-- **split** : This block only split multiomics (metylation and RNA) data to only metylation and only RNA.  This block takes as input multi_data and return sort of uni-data (see below for details).
+- **split** : This block splits multi-omics (methylation and RNA) data to only methylation and only RNA. This block takes as input multi_data and returns each sort of uni-data (see below for details).
 
-- **early_int** : This block involves combining multiple omics data types (e.g., RNA, MET) into a unified dataset before applying the deconvolution method. It is part of pipeline B. This block takes as input multi_data and return uni-data (see below for details).
+- **early_int** : This block involves combining multiple omics data types (e.g., RNA, MET) into a unified dataset before applying deconvolution. It is part of pipeline B. This block takes as input multi_data and returns uni-data (see below for details).
   
-- **late_int** : This block focuses on integrating the results from multiple omics analyses into a single, cohesive prediction. It is part of pipeline A. This block takes as input a list of several(2) predictions and return one prediction (see below for details).
+- **late_int** : This block focuses on integrating the predictions from multiple omics into a single prediction. It is part of pipeline A. This block takes as input a list of several (2) predictions and returns one prediction (see below for details).
   
-- **intermediate_int** :  This block combines both integration and deconvolution processes from multiple omics data types. It is part of pipeline C. This block takes as input multi_data and return a prediction (see below for details).
+- **intermediate_int** : This block combines both integration and deconvolution processes of multiple omics. It is part of pipeline C. This block takes as input multi_data and returns a prediction (see below for details).
 
 
-## Data types : 
+## Data types: 
 
-Each fonctions, preprocess , features selection..., is dealing with one only one kind of omic : (mixRNA,mixMET,ref_MET,ref_bulkRNA,ref_scRNA).
-In this code, the omic name RNA, MET, scRNA reffers to ref_bulkRNA, ref_MET, and ref_scRNA respectively. 
-ref_scRNA contains 3 differents datasets, and therefor are offen differenciated in the code using is.list
+Each fonction (preprocess, feature selection, ...) is dealing with one only one kind of omic: (mixRNA, mixMET, ref_MET, ref_bulkRNA, ref_scRNA).
+In this code, the omic name RNA, MET, scRNA refers to ref_bulkRNA, ref_MET, and ref_scRNA respectively. 
+ref_scRNA contains 3 differents datasets, and they are differentiated in the scripts with is.list
 
 
 ```
@@ -182,11 +182,11 @@ ref_scRNA
 
 ## Nexflow shenanigan.
 
-The piepline code will create combinaison between compatible functions inside each block. 
+The pipeline will create combinaisons between compatible functions from each block. 
 
-A normal user, should not edit the pipeine code directly, to add and remove functions use the corresponding yml files and populate the folder accordingly. 
+A normal user, should not edit the pipeline file directly. To add and remove functions, edit the corresponding .yml files and populate the folders accordingly. 
 
-The yml should contains these fields :
+The yml should contains these fields:
 ```{yml}
 normalize : 
   path: preprocessing/normalize.R
@@ -195,13 +195,13 @@ normalize :
 ```
 
 - *normalize* is a unique function name, 
-- *path* is a relative path from the hadaca3_framework folder
-- *short_name* is a 4 or 5 letters short name of the function, this is used to display graphs to make it more readable
-- *omic*: contains a list of the omic that this function accept and will modify. It can take only one omic such as [scRNA] or several [mixRNA,RNA,scRNA] or even take all omics with the keyword [ANY]. 
+- *path* is the relative path from the hadaca3_framework/ folder
+- *short_name* is a 4- or 5-letters short name of the function, it is used to display graphs to make it more readable
+- *omic*: contains a list of the omic types that this function accepts and will modify. It can take only one omic such as [scRNA] or several [mixRNA,RNA,scRNA] or all omics with the keyword [ANY]. 
 
-Beware, functions that handle multi omics such as [ANY] or [mixRNA,RNA,scRNA] has to handle each of the omic individually. 
+Beware, functions that handle several omics such as [ANY] or [mixRNA,RNA,scRNA] have to handle each of the omic individually. 
 
-Indeed, each fonction of each block have the same function header that looks like  :
+Indeed, each fonction of each block have the same function header that looks like:
 ```
 program_block_PP <- function(data,path_og_dataset='',omic='') {
     ...
@@ -209,19 +209,19 @@ program_block_PP <- function(data,path_og_dataset='',omic='') {
 }
 ```
 with
-- *data* being a single omic type also specified within the variable called *omic* . The same omic type has to be returend by this function during its execution !
-- *path_og_dataset* being a list with the path of mixes and references (ref_bulk,ref_met, ref_scRNA) with the original mix datasets and reference data. In the case of a reference omics being computed (one of [RNA,scRNA,MET]), the original mix dataset is set to **none**.
+- *data* being a single omic type also specified within the variable called *omic*. The function should return the same omic type!
+- *path_og_dataset* being a list with the path of mixes and references (ref_bulk, ref_met, ref_scRNA) with the original mix datasets and reference data. In the case of a reference omic being computed (one of [RNA,scRNA,MET]), the original mix dataset is set to **none**.
 
-To use these paths, use the provided read function **read_all_ref_hdf5(path)** or **read_hdf5(path)** from *utils/data_processing.R*. The file *utils/data_processing.R* is already loaded, so there is no need to source it.   
+To use these paths, use the provided function **read_all_ref_hdf5(path)** or **read_hdf5(path)** from *utils/data_processing.R*. The file *utils/data_processing.R* is already loaded, so there is no need to source it.   
 
-for exemple we can load the reference bulkRNA like this 
+For example we can load the reference bulkRNA like this:
 ```
 og_ref_bulkRNA  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_bulkRNA')$ref_bulkRNA
 or 
 og_ref_bulkRNA  =  read_hdf5(path_og_dataset$ref)$ref_bulkRNA 
 ```
 
-There are other optionnal fields that can be specified in the yml : 
+There are other optional fields that can be specified in the yml: 
 ```
 function1 : 
     create : [ref_concat]
@@ -233,19 +233,19 @@ function2 :
     omic_need : [scRNA]
     omic : [mixRNA,RNA,scRNA]
 ```
-The field  *dependency* contains a list of file that can be read during the function execution. The path in the field dependency is a relitive path, whereas the path in the function code will only be the file name. 
-For instance dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]  in the yml mean that the file "teamHtfrna_network_modules.rds" and "teamHtfrna_ref_modules.rds" are readble in the function code with a code like : `readRDS("teamHtfrna_ref_modules.rds")`.
+The field  *dependency* contains a list of files that can be read during the execution of the function. The path in the field dependency is a relative path, whereas the path in the function code will only be the file name. 
+For instance dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds] in the yml means that the file "teamHtfrna_network_modules.rds" and "teamHtfrna_ref_modules.rds" are readable in the function with a code like: `readRDS("teamHtfrna_ref_modules.rds")`.
 
-The Field *create*, means it will create a new kinds of omic. 
-*need* and *omic_need* is meant to specified that this fonction need on omic of the kind (omic_need). 
-Functions with the field *need* will be linked with the previous fonction that created this omic of the same kind, or, if the fonction is handling a different omic than the one created in the previous function, his omic created will be passed in the *og_dataset_path*. If the omic needed is a mix, its path will be under *og_dataset_path$mix* and under *og_dataset_path$ref*.
+The field *create* means that it will create a new kind of omic. 
+*need* and *omic_need* specify that this fonction needs an omic of the kind (omic_need). 
+Functions with the field *need* will be linked with the previous function that created this kind of omic, or, if the function is handling a different omic than the one created in the previous function, the omic created will be passed in the *og_dataset_path*. If the needed omic is a mix, its path will be under *og_dataset_path$mix* and under *og_dataset_path$ref*.
 
 
-For exemple : 
-The function1 create the omic ref_concat of the type scRNA. Function2 need this omic to compute. Nonetheless, function2 handle three differents omics [mixRNA,RNA,scRNA].
-- When function2 is handling **"scRNA"** omic, and since, function2 need that omic, function2 will only be linked with the output of function1 or any other function that create the omic *ref_cluster* . 
-- When function2 is handling **mixRNA**, function2 will be linked with any output previous block that outputed the omic **mixRNA**! however the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*.
-- When function2 is handling **RNA**, function2 will be linked with any output previous block that outputed the omic **RNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*. 
+For example: 
+The function1 creates the omic ref_concat of the type scRNA. Function2 needs this omic to run. Nonetheless, function2 handles three different types of omic [mixRNA,RNA,scRNA].
+- When function2 is handling **"scRNA"** omic, and since function2 needs that omic, function2 will only be linked with the output of function1 or any other function that created the omic *ref_cluster* . 
+- When function2 is handling **mixRNA**, function2 will be linked with any previous block that outputs the omic **mixRNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*.
+- When function2 is handling **RNA**, function2 will be linked with any previous block that outputs the omic **RNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*. 
 
 
 
@@ -255,31 +255,31 @@ The function1 create the omic ref_concat of the type scRNA. Function2 need this 
 
 Hierarchical Data Format (HDF) is a set of file formats (HDF4, HDF5) designed to store and organise large amounts of data. 
 
-It behaves like the OS file system with groups as folders and can handle symlink internaly. 
+It behaves like the OS file system with groups as folders and can handle symlink internally. 
 There are tools such as https://h5web.panosc.eu/ to visualise data. This tool also exists as a VS code extension by the name *H5Web*. 
 
-There is a Linux program that read HDF5 data in a terminal : 
+There is a Linux program that reads HDF5 data in a terminal: 
 https://support.hdfgroup.org/documentation/hdf5/latest/_view_tools_view.html
 You can install it with : 
 `sudo apt-get install hdf5-tools`
 
-### How to read and write H5 files ?  
+### How to read and write H5 files?  
 
-In this hadaca3_framework project, Python and R libraries are provided to read and write data. 
+In the hadaca3_framework project, Python and R libraries are provided to read and write data. 
 They are named *data_processing* and are located in the *utils* folder.  
 
 Useful functions: 
-- *read_all_hdf5(path_of_file,..)* returns the a multi_data (cd data types). The second **optionnal** argument is *to_read=c('mix','ref')* which precise which data will be read. By default, all data of multi_data are read. 
+- *read_all_hdf5(path_of_file,..)* returns the multi_data (cd data types). The second **optional** argument is *to_read=c('mix','ref')* which tells which data will be read. By default, all data of multi_data are read. 
 
-- *write_all_hdf5(path,multi_data)* write to *path*, multi_data (cf data types). 
+- *write_all_hdf5(path,multi_data)* writes multi_data to *path* (cf data types). 
 
-- *read_hdf5(path)* returns a data_list. This function browse the file from the file on path and browse read all subfolder inside this path. For instance, if the file "exemple.h5" contains /prop1 and /prop2 *read_hdf5(path)* return a list(prop1, prop2).
+- *read_hdf5(path)* returns a data_list. This function browses the file from the path and reads all subfolders inside this path. For instance, if the file "exemple.h5" contains /prop1 and /prop2, *read_hdf5(path)* returns a list(prop1, prop2).
 
-- *write_global_hdf5(path,data_list)* this function write all sub-data inside the data_list. 
-For instance, data_list contain prop1 and prop2, *write_global_hdf5(file,data_list)* will wrote both prop into the file. 
+- *write_global_hdf5(path,data_list)* writes all sub-data inside the data_list. 
+For instance, data_list contains prop1 and prop2, *write_global_hdf5(file,data_list)* will write both prop in the file. 
 
 
-All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*
+All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*.
 
 
 # Benchmark 
@@ -292,7 +292,7 @@ See the README.md inside benchmark folder.
 ## TODO
 
 
-* Decovolution need
-* early integration 
-* test the function. 
-* how to deal with function such as sc_cluster in Fs that requiere a specific pp. 
+* Deconvolution need
+* Early integration 
+* Test the function
+* How to deal with functions such as sc_cluster in FS that requires a specific pp. 
