@@ -1,10 +1,8 @@
-
 program_block_FS <- function(data,path_og_dataset='') {
+  library(dplyr)
   
-
-  og_ref_met  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_MET')$ref_MET
- 
- library(dplyr)
+  og_ref_met  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_met')$ref_met
+  
   ## 1. For each probe, compute the absolute difference between the probe's methylation level in a cell type versus the global average in the matrix
   ## 2. Ranking probes for each cell type by the score computed above
   ## 3. Extract the top n features per cell type
@@ -26,9 +24,11 @@ program_block_FS <- function(data,path_og_dataset='') {
     least_n <- min(which(unlist(nb_features) > 1)) - 1
     return(unique(n_discriminant(mat, least_n)))
   }
+  
   features_met <- least_n_discriminant(og_ref_met, 100)
+  
   data = data[features_met,]
-  # ref_met = ref_met[features_met,]
-  # return(data) 
+
+    return(data) 
 }
 

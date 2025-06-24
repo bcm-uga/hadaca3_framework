@@ -26,6 +26,11 @@ fsID :  #This is a required function
 
 
 #####  working
+# maxdiscriminant : #totest # Use Original ref_met to get max discriminant .  #must be a unique ID without _
+#   path: feature_selection/max_discriminant.R
+#   short_name: Mdis
+#   omic: [mixMET,MET]
+
 # mostmethylated : # Use original ref_met to get most methylated #must be a unique ID without _
 #   path: feature_selection/most_methylated.R
 #   short_name: Mmet
