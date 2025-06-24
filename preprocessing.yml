@@ -17,23 +17,24 @@ ppID :  #must be a unique ID
 #   create: [ref_pseudobulk]
 #   omic: [scRNA,RNA]
 
-# CPM : #to test # Sequence depth normalization for RNA
-#   path: preprocessing/CPM.R
-#   short_name: cpm
-#   omic: [mixRNA,RNA,scRNA]
 
-# scCCAintegration: #must be a unique ID # Need to Debug 
+
+
+
+### working functions
+
+# scCCAintegration: # integration of sc datasets with CCA
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
 #   create : [ref_integrated]
 #   omic: [scRNA]
 
+# CPM : # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
+#   omic: [mixRNA,RNA,scRNA]
 
-
-
-### working functions 
-
-# sccluster : #  seura create object
+# sccluster : #  seurat created object
 #   path: preprocessing/sc_cluster.R
 #   short_name: sccl
 #   create : [ref_cluster]
