@@ -476,6 +476,65 @@ plotly::layout(
 )
 ```
 
+### DE
+
+```{r combinaisons_aggregated_scores_DE, echo=FALSE, eval=TRUE}
+
+#### MET  
+boxplots_deMET_aggreg = ggplot(results_li, aes(x = deconvolution_met, y = score_aggreg, fill = deconvolution_met)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score (-> 1), per dataset",
+    x = "Methods",
+    y = "Aggregated score",
+    fill = "Deconvolution MET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deMET_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### MET  deconvolution_met
+boxplots_deRNA_aggreg = ggplot(results_li, aes(x = deconvolution_rna, y = score_aggreg, fill = deconvolution_rna)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aggregated score (-> 1), per dataset",
+    x = "Methods",
+    y = "Aggregated score",
+    fill = "Deconvolution RNA"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deRNA_aggreg), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
 ### LI
 
 ```{r combinaisons_aggregated_scores_LI, echo=FALSE, eval=TRUE}
@@ -628,6 +687,65 @@ plotly::layout(
 )
 ```
 
+### DE
+
+```{r combinaisons_MAE_scores_DE, echo=FALSE, eval=TRUE}
+
+#### MET  
+boxplots_deMET_mae = ggplot(results_li, aes(x = deconvolution_met, y = mae, fill = deconvolution_met)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error (-> 0), per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Deconvolution MET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deMET_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### MET  deconvolution_met
+boxplots_deRNA_mae = ggplot(results_li, aes(x = deconvolution_rna, y = mae, fill = deconvolution_rna)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Estimation error (-> 0), per dataset",
+    x = "Methods",
+    y = "MAE",
+    fill = "Deconvolution RNA"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deRNA_mae), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
 ### LI
 
 ```{r combinaisons_MAE_LI, echo=FALSE, eval=TRUE}
@@ -722,7 +840,6 @@ plotly::layout( # boxplotlys_ppRNA_aggreg =
 
 ### FS
 
-
 ```{r combinaisons_RMSE_FS, echo=FALSE, eval=TRUE}
 #### MET
 boxplots_fsMET_rmse = ggplot(results_li, aes(x = feature_selection_mixMET, y = rmse, fill = feature_selection_mixMET)) +
@@ -770,6 +887,65 @@ boxplots_fsRNA_rmse = ggplot(results_li, aes(x = feature_selection_mixRNA, y = r
   )
 plotly::layout(
   plotly::ggplotly(boxplots_fsRNA_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### DE
+
+```{r combinaisons_RMSE_scores_DE, echo=FALSE, eval=TRUE}
+
+#### MET  
+boxplots_deMET_rmse = ggplot(results_li, aes(x = deconvolution_met, y = rmse, fill = deconvolution_met)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error (-> 0), per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Deconvolution MET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deMET_rmse), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### MET  deconvolution_met
+boxplots_deRNA_rmse = ggplot(results_li, aes(x = deconvolution_rna, y = rmse, fill = deconvolution_rna)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Root mean squared error (-> 0), per dataset",
+    x = "Methods",
+    y = "RMSE",
+    fill = "Deconvolution RNA"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deRNA_rmse), 
   # boxmode = "group",
   legend = list(
     # x = 0,
@@ -932,6 +1108,65 @@ plotly::layout(
 )
 ```
 
+### DE
+
+```{r combinaisons_spearman_row_scores_DE, echo=FALSE, eval=TRUE}
+
+#### MET  
+boxplots_deMET_spearman_row = ggplot(results_li, aes(x = deconvolution_met, y = spearman_row, fill = deconvolution_met)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Spearman cell types correlation (-> 1), per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Deconvolution MET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deMET_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### MET  deconvolution_met
+boxplots_deRNA_spearman_row = ggplot(results_li, aes(x = deconvolution_rna, y = spearman_row, fill = deconvolution_rna)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Spearman cell types correlation (-> 1), per dataset",
+    x = "Methods",
+    y = "Spearman correlation (row)",
+    fill = "Deconvolution RNA"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deRNA_spearman_row), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
 ### LI
 
 ```{r combinaisons_spearman_row_LI, echo=FALSE, eval=TRUE}
@@ -1074,6 +1309,65 @@ boxplots_fsRNA_aitchison = ggplot(results_li, aes(x = feature_selection_mixRNA, 
   )
 plotly::layout(
   plotly::ggplotly(boxplots_fsRNA_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+```
+
+### DE
+
+```{r combinaisons_aitchison_scores_DE, echo=FALSE, eval=TRUE}
+
+#### MET  
+boxplots_deMET_aitchison = ggplot(results_li, aes(x = deconvolution_met, y = aitchison, fill = deconvolution_met)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance (-> 0), per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Deconvolution MET"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deMET_aitchison), 
+  # boxmode = "group",
+  legend = list(
+    # x = 0,
+    # y = -0.3,
+    # xanchor = 'left',
+    # yanchor = 'bottom',
+    orientation = 'h')
+)
+
+#### MET  deconvolution_met
+boxplots_deRNA_aitchison = ggplot(results_li, aes(x = deconvolution_rna, y = aitchison, fill = deconvolution_rna)) +
+  geom_boxplot() +
+  facet_wrap(~ dataset, scales = "free_x") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Aitchison distance (-> 0), per dataset",
+    x = "Methods",
+    y = "Aitchison distance",
+    fill = "Deconvolution RNA"
+  )
+plotly::layout(
+  plotly::ggplotly(boxplots_deRNA_aitchison), 
   # boxmode = "group",
   legend = list(
     # x = 0,
