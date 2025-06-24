@@ -3,14 +3,6 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-
-
-# sc_binarypseudobulk_log : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
-#   path: preprocessing/sc_binarypseudobulk_log.R
-#   short_name: scbpl
-#   create: [ref_binarypseudobulk_log]
-#   omic: [mixRNA,RNA,scRNA]
-
 # scpseudobulk : # totest , maybe move to intermediate or early integration because it change both scRNA and RNA 
 #   path: preprocessing/sc_pseudobulk.R
 #   short_name: scp
@@ -22,6 +14,12 @@ ppID :  #must be a unique ID
 
 
 ### working functions
+
+# sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA
+#   path: preprocessing/sc_binarypseudobulk_log.R
+#   short_name: scbpl
+#   create: [ref_binarypseudobulk_log]
+#   omic: [mixRNA,RNA,scRNA]
 
 # scCCAintegration: # integration of sc datasets with CCA
 #   path: preprocessing/sc_CCAintegration.R
