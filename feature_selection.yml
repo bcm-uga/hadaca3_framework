@@ -1,19 +1,7 @@
-
-fsID :  #This is a requiered function
+fsID :  #This is a required function
   path: feature_selection/ID.R
   short_name: FSID
   omic: [ANY]
-
-
-# mostmethylated : #totest # Use Original ref_met to get most methylated .  #must be a unique ID without _
-#   path: feature_selection/most_methylated.R
-#   short_name: Mmet
-#   omic: [mixMET,MET]
-
-# maxdiscriminant : #totest # Use Original ref_met to get max discriminant .  #must be a unique ID without _
-#   path: feature_selection/max_discriminant.R
-#   short_name: Mdis
-#   omic: [mixMET,MET]
 
 # SPLSDA : #totest  #must be a unique ID without _
 #   path: feature_selection/SPLS-DA.R
@@ -37,8 +25,13 @@ fsID :  #This is a requiered function
 #   omic: [mixRNA,RNA,scRNA]
 
 
-#####  working function : 
-# SCcluster: 
+#####  working
+# mostmethylated : # Use original ref_met to get most methylated #must be a unique ID without _
+#   path: feature_selection/most_methylated.R
+#   short_name: Mmet
+#   omic: [mixMET,MET]
+
+# SCcluster :
 #   path: feature_selection/sc_cluster.R
 #   short_name: SCCL
 #   need: [ref_cluster]
@@ -60,7 +53,7 @@ fsID :  #This is a requiered function
 #   short_name: Tper
 #   omic: [mixMET,MET]
 
-### Special traitment needed
+### Special treatment needed
 
 # scteamH :  #return ref_teamH 
 #   path: feature_selection/sc_teamH.R
