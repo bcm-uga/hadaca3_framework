@@ -2,8 +2,12 @@
 
 program_block_DE <- function(uni_data,path_og_dataset='') {
 
-
-      # test in case we have an extra cell type in the reference
+  idx_feat = intersect(rownames(uni_data$mix), rownames(uni_data$ref))
+  uni_data$mix = uni_data$mix[idx_feat,]
+  uni_data$ref = uni_data$ref[idx_feat,]
+  
+  
+  # test in case we have an extra cell type in the reference
   seuil_res = 1
   for (col_to_delete in (1:length(colnames(uni_data$ref)))) {
     ref_met_missing <-uni_data$ref[ ,-col_to_delete]
