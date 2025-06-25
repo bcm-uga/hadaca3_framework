@@ -15,12 +15,11 @@ scpseudobulk : # maybe move to intermediate or early integration because it shou
   create: [ref_pseudobulk]
   omic: [scRNA]
 
-# issue, says that "there is no package called ‘BiocManager’"
-#sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
-#  path: preprocessing/sc_binarypseudobulk_log.R
-#  short_name: scbpl
-#  create: [ref_binarypseudobulk_log]
-#  omic: [mixRNA,RNA,scRNA]
+sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+  path: preprocessing/sc_binarypseudobulk_log.R
+  short_name: scbpl
+  create: [ref_binarypseudobulk_log]
+  omic: [mixRNA,RNA,scRNA]
 
 scCCAintegration : # integration of sc datasets with CCA
   path: preprocessing/sc_CCAintegration.R
