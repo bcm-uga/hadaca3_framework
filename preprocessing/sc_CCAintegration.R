@@ -1,7 +1,5 @@
-program_block_PP <- function(data,path_og_dataset='',omic='') {
+program_block_PP <- function(data, path_og_dataset='', omic='') {
   
-#  multi_data = list(mix = mix,
-#                    ref = ref)
   require(Seurat)
   cluster <- function(ds) {
     ds <- Seurat::NormalizeData(ds, verbose=F)
