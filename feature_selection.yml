@@ -4,19 +4,19 @@ fsID :  #This is a required function
   omic: [ANY]
 
 ##### working
-scpseudobulk :
-  path: feature_selection/sc_pseudobulk.R
-  short_name: scpf
-  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
-  omic_need: [scRNA]
-  omic: [mixRNA,RNA,scRNA]
+#scpseudobulk :
+#  path: feature_selection/sc_pseudobulk.R
+#  short_name: scpf
+#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
+#  omic_need: [scRNA]
+#  omic: [mixRNA,RNA,scRNA]
 
-scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
-  path: feature_selection/sc_SPLS-DA.R
-  short_name: scSD
-  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
-  omic_need: [scRNA]
-  omic: [mixRNA,RNA,scRNA]
+#scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
+#  path: feature_selection/sc_SPLS-DA.R
+#  short_name: scSD
+#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
+#  omic_need: [scRNA]
+#  omic: [mixRNA,RNA,scRNA]
 
 SPLSDA : #must be a unique ID without _
   path: feature_selection/SPLS-DA.R
@@ -38,12 +38,12 @@ mostmethylated : # Use original ref_met to get most methylated #must be a unique
   short_name: Mmet
   omic: [mixMET,MET]
 
-SCcluster :
-  path: feature_selection/sc_cluster.R
-  short_name: SCCL
-  need: [ref_cluster]
-  omic_need: [scRNA]
-  omic: [mixRNA,RNA,scRNA]
+#SCcluster :
+#  path: feature_selection/sc_cluster.R
+#  short_name: SCCL
+#  need: [ref_cluster]
+#  omic_need: [scRNA]
+#  omic: [mixRNA,RNA,scRNA]
 
 Toastvst :  #must be a unique ID without _
   path: feature_selection/TOAST_vst.R
