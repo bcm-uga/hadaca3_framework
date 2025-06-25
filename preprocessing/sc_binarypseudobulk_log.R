@@ -1,4 +1,4 @@
-program_block_PP <- function(data,path_og_dataset='',omic='') {
+program_block_PP <- function(data, path_og_dataset='', omic='') {
   
   if (omic == 'ref_scRNA') { # is.list(data)
     if (!"edgeR" %in% rownames(installed.packages())) {
