@@ -1,7 +1,8 @@
-program_block_FS <- function(data,path_og_dataset='') {
+program_block_FS <- function(data, path_og_dataset='') {
+  
   library(dplyr)
   
-  og_ref_met  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_met')$ref_met
+  og_ref_met = read_all_ref_hdf5(path_og_dataset$ref, to_read = 'ref_met')$ref_met
   
   ## 1. For each probe, compute the absolute difference between the probe's methylation level in a cell type versus the global average in the matrix
   ## 2. Ranking probes for each cell type by the score computed above
@@ -29,6 +30,6 @@ program_block_FS <- function(data,path_og_dataset='') {
   
   data = data[features_met,]
 
-    return(data) 
+  return(data) 
 }
 

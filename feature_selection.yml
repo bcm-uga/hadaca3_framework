@@ -6,7 +6,7 @@ fsID :  #This is a required function
 #####  working
 # scpseudobulk :
 #   path: feature_selection/sc_pseudobulk.R
-#   short_name: scps
+#   short_name: scpf
 #   need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
 #   omic_need: [scRNA]
 #   omic: [mixRNA,RNA,scRNA]
@@ -20,7 +20,7 @@ fsID :  #This is a required function
 
 # Toastbulknbfs : #must be a unique ID without _
 #   path: feature_selection/TOAST_bulk_nbfs.R
-#   short_name: Tbnf
+#   short_name: TNBR
 #   omic: [mixRNA,RNA,scRNA]
 
 # SPLSDA : #must be a unique ID without _
@@ -52,7 +52,7 @@ fsID :  #This is a required function
 
 # Toastnbfs :  #must be a unique ID without _
 #   path: feature_selection/TOAST_nbfs.R
-#   short_name: TNBF
+#   short_name: TNBM
 #   omic: [mixMET,MET]
 
 # Toastpercent :  #must be a unique ID without _
@@ -64,7 +64,7 @@ fsID :  #This is a required function
 
 # scteamH :  #return ref_teamH 
 #   path: feature_selection/sc_teamH.R
-#   short_name: TH
+#   short_name: tH
 #   create: [ref_teamH]
 #   dependency: [baselines/attachement/teamH_scSignature.csv]
 #   omic: [mixRNA,RNA,scRNA]

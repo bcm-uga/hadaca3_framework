@@ -3,7 +3,7 @@ source(script_file)
 
 omic_name = omic2list_name[[omic]]
 
-path_og_dataset = list(mix = path_ogmix, ref = path_ogref )
+path_og_dataset = list(mix = path_ogmix, ref = path_ogref)
 data = read_hdf5(input_file)[[omic_name]]
 
 block = program_block_FS(data, path_og_dataset)

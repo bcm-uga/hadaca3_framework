@@ -1,6 +1,6 @@
-program_block_FS <- function(data,path_og_dataset='') {
+program_block_FS <- function(data, path_og_dataset='') {
   
-  og_ref_met  =  read_all_ref_hdf5(path_og_dataset$ref,to_read = 'ref_met')$ref_met
+  og_ref_met = read_all_ref_hdf5(path_og_dataset$ref, to_read = 'ref_met')$ref_met
   
   # highest methylation based on biological knowledge (cancer has high proportion of methylated probes)
   quantiles = apply(og_ref_met, 2, quantile, 0.75) # select 25% of the probes
