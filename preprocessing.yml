@@ -3,7 +3,7 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
-LogNorm: #is working
+LogNorm : #is working
   path: preprocessing/LogNorm.R
   short_name: LogN
   omic: [ANY]
@@ -11,19 +11,19 @@ LogNorm: #is working
 
 ### working functions
 
-# scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA
+# scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
 #   path: preprocessing/sc_pseudobulk.R
 #   short_name: scp
 #   create: [ref_pseudobulk]
 #   omic: [scRNA]
 
-# sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA
+# sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
 #   path: preprocessing/sc_binarypseudobulk_log.R
 #   short_name: scbpl
 #   create: [ref_binarypseudobulk_log]
 #   omic: [mixRNA,RNA,scRNA]
 
-# scCCAintegration: # integration of sc datasets with CCA
+# scCCAintegration : # integration of sc datasets with CCA
 #   path: preprocessing/sc_CCAintegration.R
 #   short_name: CCAi
 #   create: [ref_integrated]
@@ -50,16 +50,14 @@ LogNorm: #is working
 #   short_name: norm
 #   omic: [mixMET,MET] #,mixRNA,RNA
 
-
 # scScale :  #must be a unique ID
 #   path: preprocessing/sc_scale.R
-#   short_name: Scsc
+#   short_name: scSc
 #   omic: [scRNA]
-
 
 # scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
 #   path: preprocessing/sc_concat.R
-#   short_name: ScCo
+#   short_name: scCo
 #   create: [ref_concat]
 #   omic: [scRNA]
 
