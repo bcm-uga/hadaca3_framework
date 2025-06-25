@@ -1,4 +1,4 @@
-program_block_FS <- function(data,path_og_dataset='') {
+program_block_FS <- function(data, path_og_dataset='') {
   
   nb_fs_rna = 1e3
   og_ref_bulkRNA = read_all_ref_hdf5(path_og_dataset$ref, to_read = 'ref_bulkRNA')$ref_bulkRNA
@@ -21,9 +21,8 @@ program_block_FS <- function(data,path_og_dataset='') {
   if (is.list(data)) {
     data = mapply(function(x, y) list(counts = x$counts[y,], metadata = x$metadata),
                   data, hvg, SIMPLIFY=F)
-  } else {
-    data = data[hvg,]
-  }
+  } else {data = data[hvg,]}
+  
   return(data) 
 }
 
