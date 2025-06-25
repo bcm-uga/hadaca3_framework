@@ -11,18 +11,17 @@ scpseudobulk :
   omic_need: [scRNA]
   omic: [mixRNA,RNA,scRNA]
 
-# need to install mixomics : there is no package called ‘mixOmics’
-#scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
-#  path: feature_selection/sc_SPLS-DA.R
-#  short_name: scSD
-#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
-#  omic_need: [scRNA]
-#  omic: [mixRNA,RNA,scRNA]
+scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
+  path: feature_selection/sc_SPLS-DA.R
+  short_name: scSD
+  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
+  omic_need: [scRNA]
+  omic: [mixRNA,RNA,scRNA]
 
-#SPLSDA : #must be a unique ID without _
-#  path: feature_selection/SPLS-DA.R
-#  short_name: SPLS
-#  omic: [mixMET,MET]
+SPLSDA : #must be a unique ID without _
+  path: feature_selection/SPLS-DA.R
+  short_name: SPLS
+  omic: [mixMET,MET]
 
 Toastbulknbfs : #must be a unique ID without _
   path: feature_selection/TOAST_bulk_nbfs.R
