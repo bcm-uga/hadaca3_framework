@@ -3,6 +3,11 @@ ppID :  #must be a unique ID
   short_name: ID
   omic: [ANY]
 
+LogNorm: #is working
+  path: preprocessing/LogNorm.R
+  short_name: LogN
+  omic: [ANY]
+
 
 ### working functions
 
@@ -29,16 +34,11 @@ ppID :  #must be a unique ID
 #   short_name: cpm
 #   omic: [mixRNA,RNA,scRNA]
 
-# sccluster : #  seurat created object
+# sccluster : # seurat created object
 #   path: preprocessing/sc_cluster.R
 #   short_name: sccl
 #   create: [ref_cluster]
 #   omic: [scRNA]
-
-LogNorm: #is working
-  path: preprocessing/LogNorm.R
-  short_name: LogN
-  omic: [ANY]
 
 # Scale :  #scale with sweep function  #must be a unique ID
 #   path: preprocessing/scale.R
@@ -64,7 +64,6 @@ LogNorm: #is working
 #   omic: [scRNA]
 
 
-
 ### Working but need to change further steps and install decoupleR on the CI.
 
 # TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction. .. 
@@ -72,4 +71,3 @@ LogNorm: #is working
 #   short_name: TF
 #   dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
 #   omic: [mixRNA,RNA,scRNA]
-
