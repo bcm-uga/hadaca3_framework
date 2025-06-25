@@ -59,10 +59,3 @@ Toastpercent :  #must be a unique ID without _
   path: feature_selection/TOAST_percent.R
   short_name: Tper
   omic: [mixMET,MET]
-
-scteamH :  #return ref_teamH
-  path: feature_selection/sc_teamH.R
-  short_name: tH
-  create: [ref_teamH]
-  dependency: [feature_selection/attachement/teamH_scSignature.csv]
-  omic: [mixRNA,RNA,scRNA]
