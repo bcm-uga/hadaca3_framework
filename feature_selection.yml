@@ -3,11 +3,6 @@ fsID :  #This is a required function
   short_name: FSID
   omic: [ANY]
 
-# scSPLSDA : #TODO #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
-#   path: feature_selection/sc_SPLS-DA.R
-#   short_name: scSD
-#   need : [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
-#   omic: [mixRNA,RNA,scRNA]
 
 # scpseudobulk : #TODO ##
 #   path: feature_selection/sc_pseudobulk.R
@@ -40,7 +35,7 @@ fsID :  #This is a required function
 #   path: feature_selection/sc_cluster.R
 #   short_name: SCCL
 #   need: [ref_cluster]
-#   omic_need : [scRNA]
+#   omic_need: [scRNA]
 #   omic: [mixRNA,RNA,scRNA]
 
 # Toastvst :  #must be a unique ID without _
@@ -63,6 +58,6 @@ fsID :  #This is a required function
 # scteamH :  #return ref_teamH 
 #   path: feature_selection/sc_teamH.R
 #   short_name: TH
-#   Create : [ref_teamH]
-#   dependency : [baselines/attachement/teamH_scSignature.csv]
+#   create: [ref_teamH]
+#   dependency: [baselines/attachement/teamH_scSignature.csv]
 #   omic: [mixRNA,RNA,scRNA]
