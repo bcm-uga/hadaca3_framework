@@ -40,6 +40,8 @@ program_block_PP <- function(data, path_og_dataset='', omic='') {
     }
     return(x)
   }
+  
+  network = readRDS("teamHtfrna_network_modules.rds")
 
   if (is.list(data)) {
     metadata = lapply(data, function(x) x$metadata)
@@ -53,10 +55,9 @@ program_block_PP <- function(data, path_og_dataset='', omic='') {
   } else if (omic == 'ref_bulkRNA') {
     ref_bulkRNA = readRDS("teamHtfrna_ref_modules.rds")
   } else { 
-    network = readRDS("teamHtfrna_network_modules.rds")
     data = t(minMax(create_tfs_modules(compute.TFs.activity(ADImpute::NormalizeTPM(data, log = T),
                                                             universe = net),
-                                       network)))
+                                        network)))
   }
     
   return(data) 
