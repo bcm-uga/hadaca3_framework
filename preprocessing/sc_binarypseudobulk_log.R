@@ -1,10 +1,5 @@
 program_block_PP <- function(data, path_og_dataset='', omic='') {
   
-  if (!"edgeR" %in% rownames(installed.packages())) {
-    library(BiocManager)
-    BiocManager::install("edgeR")
-  }
-  
   if (omic == 'ref_scRNA') { # is.list(data)
     # get binary markers for each cell type in each sample in each dataset
     pseudobulks <- lapply(data,\(x){
