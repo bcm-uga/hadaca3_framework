@@ -60,11 +60,9 @@ fsID :  #This is a required function
 #   short_name: Tper
 #   omic: [mixMET,MET]
 
-### Special treatment needed
-
-# scteamH :  #return ref_teamH 
-#   path: feature_selection/sc_teamH.R
-#   short_name: tH
-#   create: [ref_teamH]
-#   dependency: [baselines/attachement/teamH_scSignature.csv]
-#   omic: [mixRNA,RNA,scRNA]
+scteamH :  #return ref_teamH
+  path: feature_selection/sc_teamH.R
+  short_name: tH
+  create: [ref_teamH]
+  dependency: [feature_selection/attachement/teamH_scSignature.csv]
+  omic: [mixRNA,RNA,scRNA]
