@@ -1,4 +1,4 @@
-program_block_PP <- function(data, path_og_dataset='') {
+program_block_PP <- function(data, path_og_dataset='', omic='') {
   
   warning("This method uses a single-cell signature from team H")
   avg_expression_df <- read.csv("teamH_scSignature.csv", row.names = 1)
