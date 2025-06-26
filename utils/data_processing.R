@@ -19,12 +19,17 @@ scRNA= 'ref_scRNA' )
 write_data_frame <- function(name, path,data){
     h5createGroup(path, name)
     h5write(data, file = path, name = paste0(name, "/data"))
+
+    
     if(length(colnames(data))){
       h5write(colnames(data), file = path, name = paste0(name, "/samples"))
     }
     if(length(rownames(data))){
       h5write(rownames(data), file = path, name = paste0(name, "/genes"))
     }
+
+
+
 }
 
 
@@ -291,9 +296,17 @@ read_data_frame <- function(path,name,file_structure){
       samples <- h5read(file = path, name = paste0("/",name, "/samples"))
       colnames(data) <- samples
     }
+    if(!is.null(file_structure[[name]]$cell_types)){
+      cell_types <- h5read(file = path, name = paste0("/",name, "/cell_types"))
+      colnames(data) <- cell_types
+    }
     if(!is.null(file_structure[[name]]$genes)){
       genes <- h5read(file = path, name = paste0("/",name, "/genes"))
       rownames(data) <- genes
+    }
+    if(!is.null(file_structure[[name]]$CpG_sites)){
+      CpG_sites <- h5read(file = path, name = paste0("/",name, "/CpG_sites"))
+      rownames(data) <- CpG_sites
     }
     return(data)
 
