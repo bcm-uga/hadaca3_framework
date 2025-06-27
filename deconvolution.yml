@@ -4,13 +4,13 @@ nnls :  #must be a unique ID
   path: deconvolution/nnls.R
   short_name: NNLS
 
-lm :  #must be a unique ID
-  path: deconvolution/lm.R
-  short_name: LM
+# lm :  #must be a unique ID
+#   path: deconvolution/lm.R
+#   short_name: LM
 
-epic :  #must be a unique ID
-  path: deconvolution/EPIC.R
-  short_name: EPIC
+# epic :  #must be a unique ID
+#   path: deconvolution/EPIC.R
+#   short_name: EPIC
 
 ##only with scrna
 # BisqueRNA : #Totest  #must be a unique ID
@@ -23,9 +23,9 @@ RLR :  #must be a unique ID
   path: deconvolution/RLR.R
   short_name: RLR
 
-nnlslargeref :  #must be a unique ID
-  path: deconvolution/nnls_largeref.R
-  short_name: nnla
+# nnlslargeref :  #must be a unique ID
+#   path: deconvolution/nnls_largeref.R
+#   short_name: nnla
 
 RLRpoisson :  #must be a unique ID
   path: deconvolution/RLR_poisson.R

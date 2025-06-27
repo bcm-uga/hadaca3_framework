@@ -9,17 +9,17 @@ LogNorm : #is working
   omic: [ANY]
 
 ##### working
-scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
-  path: preprocessing/sc_pseudobulk.R
-  short_name: scp
-  create: [ref_pseudobulk]
-  omic: [scRNA]
+# scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
+#   path: preprocessing/sc_pseudobulk.R
+#   short_name: scp
+#   create: [ref_pseudobulk]
+#   omic: [scRNA]
 
-sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
-  path: preprocessing/sc_binarypseudobulk_log.R
-  short_name: scbpl
-  create: [ref_binarypseudobulk_log]
-  omic: [mixRNA,RNA,scRNA]
+# sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+#   path: preprocessing/sc_binarypseudobulk_log.R
+#   short_name: scbpl
+#   create: [ref_binarypseudobulk_log]
+#   omic: [mixRNA,RNA,scRNA]
 
 scCCAintegration : # integration of sc datasets with CCA
   path: preprocessing/sc_CCAintegration.R
@@ -32,39 +32,39 @@ CPM : # Sequence depth normalization for RNA
   short_name: cpm
   omic: [mixRNA,RNA,scRNA]
 
-sccluster : # seurat created object
-  path: preprocessing/sc_cluster.R
-  short_name: sccl
-  create: [ref_cluster]
-  omic: [scRNA]
+# sccluster : # seurat created object
+#   path: preprocessing/sc_cluster.R
+#   short_name: sccl
+#   create: [ref_cluster]
+#   omic: [scRNA]
 
-Scale :  #scale with sweep function  #must be a unique ID
-  path: preprocessing/scale.R
-  short_name: scal
-  omic: [ANY]
+# Scale :  #scale with sweep function  #must be a unique ID
+#   path: preprocessing/scale.R
+#   short_name: scal
+#   omic: [ANY]
 
-normalize :  #must be a unique ID
-  path: preprocessing/normalize.R
-  short_name: norm
-  omic: [mixMET,MET] #,mixRNA,RNA
+# normalize :  #must be a unique ID
+#   path: preprocessing/normalize.R
+#   short_name: norm
+#   omic: [mixMET,MET] #,mixRNA,RNA
 
-scScale :  #must be a unique ID
-  path: preprocessing/sc_scale.R
-  short_name: scSc
-  omic: [scRNA]
+# scScale :  #must be a unique ID
+#   path: preprocessing/sc_scale.R
+#   short_name: scSc
+#   omic: [scRNA]
 
-scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
-  path: preprocessing/sc_concat.R
-  short_name: scCo
-  create: [ref_concat]
-  omic: [scRNA]
+# scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
+#   path: preprocessing/sc_concat.R
+#   short_name: scCo
+#   create: [ref_concat]
+#   omic: [scRNA]
 
-scteamH :  #return ref_teamH
-  path: preprocessing/sc_teamH.R
-  short_name: tH
-  create: [ref_teamH]
-  dependency: [preprocessing/attachement/teamH_scSignature.csv]
-  omic: [mixRNA,RNA,scRNA]
+# scteamH :  #return ref_teamH
+#   path: preprocessing/sc_teamH.R
+#   short_name: tH
+#   create: [ref_teamH]
+#   dependency: [preprocessing/attachement/teamH_scSignature.csv]
+#   omic: [mixRNA,RNA,scRNA]
 
 ##### Working but need to change further steps and install decoupleR on the CI.
 
