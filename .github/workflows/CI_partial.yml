@@ -9,6 +9,8 @@ on:
 jobs:
   Continue_pipeline:
     runs-on: self-hosted
+    timeout-minutes: 5760  #run is allowed for 4 days max  
+
     env:
       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
       CONDA_ENV_NAME: "hadaca3framework_env"
