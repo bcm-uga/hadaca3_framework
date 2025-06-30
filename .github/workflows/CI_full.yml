@@ -1,132 +1,77 @@
 
-on:
-  schedule:
-    - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
+#   workflow_dispatch:
     
-jobs:
-  check_date:
-    runs-on: self-hosted
-    name: Check latest commit
-    outputs:
-      should_run: ${{ steps.should_run.outputs.should_run }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: print latest_commit
-        run: echo ${{ github.sha }}
-      - id: should_run
-        continue-on-error: true
-        name: check latest commit is less than a day
-        if: ${{ github.event_name == 'schedule' }}
-        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+# jobs:
+#   check_date:
+#     runs-on: self-hosted
+#     name: Check latest commit
+#     outputs:
+#       should_run: ${{ steps.should_run.outputs.should_run }}
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: print latest_commit
+#         run: echo ${{ github.sha }}
+#       - id: should_run
+#         continue-on-error: true
+#         name: check latest commit is less than a day
+#         if: ${{ github.event_name == 'schedule' }}
+#         run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
 
-  CI_full_Pipeline_scheduled:
-    needs: check_date
-    if: ${{ needs.check_date.outputs.should_run != 'false' }}
-    runs-on: self-hosted
-    env:
-      CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
-      CONDA_ENV_NAME: "hadaca3framework_env"
-      SNK_CORES: "2"
-      MEM_MB: "32000"
+#   CI_full_Pipeline_scheduled:
+#     needs: check_date
+#     if: ${{ needs.check_date.outputs.should_run != 'false' }}
+#     runs-on: self-hosted
+#     env:
+#       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
+#       CONDA_ENV_NAME: "hadaca3framework_env"
+#       SNK_CORES: "2"
+#       MEM_MB: "32000"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      # - name: Set up Miniconda
-      #   run : source "${{ env.CONDA }}"
-      #   shell: bash
-        # uses: conda-incubator/setup-miniconda@v2
-        # with:
-          # activate-environment: ${{ env.CONDA_ENV_NAME }}
-          # auto-activate-base: false
-      # - name: Create Conda environment
-      #   run: |
-      #     conda create -y -n ${{ env.CONDA_ENV_NAME }}
-
-      # - name: Activate Conda environment
-      #   run: |
-      #     conda activate ${{ env.CONDA_ENV_NAME }}
-
-      # - name: Fetch all branches
-      #   run: |
-      #     git fetch --all
-      #     git reset --hard ${{ github.sha }}
-      
-      - name: Set PAT
-        run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+            
+#       - name: Set PAT
+#         run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
         
-      - name: Execute commands from README
-        run: |
-          source "${{ env.CONDA }}"
-            awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
-            [[ "$line" =~ ^# ]] && continue
-            [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
-            echo "$line"
-            eval "$line"
-          done
+#       - name: Execute commands from README
+#         run: |
+#           source "${{ env.CONDA }}"
+#             awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
+#             [[ "$line" =~ ^# ]] && continue
+#             [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
+#             echo "$line"
+#             eval "$line"
+#           done
       
-      # shell: bash
-      - name: download data
-        run: |
-          mkdir data
-          cd data
-          awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
-            echo "$line"
-            eval "$line"
-          done
+#       - name: download data
+#         run: |
+#           mkdir data
+#           cd data
+#           awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
+#             echo "$line"
+#             eval "$line"
+#           done
 
-      - name: Run pipeline
-        run: |
-          source "${{ env.CONDA }}" 
-          conda activate ${{ env.CONDA_ENV_NAME }}
-          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
-          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
-          nextflow run 00_run_pipeline.nf -with-report
-          mkdir -p public
-          cp 07_metaanalysis.html public/metaanalysis.html
-          LATEST_REPORT=$(ls -t report-* | head -n 1)
-          cp $LATEST_REPORT public/nextflow-report.html
-          cp index.html public/index.html
+#       - name: Run pipeline
+#         run: |
+#           source "${{ env.CONDA }}" 
+#           conda activate ${{ env.CONDA_ENV_NAME }}
+#           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
+#           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+#           nextflow run 00_run_pipeline.nf -with-report
+#           mkdir -p public
+#           cp 07_metaanalysis.html public/metaanalysis.html
+#           LATEST_REPORT=$(ls -t report-* | head -n 1)
+#           cp $LATEST_REPORT public/nextflow-report.html
+#           cp index.html public/index.html
       
-      # name: 
-      # - name: Check for errors and read logs 
-      #   if: failure()
-      #   run: |
-      #     echo "An error occurred. Checking log files for details..."
-      #     LOG_DIR=".snakemake/log/"
-
-      #     # Find the latest log file
-      #     LATEST_LOG=$(ls -t "$LOG_DIR" | head -n 1)
-
-      #     # Check if a log file was found
-      #     if [ -z "$LATEST_LOG" ]; then
-      #       echo "No log files found in the directory."
-      #       exit 1
-      #     fi
-      #     echo $LOG_DIR$LATEST_LOG
-      #     ERROR_LOGS=$(grep -A 5 "Error in rule" "$LOG_DIR$LATEST_LOG" | grep -oP 'log: \K.*?(?= \(check log file)')
-      #     echo $ERROR_LOGS
-      #     if [ -z "$ERROR_LOGS" ]; then
-      #       echo "No error logs found in Snakemake log."
-      #       exit 0
-      #     fi
-
-      #     # Display the contents of the error logs
-      #     echo "Errors found in the following log files:"
-      #     for LOG_FILE in $ERROR_LOGS; do
-      #       echo "--- $LOG_FILE ---"
-      #       if [ -f "$LOG_FILE" ]; then
-      #         cat "$LOG_FILE"
-      #       else
-      #         echo "Log file not found: $LOG_FILE"
-      #       fi
-      #     done
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./public
 
