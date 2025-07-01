@@ -61,7 +61,7 @@ workflow {
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
 
 
-    // ################## Computing cleaned mix and ref cleand and generating a tuple with key as the dataset or ref name and output file. 
+    // ################## Computing cleaned mix and ref clean and generating a tuple with key as the dataset or ref name and output file. 
 
     def utils_channel =  Channel.fromPath(params.utils)
 
@@ -310,21 +310,22 @@ workflow {
 
     de_channel = Channel.fromList(deco_path)
 
-    fs_mixRNA = out_fs.filter{meta,_ -> meta.omic=='mixRNA'  }
-    fs_RNA =out_fs.filter{meta,_ -> meta.omic=='RNA'}
-    fs_scRNA = out_fs.filter{meta,_ -> meta.omic=='scRNA'}
+    fs_mixRNA = out_fs.filter{meta, file -> meta.omic=='mixRNA'  }
+    fs_RNA =out_fs.filter{meta, file -> meta.omic=='RNA'}
+    fs_scRNA = out_fs.filter{meta, file -> meta.omic=='scRNA'}
 
     rna_unit = 
     fs_mixRNA.combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
+    // filter on the dataset and ref (same dataset/ref for pp, fs and all omics)
     .filter{ meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
     }
+    //filter on same function for mix and bulk 
+    .filter{ meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+        // println(meta_mix.pp_fun + meta_mix.fs_fun)
+        meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.fs_fun == meta_RNA.fs_fun
+    }
 
-    // de_rna_unit = 
-    // de_channel.combine(fs_mixRNA).combine(fs_RNA).combine(fs_scRNA).combine(out_mix).combine(out_cleaned_ref)
-    // .filter{ meta_de,  de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
-    //     meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
-    // }
 
     de_rna_unit = 
     de_channel.combine(rna_unit)
@@ -366,14 +367,15 @@ workflow {
     fs_mixMET.combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)    
     .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
+    } 
+    // filter mix and bulk to have the same functions : 
+    .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+        meta_mix.pp_fun == meta_MET.pp_fun && meta_mix.fs_fun == meta_MET.fs_fun
     }
+
 
     de_met_unit = 
     de_channel_met.combine(met_unit)
-    // de_channel_met.combine(fs_mixMET).combine(fs_MET).combine(out_mix).combine(out_cleaned_ref)
-    // .filter{ meta_de,  de_script, meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
-    //     meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id
-    // }
     .map{meta_de, de_script, meta_mix,file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_meta_de = meta_de.clone()
         dup_meta_de['mixMET'] = meta_mix

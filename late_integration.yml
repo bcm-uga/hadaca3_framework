@@ -15,15 +15,15 @@
 #   path: late_integration/TunedJ.R 
 #   short_name: TunJ
 
-limeanRMSE :  #TO debug #must be a unique ID  without "_" !
-  path: late_integration/mean_rmse.R
-  short_name: MRMS
+# limeanRMSE :  #TO debug #must be a unique ID  without "_" !
+#   path: late_integration/mean_rmse.R
+#   short_name: MRMS
 
 
-### with early integration done, we should maybe remove this from here ! 
-OnlyMet: 
-  path: late_integration/only_met.R 
-  short_name: OMet
+# ### with early integration done, we should maybe remove this from here ! 
+# OnlyMet: 
+#   path: late_integration/only_met.R 
+#   short_name: OMet
 
 OnlyRna: 
   path: late_integration/only_rna.R 

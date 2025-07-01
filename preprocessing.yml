@@ -21,16 +21,16 @@ LogNorm : #is working
 #   create: [ref_binarypseudobulk_log]
 #   omic: [mixRNA,RNA,scRNA]
 
-scCCAintegration : # integration of sc datasets with CCA
-  path: preprocessing/sc_CCAintegration.R
-  short_name: CCAi
-  create: [ref_integrated]
-  omic: [scRNA]
+# scCCAintegration : # integration of sc datasets with CCA
+#   path: preprocessing/sc_CCAintegration.R
+#   short_name: CCAi
+#   create: [ref_integrated]
+#   omic: [scRNA]
 
-CPM : # Sequence depth normalization for RNA
-  path: preprocessing/CPM.R
-  short_name: cpm
-  omic: [mixRNA,RNA,scRNA]
+# CPM : # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
+#   omic: [mixRNA,RNA,scRNA]
 
 # sccluster : # seurat created object
 #   path: preprocessing/sc_cluster.R
@@ -43,10 +43,10 @@ CPM : # Sequence depth normalization for RNA
 #   short_name: scal
 #   omic: [ANY]
 
-# normalize :  #must be a unique ID
-#   path: preprocessing/normalize.R
-#   short_name: norm
-#   omic: [mixMET,MET] #,mixRNA,RNA
+normalize :  #must be a unique ID
+  path: preprocessing/normalize.R
+  short_name: norm
+  omic: [mixMET,MET] #,mixRNA,RNA
 
 # scScale :  #must be a unique ID
 #   path: preprocessing/sc_scale.R
