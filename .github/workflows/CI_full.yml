@@ -8,7 +8,7 @@ jobs:
   if: false  # This disables the entire workflow
   check_date:
     runs-on: self-hosted
-      timeout-minutes: 5760  
+    timeout-minutes: 5760  
     name: Check latest commit
     outputs:
       should_run: ${{ steps.should_run.outputs.should_run }}
