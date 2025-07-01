@@ -1,77 +1,81 @@
 
-# on:
-#   schedule:
-#     - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
-#   workflow_dispatch:
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Trigger daily at 2 AM UTC
+  workflow_dispatch:
     
-# jobs:
-#   check_date:
-#     runs-on: self-hosted
-#     name: Check latest commit
-#     outputs:
-#       should_run: ${{ steps.should_run.outputs.should_run }}
-#     steps:
-#       - uses: actions/checkout@v2
-#       - name: print latest_commit
-#         run: echo ${{ github.sha }}
-#       - id: should_run
-#         continue-on-error: true
-#         name: check latest commit is less than a day
-#         if: ${{ github.event_name == 'schedule' }}
-#         run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+jobs:
+  check_date:
+    if: false 
+    runs-on: self-hosted
+    timeout-minutes: 5760  
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+      - id: should_run
+        continue-on-error: true
+        name: check latest commit is less than a day
+        if: ${{ github.event_name == 'schedule' }}
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
 
-#   CI_full_Pipeline_scheduled:
+  CI_full_Pipeline_scheduled:
+    if : false
 #     needs: check_date
 #     if: ${{ needs.check_date.outputs.should_run != 'false' }}
-#     runs-on: self-hosted
-#     env:
-#       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
-#       CONDA_ENV_NAME: "hadaca3framework_env"
-#       SNK_CORES: "2"
-#       MEM_MB: "32000"
+    runs-on: self-hosted
+    timeout-minutes: 5760  
+    env:
+      CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
+      CONDA_ENV_NAME: "hadaca3framework_env"
+      SNK_CORES: "2"
+      MEM_MB: "32000"
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
             
-#       - name: Set PAT
-#         run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
+      - name: Set PAT
+        run: echo "GITHUB_PAT=${{ secrets.PAT_CI }}" >> $GITHUB_ENV
         
-#       - name: Execute commands from README
-#         run: |
-#           source "${{ env.CONDA }}"
-#             awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
-#             [[ "$line" =~ ^# ]] && continue
-#             [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
-#             echo "$line"
-#             eval "$line"
-#           done
+      - name: Execute commands from README
+        run: |
+          source "${{ env.CONDA }}"
+            awk '/```{Automatic CI-conda}/{f=1; next} f && /```/{f=0; exit} f' README.md | while read -r line; do
+            [[ "$line" =~ ^# ]] && continue
+            [ -z "$line" ] || [[ "$line" =~ conda\ create ]] && continue
+            echo "$line"
+            eval "$line"
+          done
       
-#       - name: download data
-#         run: |
-#           mkdir data
-#           cd data
-#           awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
-#             echo "$line"
-#             eval "$line"
-#           done
+      - name: download data
+        run: |
+          mkdir data
+          cd data
+          awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
+            echo "$line"
+            eval "$line"
+          done
 
-#       - name: Run pipeline
-#         run: |
-#           source "${{ env.CONDA }}" 
-#           conda activate ${{ env.CONDA_ENV_NAME }}
-#           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
-#           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
-#           nextflow run 00_run_pipeline.nf -with-report
-#           mkdir -p public
-#           cp 07_metaanalysis.html public/metaanalysis.html
-#           LATEST_REPORT=$(ls -t report-* | head -n 1)
-#           cp $LATEST_REPORT public/nextflow-report.html
-#           cp index.html public/index.html
+      - name: Run pipeline
+        run: |
+          source "${{ env.CONDA }}" 
+          conda activate ${{ env.CONDA_ENV_NAME }}
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
+          # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
+          nextflow run 00_run_pipeline.nf -with-report
+          mkdir -p public
+          cp 07_metaanalysis.html public/metaanalysis.html
+          LATEST_REPORT=$(ls -t report-* | head -n 1)
+          cp $LATEST_REPORT public/nextflow-report.html
+          cp index.html public/index.html
       
-#       - name: Deploy to GitHub Pages
-#         uses: peaceiris/actions-gh-pages@v3
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           publish_dir: ./public
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
 

@@ -281,6 +281,18 @@ For instance, data_list contains prop1 and prop2, *write_global_hdf5(file,data_l
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*.
 
+# nextflow metadata fomart. 
+
+the meta data in the nextflow (.nf) file contains : 
+
+* omic
+* dataset
+* ref
+* pp_fun
+* fs_fun
+* de_fun
+* li_fun 
+* ei_fun 
 
 # Benchmark 
 
