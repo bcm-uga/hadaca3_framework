@@ -491,11 +491,11 @@ workflow {
         dup_li_meta['rna_unit'] = meta_rna
         dup_li_meta['met_unit'] = meta_met
 
-        def output_name = "out-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')  +
-            [dup_li_meta.rna_unit.mixRNA.pp_fun, dup_li_meta.rna_unit.mixRNA.fs_fun ].join('_')   +
-            [dup_li_meta.rna_unit.RNA.pp_fun, dup_li_meta.rna_unit.RNA.fs_fun ].join('_')           +
-            [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun,dup_li_meta.rna_unit.de_fun ].join('_')      +
-            [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')   +
+        def output_name = "out-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')                                      + '_' +
+            [dup_li_meta.rna_unit.mixRNA.pp_fun, dup_li_meta.rna_unit.mixRNA.fs_fun ].join('_')                            + '_' +
+            [dup_li_meta.rna_unit.RNA.pp_fun, dup_li_meta.rna_unit.RNA.fs_fun ].join('_')                                  + '_' +
+            [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun,dup_li_meta.rna_unit.de_fun ].join('_')  + '_' +
+            [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')                            + '_' +
             [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ,dup_li_meta.met_unit.de_fun].join('_')           +'.h5'
         dup_li_meta["output"] = output_name
         tuple( dup_li_meta,li_file , file_rna , file_met, dataset_file,ref_file )
@@ -545,11 +545,11 @@ workflow {
         // dup_meta_ei['rna_unit'] = meta_rna
         // dup_meta_ei['met_unit'] = meta_met
 
-        def output_name = "out-li-" + [dup_meta_ei.dataset,dup_meta_ei.ref].join('_')  +
-            [dup_meta_ei.mixRNA.pp_fun, dup_meta_ei.mixRNA.fs_fun ].join('_')   +
-            [dup_meta_ei.RNA.pp_fun, dup_meta_ei.RNA.fs_fun ].join('_')           +
-            [dup_meta_ei.scRNA.pp_fun, dup_meta_ei.scRNA.fs_fun].join('_')      +
-            [dup_meta_ei.mixMET.pp_fun, dup_meta_ei.mixMET.fs_fun ].join('_')   +
+        def output_name = "out-li-" + [dup_meta_ei.dataset,dup_meta_ei.ref].join('_')   + '_' + 
+            [dup_meta_ei.mixRNA.pp_fun, dup_meta_ei.mixRNA.fs_fun ].join('_')           + '_' +
+            [dup_meta_ei.RNA.pp_fun, dup_meta_ei.RNA.fs_fun ].join('_')                 + '_' +
+            [dup_meta_ei.scRNA.pp_fun, dup_meta_ei.scRNA.fs_fun].join('_')              + '_' +
+            [dup_meta_ei.mixMET.pp_fun, dup_meta_ei.mixMET.fs_fun ].join('_')           + '_' +
             [dup_meta_ei.MET.pp_fun, dup_meta_ei.MET.fs_fun , dup_meta_ei.ei_fun ].join('_')           +'.h5'
         dup_meta_ei["output"] = output_name
 
@@ -575,11 +575,11 @@ workflow {
     .map{de_meta , de_file, ei_meta, ei_file -> 
         def dup_de_meta = ei_meta.clone()
         dup_de_meta["de_fun"] = de_meta.de_fun
-        def output_name = "out-li-" + [dup_de_meta.dataset,dup_de_meta.ref].join('_')  +
-            [dup_de_meta.mixRNA.pp_fun, dup_de_meta.mixRNA.fs_fun ].join('_')   +
-            [dup_de_meta.RNA.pp_fun, dup_de_meta.RNA.fs_fun ].join('_')           +
-            [dup_de_meta.scRNA.pp_fun, dup_de_meta.scRNA.fs_fun].join('_')      +
-            [dup_de_meta.mixMET.pp_fun, dup_de_meta.mixMET.fs_fun ].join('_')   +
+        def output_name = "out-li-" + [dup_de_meta.dataset,dup_de_meta.ref].join('_')   + '_' + 
+            [dup_de_meta.mixRNA.pp_fun, dup_de_meta.mixRNA.fs_fun ].join('_')           + '_' +
+            [dup_de_meta.RNA.pp_fun, dup_de_meta.RNA.fs_fun ].join('_')                 + '_' +
+            [dup_de_meta.scRNA.pp_fun, dup_de_meta.scRNA.fs_fun].join('_')              + '_' +
+            [dup_de_meta.mixMET.pp_fun, dup_de_meta.mixMET.fs_fun ].join('_')           + '_' +
             [dup_de_meta.MET.pp_fun, dup_de_meta.MET.fs_fun , dup_de_meta.ei_fun, dup_de_meta.de_fun ].join('_') +'.h5'
 
         dup_de_meta["output"] = output_name
