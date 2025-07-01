@@ -632,7 +632,10 @@ workflow {
     score_out.map{ v-> 
     v[1] }.set{l_path}
 
-    input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false)).collect(flat: false)
+    score_input_li.map{ v ->
+    v[1]}.set{ pred_files }
+
+    input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false).concat( pred_files.collect(flat:false) )).collect(flat: false)
     .combine(Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
 
 
@@ -1047,6 +1050,7 @@ process Metaanalysis {
     tuple( 
         val(meta), 
         path(input_score), 
+        path(pred_files),
         path(meta_script), 
         path(utils), 
         // path(file_dataset)
@@ -1063,6 +1067,7 @@ process Metaanalysis {
     """
     RCODE="
     score_files = strsplit(trimws('${input_score}'),' ') ; 
+    pred_files = strsplit(trimws('${pred_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE | Rscript -
@@ -1072,7 +1077,8 @@ process Metaanalysis {
     stub:
     """
     RCODE="
-    score_files = strsplit(trimws('${input_score}'),' ') ; 
+    score_files = strsplit(trimws('${input_score}'),' ') ;
+    pred_files = strsplit(trimws('${pred_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE 
