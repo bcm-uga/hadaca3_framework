@@ -1,7 +1,7 @@
 
-# limean :  #must be a unique ID without "_" ! 
-#   path: late_integration/avg.R
-#   short_name: avg
+limean :  #must be a unique ID without "_" ! 
+  path: late_integration/avg.R
+  short_name: avg
 
 # liCtSens :  #must be a unique ID  without "_" !
 #   path: late_integration/CTS_ens.R
@@ -21,9 +21,9 @@
 
 
 # ### with early integration done, we should maybe remove this from here ! 
-# OnlyMet: 
-#   path: late_integration/only_met.R 
-#   short_name: OMet
+OnlyMet: 
+  path: late_integration/only_met.R 
+  short_name: OMet
 
 OnlyRna: 
   path: late_integration/only_rna.R 

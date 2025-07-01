@@ -21,11 +21,11 @@ LogNorm : #is working
 #   create: [ref_binarypseudobulk_log]
 #   omic: [mixRNA,RNA,scRNA]
 
-# scCCAintegration : # integration of sc datasets with CCA
-#   path: preprocessing/sc_CCAintegration.R
-#   short_name: CCAi
-#   create: [ref_integrated]
-#   omic: [scRNA]
+scCCAintegration : # integration of sc datasets with CCA
+  path: preprocessing/sc_CCAintegration.R
+  short_name: CCAi
+  create: [ref_integrated]
+  omic: [scRNA]
 
 # CPM : # Sequence depth normalization for RNA
 #   path: preprocessing/CPM.R
