@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
     
 jobs:
-  if: false  # This disables the entire workflow
   check_date:
+    if: false 
     runs-on: self-hosted
     timeout-minutes: 5760  
     name: Check latest commit
@@ -23,8 +23,9 @@ jobs:
         run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
 
   CI_full_Pipeline_scheduled:
-    needs: check_date
-    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    if : false
+#     needs: check_date
+#     if: ${{ needs.check_date.outputs.should_run != 'false' }}
     runs-on: self-hosted
     timeout-minutes: 5760  
     env:
