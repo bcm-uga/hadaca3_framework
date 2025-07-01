@@ -398,23 +398,96 @@ workflow {
 
 // ################## Generate combinaison for late integration
 
+    //add none prediction for rna/met only. 
+
+
+
     li_path =  []
     CONFIG.late_integration.each {li,liv -> li_path.add([ [li_fun:li ] , file(liv.path)])}
 
     li_channel = Channel.fromList(li_path)
 
-    li_combinaison = 
-    li_channel.combine(out_de_rna_unit).combine(out_de_met_unit)
-    .combine(out_mix).combine(out_cleaned_ref)
-    .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
-        meta_rna.dataset == dataset_meta.id &&         meta_met.dataset == dataset_meta.id && 
-        meta_rna.ref == ref_meta.id         &&         meta_met.ref ==ref_meta.id
+    none_unit = Channel.of( tuple( [dataset: "nodt", ref:'nore',
+                            mixRNA:[pp_fun:"nopp",fs_fun:"nofs"],
+                            RNA:[pp_fun:"nopp",fs_fun:"nofs"],
+                            scRNA:[pp_fun:"nopp",fs_fun:"nofs"],
+                            mixMET:[pp_fun:"nopp",fs_fun:"nofs"],
+                            MET:[pp_fun:"nopp",fs_fun:"nofs"],
+                            de_fun:"node"], 
+                            file("none_unit") 
+                            ))
+    
+
+
+    // out_de_met_unit.count().view()
+    // out_de_rna_unit.count().view()
+    
+    li_combinaison = li_channel
+    // .combine(out_de_rna_unit)  // inject none_unit into RNA
+    // .combine(out_de_met_unit) 
+    .combine(out_de_rna_unit.mix(none_unit))  // inject none_unit into RNA
+    .combine(out_de_met_unit.mix(none_unit))  // inject none_unit into MET
+    .combine(out_mix)
+    .combine(out_cleaned_ref)
+    // .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
+    //     meta_rna.dataset == dataset_meta.id &&         meta_met.dataset == dataset_meta.id && 
+    //     meta_rna.ref == ref_meta.id         &&         meta_met.ref ==ref_meta.id
+    // }
+    .filter { m, li_file, meta_rna, file_rna, meta_met, file_met, dataset_meta, dataset_file, ref_meta, ref_file ->
+
+        // Keep all valid matches OR explicitly allow 'none_unit'
+        def isValidMatch = (
+            meta_rna.dataset == dataset_meta.id &&
+            meta_met.dataset == dataset_meta.id &&
+            meta_rna.ref == ref_meta.id &&
+            meta_met.ref == ref_meta.id && 
+            m.li_fun !='OnlyRna' && 
+            m.li_fun !='OnlyMet'
+        )
+
+        def isOnlyRna = (
+            m.li_fun == 'OnlyRna' && 
+            meta_rna.dataset == dataset_meta.id &&
+            meta_rna.ref == ref_meta.id &&
+            meta_rna.dataset != "nodt"  &&
+            meta_met.dataset == "nodt" // && meta_met.ref == "nore"
+        ) 
+
+        def isOnlyMet = (
+            m.li_fun =='OnlyMet' && 
+            meta_met.dataset == dataset_meta.id &&
+            meta_met.ref == ref_meta.id && 
+            meta_met.dataset != "nodt" &&
+            meta_rna.dataset == "nodt" //&& meta_rna.ref == "nore"
+        )
+
+        //  There is no Both nonne because we check the ref/dataset name with out_mix and out_cleaned_ref 
+
+
+        // return (isValidMatch || isNoneRna || isNoneMet) && !isBothNone
+        // return (isValidMatch || isOnlyRna )// || isOnlyMet )  // || isNoneRna || isNoneMet) && !isBothNone
+        return (isValidMatch || isOnlyRna  || isOnlyMet)// ||  )  // || isNoneRna || isNoneMet) && !isBothNone
     }
+
+    // .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
+    //     def valid_rna_li = (  
+    //         m.li_fun !='OnlyRna' || ( m.li_fun =='OnlyRna' &&  meta_met.de_fun =='node' )
+    //     )
+    //     def valid_met_li = (
+    //         m.li_fun !='OnlyMet' || ( m.li_fun =='OnlyMet' &&  meta_rna.de_fun =='node' )
+    //     )
+    //     return (valid_rna_li|| valid_met_li)
+    // }
     .map{
         li_meta,li_file,meta_rna, file_rna , meta_met, file_met ,dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_li_meta = li_meta.clone()
-        dup_li_meta['dataset'] = meta_rna.dataset
-        dup_li_meta['ref'] = meta_rna.ref
+        if(meta_rna.dataset !="nodt"){
+            dup_li_meta['dataset'] = meta_rna.dataset
+            dup_li_meta['ref'] = meta_rna.ref
+        }else{
+            dup_li_meta['dataset'] = meta_met.dataset
+            dup_li_meta['ref'] = meta_met.ref
+        }
         dup_li_meta['rna_unit'] = meta_rna
         dup_li_meta['met_unit'] = meta_met
 
@@ -428,10 +501,14 @@ workflow {
         tuple( dup_li_meta,li_file , file_rna , file_met, dataset_file,ref_file )
     }.combine(Channel.of(tuple(file(params.wrapper.script_05),file(params.utils))))
 
+    // li_combinaison.count().view()
+    // li_combinaison.count()
+
 
     out_li = li_combinaison | Late_integration 
+    // out_li = Channel.of()
 
-
+    // out_li.view()
 // ################################  Early integration and deconvolution path
 
 
@@ -452,8 +529,13 @@ workflow {
            meta_mixRNA, file_input_mixRNA,    meta_RNA,file_input_RNA,    meta_scRNA,file_input_scRNA,    dataset_meta_rna, dataset_file_rna,    ref_meta_rna, ref_file_rna,   
            meta_mixMET, file_input_mixMET, meta_MET,file_input_MET,  dataset_meta_MET, dataset_file_MET, ref_meta_MET, ref_file_MET -> 
         def dup_meta_ei = meta_ei.clone() 
-        dup_meta_ei['dataset'] = dataset_meta_rna.id
-        dup_meta_ei['ref'] = ref_meta_rna.id
+        if(dataset_meta_rna.id!= "nodt"){
+            dup_meta_ei['dataset'] = dataset_meta_rna.id
+            dup_meta_ei['ref'] = ref_meta_rna.id
+        }else{
+            dup_meta_ei['dataset'] = dataset_meta_MET.id
+            dup_meta_ei['ref'] = ref_meta_MET.id
+        }
 
         dup_meta_ei['mixRNA'] = meta_mixRNA
         dup_meta_ei['RNA'] = meta_RNA
