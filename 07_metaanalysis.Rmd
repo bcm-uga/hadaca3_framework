@@ -30,7 +30,7 @@ source(utils_script)
 ```
 
 
-```{r Late_integration pipeline,echo=FALSE}
+```{r Late_integration pipeline,echo=TRUE}
 
 
 # datasets = read_yaml("datasets.yml") 
@@ -114,7 +114,7 @@ for (score_file in score_files[[1]]) {
   # "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   
-  
+
   # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
   scores <- read_hdf5(score_file)
   # Append the extracted information to the results data frame
@@ -147,6 +147,10 @@ for (score_file in score_files[[1]]) {
      scores
     ))
   rownames(results_li) = NULL
+
+  # prediction_file = paste0("pred-li-",paste(components,collapse = "_") ,".h5")
+  # pred = read_hdf5(prediction_file)
+
 
   i = i +1 
 }
