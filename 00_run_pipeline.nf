@@ -450,7 +450,7 @@ workflow {
             meta_rna.dataset == dataset_meta.id &&
             meta_rna.ref == ref_meta.id &&
             meta_rna.dataset != "nodt"  &&
-            meta_met.dataset == "nodt" // && meta_met.ref == "nore"
+            meta_met.dataset == "nodt"
         ) 
 
         def isOnlyMet = (
@@ -458,26 +458,10 @@ workflow {
             meta_met.dataset == dataset_meta.id &&
             meta_met.ref == ref_meta.id && 
             meta_met.dataset != "nodt" &&
-            meta_rna.dataset == "nodt" //&& meta_rna.ref == "nore"
+            meta_rna.dataset == "nodt"
         )
-
-        //  There is no Both nonne because we check the ref/dataset name with out_mix and out_cleaned_ref 
-
-
-        // return (isValidMatch || isNoneRna || isNoneMet) && !isBothNone
-        // return (isValidMatch || isOnlyRna )// || isOnlyMet )  // || isNoneRna || isNoneMet) && !isBothNone
-        return (isValidMatch || isOnlyRna  || isOnlyMet)// ||  )  // || isNoneRna || isNoneMet) && !isBothNone
+        return (isValidMatch || isOnlyRna  || isOnlyMet)
     }
-
-    // .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
-    //     def valid_rna_li = (  
-    //         m.li_fun !='OnlyRna' || ( m.li_fun =='OnlyRna' &&  meta_met.de_fun =='node' )
-    //     )
-    //     def valid_met_li = (
-    //         m.li_fun !='OnlyMet' || ( m.li_fun =='OnlyMet' &&  meta_rna.de_fun =='node' )
-    //     )
-    //     return (valid_rna_li|| valid_met_li)
-    // }
     .map{
         li_meta,li_file,meta_rna, file_rna , meta_met, file_met ,dataset_meta, dataset_file, ref_meta, ref_file ->
         def dup_li_meta = li_meta.clone()
@@ -491,12 +475,12 @@ workflow {
         dup_li_meta['rna_unit'] = meta_rna
         dup_li_meta['met_unit'] = meta_met
 
-        def output_name = "out-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')                                      + '_' +
+        def output_name = "pred-li-" + [dup_li_meta.dataset,dup_li_meta.ref].join('_')                                      + '_' +
             [dup_li_meta.rna_unit.mixRNA.pp_fun, dup_li_meta.rna_unit.mixRNA.fs_fun ].join('_')                            + '_' +
             [dup_li_meta.rna_unit.RNA.pp_fun, dup_li_meta.rna_unit.RNA.fs_fun ].join('_')                                  + '_' +
             [dup_li_meta.rna_unit.scRNA.pp_fun, dup_li_meta.rna_unit.scRNA.fs_fun,dup_li_meta.rna_unit.de_fun ].join('_')  + '_' +
             [dup_li_meta.met_unit.mixMET.pp_fun, dup_li_meta.met_unit.mixMET.fs_fun ].join('_')                            + '_' +
-            [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ,dup_li_meta.met_unit.de_fun].join('_')           +'.h5'
+            [dup_li_meta.met_unit.MET.pp_fun, dup_li_meta.met_unit.MET.fs_fun ,dup_li_meta.met_unit.de_fun,dup_li_meta.li_fun].join('_')          +'.h5'
         dup_li_meta["output"] = output_name
         tuple( dup_li_meta,li_file , file_rna , file_met, dataset_file,ref_file )
     }.combine(Channel.of(tuple(file(params.wrapper.script_05),file(params.utils))))
