@@ -38,10 +38,10 @@ invivo1 :
 # #   groundtruth_file_path : data/groundtruth2_insilicodirichletEMFA_pdac.h5
 # #   path : data/mixes2_insilicodirichletEMFA_pdac.h5
 
-insilicodirichletCopule1 : 
-  short_name : SDC5
-  groundtruth_file_path : data/groundtruth1_insilicodirichletCopule_pdac.h5
-  path : data/mixes1_insilicodirichletCopule_pdac.h5 
+# insilicodirichletCopule1 : 
+#   short_name : SDC5
+#   groundtruth_file_path : data/groundtruth1_insilicodirichletCopule_pdac.h5
+#   path : data/mixes1_insilicodirichletCopule_pdac.h5 
 
 # insilicodirichletCopule2 : 
 #   short_name : SDC5

@@ -27,9 +27,9 @@ RLR :  #must be a unique ID
 #   path: deconvolution/nnls_largeref.R
 #   short_name: nnla
 
-# RLRpoisson :  #must be a unique ID
-#   path: deconvolution/RLR_poisson.R
-#   short_name: RLRp
+RLRpoisson :  #must be a unique ID
+  path: deconvolution/RLR_poisson.R
+  short_name: RLRp
 
 
 
