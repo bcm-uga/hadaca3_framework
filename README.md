@@ -123,6 +123,23 @@ Run with another setup:
 nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup/1/
 ```
 
+### Continuous Integration description 
+There are two types of contiuous integration (CI). 
+- One partial which is executed every comit and that will continue tasks not completed yet (it run the pipeline with the command `-resume`).
+- One full CI which will be executed in a temporary folder and re run all tasks from scratch to ensure reproductibility. 
+
+The partial CI is trigger every comit, whereas the full CI is scheduled to run at 3 am every day if there was a modification during that day. 
+
+In some case, the full CI can be deactivated with the argument `if : fasle`.
+
+Also it is possible to skip the execution of the partial CI by adding one of these key word in bracket in the commit message.
+- [skip ci]
+- [ci skip]
+- [no ci]
+- [skip actions]
+- [actions skip]
+
+
 ### snakemake  DEPRECATED not dealing with dependencies...
 
 ```
@@ -140,6 +157,7 @@ Run with another setup:
 ```
 snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
 ```
+
 
 
 
