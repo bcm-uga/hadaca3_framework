@@ -17,7 +17,7 @@ output:
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
 ```
 
-```{r loading_pckgs, echo=FALSE, }
+```{r loading_pckgs, echo=FALSE, message=FALSE}
 library(yaml)
 library(DT)
 library(stringr)
@@ -412,14 +412,14 @@ print(pred)
 ```
 
 
-```{r scatter_plot_top5_by_dataset, warning=FALSE, echo=FALSE, eval=FALSE}
+```{r scatter_plot_top5_by_dataset, warning=FALSE, echo=FALSE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
 number_part <- gsub("[^0-9]", "", test_dataset)
 
 ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
-ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 
 
 
@@ -432,22 +432,39 @@ df_scatter = do.call(
   what = rbind,
   args = lapply(seq_along(unique(results_li$dataset)), function(data) { # we remove in vivo
     
+    
     prediction_file = sapply(1:nrow(results_li_top5), function(i){
       paste0("pred-li-",paste(c(data, "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
     })
-    pred = lapply(prediction_file, \(path){read_hdf5(path)})
+    pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})
     
-    for (method_i in 1:length(pred)) {
-      prediction_data = t(pred[[method_i]]$pred)
-      prediction_data = tidyr::pivot_longer(
+    method_i = 1
+    prediction_data = t(pred[[method_i]])
+    prediction_data = tidyr::pivot_longer(
+      as.data.frame(prediction_data),
+      cols = everything(),
+      names_to = "cell_type",
+      values_to = "pred_prop"
+    )
+    prediction_data$method = paste0("method top", method_i)
+      
+    for (method_i in 2:nrow(results_li_top5)) {
+      prediction_data_tmp = t(pred[[method_i]])
+      prediction_data_tmp = tidyr::pivot_longer(
         as.data.frame(prediction_data),
         cols = everything(),
         names_to = "cell_type",
         values_to = "pred_prop"
       )
-      prediction_data$method = paste0("method top", method_i)
+      prediction_data_tmp$method = paste0("method top", method_i)
+      rbind(prediction_data, prediction_data_tmp)
     }
     
+    
+    name_part <- gsub("[0-9]+$", "", data)
+    number_part <- gsub("[^0-9]", "", data)
+    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+    ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
     
     ground_truth_data = t(ground_truth)
     ground_truth_data = tidyr::pivot_longer(
@@ -457,17 +474,22 @@ df_scatter = do.call(
       values_to = "true_prop"
     )
     
-    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = datasets[data])
+    ground_truth_data = rbind(ground_truth_data, ground_truth_data, 
+                              ground_truth_data, ground_truth_data, ground_truth_data)
+    
+    
+    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
   })
 )
-df_scatter$Dataset = factor(df_scatter$Dataset, levels = datasets)
-df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth[[1]]))
+df_scatter$Dataset = factor(df_scatter$Dataset, levels = unique(results_li$dataset))
+df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth_invitro1))
+df_scatter$method = factor(df_scatter$method)
 
 
 scatter_prop = ggplot(df_scatter) +
   facet_wrap( ~ Dataset) +
   geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
-  geom_point(aes(x = true_prop, y = pred_prop, col = cell_type)) +
+  geom_point(aes(x = true_prop, y = pred_prop, col = method, shape = cell_type)) +
   coord_cartesian(
     xlim = c(0,1),
     ylim = c(0,1)
@@ -475,13 +497,13 @@ scatter_prop = ggplot(df_scatter) +
   labs(
     x = "Ground truth proportion",
     y = "Prediction",
-    title = paste("Proportions predicted by your method vs true ones for all datasets")
+    title = paste("Proportions predicted by top 5 method vs true ones for all datasets")
   ) +
   scale_x_continuous(
     labels = scales::percent
   ) +
   scale_y_continuous(
-    labels = scales::percenta
+    labels = scales::percent
   ) +
   scale_color_discrete(
     name = "Cell type"
@@ -519,18 +541,18 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
   
   # noBOCK is joint with onlyOMIC late integration
   if (y_var != "early_integration" || y_var != "late_integration") {
-    results_li = results_li[results_li$preprocessing_mixRNA != "nopp",]
-    results_li = results_li[results_li$feature_selection_mixRNA != "nofs",]
-    results_li = results_li[results_li$preprocessing_RNA != "nopp",]
-    results_li = results_li[results_li$feature_selection_RNA != "nofs",]
-    results_li = results_li[results_li$preprocessing_scRNA != "nopp",]
-    results_li = results_li[results_li$feature_selection_scRNA != "nofs",]
-    results_li = results_li[results_li$deconvolution_rna != "node",]
-    results_li = results_li[results_li$preprocessing_mixMET != "nopp",]
-    results_li = results_li[results_li$feature_selection_mixMET != "nofs",]
-    results_li = results_li[results_li$preprocessing_MET != "nopp",]
-    results_li = results_li[results_li$feature_selection_MET != "nofs",]
-    results_li = results_li[results_li$deconvolution_met != "node",]
+    data = data[data$preprocessing_mixRNA != "nopp",]
+    data = data[data$feature_selection_mixRNA != "nofs",]
+    data = data[data$preprocessing_RNA != "nopp",]
+    data = data[data$feature_selection_RNA != "nofs",]
+    data = data[data$preprocessing_scRNA != "nopp",]
+    data = data[data$feature_selection_scRNA != "nofs",]
+    data = data[data$deconvolution_rna != "node",]
+    data = data[data$preprocessing_mixMET != "nopp",]
+    data = data[data$feature_selection_mixMET != "nofs",]
+    data = data[data$preprocessing_MET != "nopp",]
+    data = data[data$feature_selection_MET != "nofs",]
+    data = data[data$deconvolution_met != "node",]
   }
   
   # Dynamically build aesthetics
