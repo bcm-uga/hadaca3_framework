@@ -23,10 +23,10 @@ fsID :  #This is a required function
 #   short_name: SPLS
 #   omic: [mixMET,MET]
 
-# Toastbulknbfs : #must be a unique ID without _
-#   path: feature_selection/TOAST_bulk_nbfs.R
-#   short_name: TNBR
-#   omic: [mixRNA,RNA,scRNA]
+Toastbulknbfs : #must be a unique ID without _
+  path: feature_selection/TOAST_bulk_nbfs.R
+  short_name: TNBR
+  omic: [mixRNA,RNA,scRNA]
 
 # maxdiscriminant : # Use original ref_met to get max discriminant #must be a unique ID without _
 #   path: feature_selection/max_discriminant.R
@@ -50,10 +50,10 @@ Toastvst :  #must be a unique ID without _
   short_name: Tvst
   omic: [mixRNA,RNA,scRNA]
 
-# Toastnbfs :  #must be a unique ID without _
-#   path: feature_selection/TOAST_nbfs.R
-#   short_name: TNBM
-#   omic: [mixMET,MET]
+Toastnbfs :  #must be a unique ID without _
+  path: feature_selection/TOAST_nbfs.R
+  short_name: TNBM
+  omic: [mixMET,MET]
 
 # Toastpercent :  #must be a unique ID without _
 #   path: feature_selection/TOAST_percent.R
