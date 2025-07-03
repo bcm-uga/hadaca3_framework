@@ -151,6 +151,18 @@ for (score_file in score_files[[1]]) {
 
   i = i +1 
 }
+results_li = results_li[results_li$preprocessing_mixRNA != "nopp",]
+results_li = results_li[results_li$feature_selection_mixRNA != "nofs",]
+results_li = results_li[results_li$preprocessing_RNA != "nopp",]
+results_li = results_li[results_li$feature_selection_RNA != "nofs",]
+results_li = results_li[results_li$preprocessing_scRNA != "nopp",]
+results_li = results_li[results_li$feature_selection_scRNA != "nofs",]
+results_li = results_li[results_li$deconvolution_rna != "node",]
+results_li = results_li[results_li$preprocessing_mixMET != "nopp",]
+results_li = results_li[results_li$feature_selection_mixMET != "nofs",]
+results_li = results_li[results_li$preprocessing_MET != "nopp",]
+results_li = results_li[results_li$feature_selection_MET != "nofs",]
+results_li = results_li[results_li$deconvolution_met != "node",]
 
 results_li %>%
   # filter(dc==2) %>%
@@ -165,10 +177,10 @@ results_li_top5 = results_li %>%
   slice_head(n = 5)
 results_li_top5
 
-# prediction_file = sapply(1:nrow(results_li_top5), \(i){paste0("pred-li-",paste(results_li_top5[i,1:15],collapse = "_") ,".h5")})
-# pred = lapply(prediction_file, \(path){read_hdf5(path)})
+prediction_file = sapply(1:nrow(results_li_top5), \(i){paste0("pred-li-",paste(results_li_top5[i,1:15],collapse = "_") ,".h5")})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})
 
-# pred
+pred
 
 
 all_data_used = c('dataset', 'ref')
