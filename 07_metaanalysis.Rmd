@@ -17,13 +17,17 @@ output:
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
 ```
 
-```{r loading_pckgs ,echo=FALSE}
+```{r loading_pckgs, echo=FALSE, }
 library(yaml)
 library(DT)
 library(stringr)
 library(dplyr)
 library(ggplot2)
 theme_set(theme_light())
+library(plotly)
+
+okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 
 source(utils_script)
 # source("utils/data_processing.R")
@@ -111,7 +115,7 @@ for (score_file in score_files[[1]]) {
 
   components <- str_match(base_name, 
   #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
-  # "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  # "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   
 
@@ -134,7 +138,7 @@ for (score_file in score_files[[1]]) {
        feature_selection_scRNA = components[8],
        deconvolution_rna = components[9],
 
-        preprocessing_mixMET = components[10],
+       preprocessing_mixMET = components[10],
        feature_selection_mixMET = components[11],
 
        preprocessing_MET = components[12],
@@ -148,10 +152,6 @@ for (score_file in score_files[[1]]) {
     ))
   rownames(results_li) = NULL
 
-  # prediction_file = paste0("pred-li-",paste(components,collapse = "_") ,".h5")
-  # pred = read_hdf5(prediction_file)
-
-
   i = i +1 
 }
 
@@ -160,6 +160,9 @@ results_li %>%
   group_by(late_integration) %>%
   summarise(GlobalScore = median(score_aggreg)) %>%
   arrange(desc(GlobalScore))
+
+
+
 
 
 all_data_used = c('dataset', 'ref')
@@ -293,7 +296,7 @@ for (score_file in score_files[[1]]) {
        preprocessing_scRNA = components[7],
        feature_selection_scRNA = components[8],
 
-        preprocessing_mixMET = components[9],
+       preprocessing_mixMET = components[9],
        feature_selection_mixMET = components[10],
 
        preprocessing_MET = components[11],
@@ -351,13 +354,156 @@ datatable(
 ```
 
 
+# Visualisations of the top 5 methods
+
+```{r table_top5_by_dataset, echo=FALSE}
+results_li_top5 = results_li %>%
+  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
+           preprocessing_RNA, feature_selection_RNA, 
+           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
+           preprocessing_mixMET,feature_selection_mixMET, 
+           preprocessing_MET, feature_selection_MET, deconvolution_met, 
+           late_integration, .groups = "keep") %>% 
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore)) 
+
+#if more than 5 ex aequo combination, then taking them all
+if (length(which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore))) > 5) {
+  results_li_top5 = results_li_top5[which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore)), ]
+} else {
+  results_li_top5 = results_li_top5[1:5,]
+}
+
+datatable(
+  results_li_top5,
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
+
+
+```{r scatter_plot_top5_by_dataset, warning=FALSE, echo=FALSE, eval=FALSE}
+ground_truth = read_hdf5(paste0(groundtruth_file))$groundtruth
+
+prediction_file = sapply(1:nrow(results_li_top5), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
+})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})
+
+df_scatter = do.call(
+  what = rbind,
+  args = lapply(seq_along(unique(results_li$dataset)), function(data) { # we remove in vivo
+    
+    prediction_file = sapply(1:nrow(results_li_top5), function(i){
+      paste0("pred-li-",paste(c(data, "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
+    })
+    pred = lapply(prediction_file, \(path){read_hdf5(path)})
+    
+    for (method_i in 1:length(pred)) {
+      prediction_data = t(pred[[method_i]]$pred)
+      prediction_data = tidyr::pivot_longer(
+        as.data.frame(prediction_data),
+        cols = everything(),
+        names_to = "cell_type",
+        values_to = "pred_prop"
+      )
+      prediction_data$method = paste0("method top", method_i)
+    }
+    
+    
+    ground_truth_data = t(ground_truth)
+    ground_truth_data = tidyr::pivot_longer(
+      as.data.frame(ground_truth_data),
+      cols = colnames(ground_truth_data),
+      names_to = "cell_type",
+      values_to = "true_prop"
+    )
+    
+    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = datasets[data])
+  })
+)
+df_scatter$Dataset = factor(df_scatter$Dataset, levels = datasets)
+df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth[[1]]))
+
+
+scatter_prop = ggplot(df_scatter) +
+  facet_wrap( ~ Dataset) +
+  geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
+  geom_point(aes(x = true_prop, y = pred_prop, col = cell_type)) +
+  coord_cartesian(
+    xlim = c(0,1),
+    ylim = c(0,1)
+  ) +
+  labs(
+    x = "Ground truth proportion",
+    y = "Prediction",
+    title = paste("Proportions predicted by your method vs true ones for all datasets")
+  ) +
+  scale_x_continuous(
+    labels = scales::percent
+  ) +
+  scale_y_continuous(
+    labels = scales::percenta
+  ) +
+  scale_color_discrete(
+    name = "Cell type"
+  ) +
+  theme_light() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
+# pp
+pp = plotly::layout(pp, legend = list(orientation = 'h'))
+# pp
+invisible(
+  lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
+  
+  # if a strip shape (using the strip color), reduce the height of the strip box
+  if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
+   pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
+  }
+  # there are less annotations than shapes
+  if(i <= length(pp$x$layout$annotations)) { 
+    # reduce the font size of the strip text
+    if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
+      pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
+    }
+  }
+})
+)
+pp
+```
+
 # Visualisations of the different metrics
 
 ```{r plot_FUN, echo=FALSE, message=FALSE}
-library(ggplot2)
-library(plotly)
-
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
+  
+  # noBOCK is joint with onlyOMIC late integration
+  if (y_var != "early_integration" || y_var != "late_integration") {
+    results_li = results_li[results_li$preprocessing_mixRNA != "nopp",]
+    results_li = results_li[results_li$feature_selection_mixRNA != "nofs",]
+    results_li = results_li[results_li$preprocessing_RNA != "nopp",]
+    results_li = results_li[results_li$feature_selection_RNA != "nofs",]
+    results_li = results_li[results_li$preprocessing_scRNA != "nopp",]
+    results_li = results_li[results_li$feature_selection_scRNA != "nofs",]
+    results_li = results_li[results_li$deconvolution_rna != "node",]
+    results_li = results_li[results_li$preprocessing_mixMET != "nopp",]
+    results_li = results_li[results_li$feature_selection_mixMET != "nofs",]
+    results_li = results_li[results_li$preprocessing_MET != "nopp",]
+    results_li = results_li[results_li$feature_selection_MET != "nofs",]
+    results_li = results_li[results_li$deconvolution_met != "node",]
+  }
   
   # Dynamically build aesthetics
   aes_base <- aes_string(x = x_var, y = y_var, fill = x_var)
@@ -368,8 +514,10 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
   #                     "PP_RNA_mix: ")
   overlayer_infos_colnames = overlayer_infos_colnames[-which(overlayer_infos_colnames == x_var)]
   
+  
   p <- ggplot(data) +
-    geom_boxplot(aes_base) +
+    # geom_boxplot(aes_base) +
+    geom_violin(aes_base) +
     geom_jitter(
       aes_string(
         x = x_var, 
@@ -399,7 +547,8 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
       x = "Methods",
       # y = "Aggregated score",
       fill = x_var
-    )
+    ) +
+    scale_color_grey(start = 0.2, end = 0.2)
   
   tooltip_cols <- c(y_var,
     "preprocessing_mixRNA", "preprocessing_RNA", "preprocessing_scRNA",
@@ -442,7 +591,7 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
 add_tooltip_text = FALSE
 facet_var = "dataset"
 ########### Only for exploration
-# add_tooltip_text = TRUE
+add_tooltip_text = TRUE
 ```
 
 

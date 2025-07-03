@@ -27,10 +27,10 @@ scCCAintegration : # integration of sc datasets with CCA
   create: [ref_integrated]
   omic: [scRNA]
 
-CPM : # Sequence depth normalization for RNA
-  path: preprocessing/CPM.R
-  short_name: cpm
-  omic: [mixRNA,RNA,scRNA]
+# CPM : # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
+#   omic: [mixRNA,RNA,scRNA]
 
 # sccluster : # seurat created object
 #   path: preprocessing/sc_cluster.R
