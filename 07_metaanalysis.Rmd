@@ -24,6 +24,7 @@ library(stringr)
 library(dplyr)
 library(ggplot2)
 theme_set(theme_light())
+library(plotly)
 
 source(utils_script)
 # source("utils/data_processing.R")
@@ -111,7 +112,7 @@ for (score_file in score_files[[1]]) {
 
   components <- str_match(base_name, 
   #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
-  # "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+  # "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
   
 
@@ -148,10 +149,6 @@ for (score_file in score_files[[1]]) {
     ))
   rownames(results_li) = NULL
 
-  # prediction_file = paste0("pred-li-",paste(components,collapse = "_") ,".h5")
-  # pred = read_hdf5(prediction_file)
-
-
   i = i +1 
 }
 
@@ -160,6 +157,17 @@ results_li %>%
   group_by(late_integration) %>%
   summarise(GlobalScore = median(score_aggreg)) %>%
   arrange(desc(GlobalScore))
+
+
+results_li_top5 = results_li %>%
+  select(dataset:late_integration, score_aggreg) %>% 
+  arrange(desc(score_aggreg)) %>% 
+  slice_head(n = 5)
+
+prediction_file = sapply(1:nrow(results_li_top5), \(i){paste0("pred-li-",paste(results_li_top5[i,3:15],collapse = "_") ,".h5")})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})
+
+pred
 
 
 all_data_used = c('dataset', 'ref')
@@ -293,7 +301,7 @@ for (score_file in score_files[[1]]) {
        preprocessing_scRNA = components[7],
        feature_selection_scRNA = components[8],
 
-        preprocessing_mixMET = components[9],
+       preprocessing_mixMET = components[9],
        feature_selection_mixMET = components[10],
 
        preprocessing_MET = components[11],
@@ -351,12 +359,89 @@ datatable(
 ```
 
 
+# Visualisations of the top 5 methods
+
+## Best combination
+
+```{r scatter_plot_top1, warning=FALSE, echo=FALSE, eval=FALSE}
+df_scatter = do.call(
+  what = rbind,
+  args = lapply(seq_along(datasets), function(data) { # we remove in vivo
+    
+    prediction_data = t(prediction_corrected[[data]])
+    prediction_data = tidyr::pivot_longer(
+      as.data.frame(prediction_data),
+      cols = colnames(prediction_data),
+      names_to = "cell_type",
+      values_to = "pred_prop"
+    )
+    
+    ground_truth_data = t(ground_truth_corrected[[data]])
+    ground_truth_data = tidyr::pivot_longer(
+      as.data.frame(ground_truth_data),
+      cols = colnames(ground_truth_data),
+      names_to = "cell_type",
+      values_to = "true_prop"
+    )
+    
+    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = datasets[data])
+  })
+)
+df_scatter$Dataset = factor(df_scatter$Dataset, levels = datasets)
+df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth[[1]]))
+
+
+scatter_prop = ggplot(df_scatter) +
+  facet_wrap( ~ Dataset) +
+  geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
+  geom_point(aes(x = true_prop, y = pred_prop, col = cell_type)) +
+  coord_cartesian(
+    xlim = c(0,1),
+    ylim = c(0,1)
+  ) +
+  labs(
+    x = "Ground truth proportion",
+    y = "Prediction",
+    title = paste("Proportions predicted by your method vs true ones for all datasets")
+  ) +
+  scale_x_continuous(
+    labels = scales::percent
+  ) +
+  scale_y_continuous(
+    labels = scales::percent
+  ) +
+  scale_color_discrete(
+    name = "Cell type"
+  ) +
+  theme_light() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
+# pp
+pp = plotly::layout(pp, legend = list(orientation = 'h'))
+# pp
+invisible(
+  lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
+  
+  # if a strip shape (using the strip color), reduce the height of the strip box
+  if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
+   pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
+  }
+  # there are less annotations than shapes
+  if(i <= length(pp$x$layout$annotations)) { 
+    # reduce the font size of the strip text
+    if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
+      pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
+    }
+  }
+})
+)
+pp
+```
+
 # Visualisations of the different metrics
 
 ```{r plot_FUN, echo=FALSE, message=FALSE}
-library(ggplot2)
-library(plotly)
-
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
   
   # Dynamically build aesthetics
@@ -442,7 +527,7 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
 add_tooltip_text = FALSE
 facet_var = "dataset"
 ########### Only for exploration
-# add_tooltip_text = TRUE
+add_tooltip_text = TRUE
 ```
 
 
