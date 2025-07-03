@@ -57,7 +57,7 @@ workflow {
         def parsedContent = new YamlSlurper().parse(filePath as File)
         CONFIG[key] = parsedContent
     }
-    
+
     original_datasets_files = CONFIG['datasets'].collect { k, v -> v['path'] }.flatten()
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
 
@@ -635,6 +635,11 @@ workflow {
 // ################## Generate Metaanalysis
 
     // input_meta = score_out.collect(flat: false)
+    list_groundtruth_path =[]
+    CONFIG.datasets.each {data,datav -> list_groundtruth_path.add(datav.groundtruth_file_path)
+    }
+
+    println(list_groundtruth_path)
 
     score_out.map{ v-> 
     v[0] }.set{l_meta}
@@ -645,8 +650,11 @@ workflow {
     score_input_li.map{ v ->
     v[1]}.set{ pred_files }
 
-    input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false).concat( pred_files.collect(flat:false) )).collect(flat: false)
-    .combine(Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
+
+    Channel_groundtruth_files = Channel.fromPath(list_groundtruth_path).collect(flat: false) 
+    
+    input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false).concat( pred_files.collect(flat:false)).concat(Channel_groundtruth_files)).collect(flat: false)
+    .combine(  Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
 
 
     // input_meta.count().view()
@@ -1061,6 +1069,7 @@ process Metaanalysis {
         val(meta), 
         path(input_score), 
         path(pred_files),
+        path(groundtruth_files),
         path(meta_script), 
         path(utils), 
         // path(file_dataset)
@@ -1078,6 +1087,7 @@ process Metaanalysis {
     RCODE="
     score_files = strsplit(trimws('${input_score}'),' ') ; 
     pred_files = strsplit(trimws('${pred_files}'),' ');
+    groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE | Rscript -
@@ -1089,6 +1099,7 @@ process Metaanalysis {
     RCODE="
     score_files = strsplit(trimws('${input_score}'),' ') ;
     pred_files = strsplit(trimws('${pred_files}'),' ');
+    groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE 

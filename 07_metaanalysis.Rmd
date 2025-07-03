@@ -393,12 +393,20 @@ datatable(
 
 
 ```{r scatter_plot_top5_by_dataset, warning=FALSE, echo=FALSE, eval=FALSE}
-ground_truth = read_hdf5(paste0(groundtruth_file))$groundtruth
+
+test_dataset = 'invitro1'
+name_part <- gsub("[0-9]+$", "", test_dataset)
+number_part <- gsub("[^0-9]", "", test_dataset)
+
+ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+
 
 prediction_file = sapply(1:nrow(results_li_top5), function(i){
   paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
 })
-pred = lapply(prediction_file, \(path){read_hdf5(path)})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
 
 df_scatter = do.call(
   what = rbind,
