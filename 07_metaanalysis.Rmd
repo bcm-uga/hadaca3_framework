@@ -17,7 +17,7 @@ output:
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
 ```
 
-```{r loading_pckgs ,echo=FALSE}
+```{r loading_pckgs, echo=FALSE}
 library(yaml)
 library(DT)
 library(stringr)
@@ -163,11 +163,12 @@ results_li_top5 = results_li %>%
   select(dataset:late_integration, score_aggreg) %>% 
   arrange(desc(score_aggreg)) %>% 
   slice_head(n = 5)
+results_li_top5
 
-prediction_file = sapply(1:nrow(results_li_top5), \(i){paste0("pred-li-",paste(results_li_top5[i,3:15],collapse = "_") ,".h5")})
-pred = lapply(prediction_file, \(path){read_hdf5(path)})
+# prediction_file = sapply(1:nrow(results_li_top5), \(i){paste0("pred-li-",paste(results_li_top5[i,1:15],collapse = "_") ,".h5")})
+# pred = lapply(prediction_file, \(path){read_hdf5(path)})
 
-pred
+# pred
 
 
 all_data_used = c('dataset', 'ref')
@@ -455,6 +456,7 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
   
   p <- ggplot(data) +
     geom_boxplot(aes_base) +
+    geom_violin(aes_base) +
     geom_jitter(
       aes_string(
         x = x_var, 
