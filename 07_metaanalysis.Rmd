@@ -409,7 +409,7 @@ scatter_prop = ggplot(df_scatter) +
     labels = scales::percent
   ) +
   scale_y_continuous(
-    labels = scales::percent
+    labels = scales::percenta
   ) +
   scale_color_discrete(
     name = "Cell type"
@@ -455,7 +455,7 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
   overlayer_infos_colnames = overlayer_infos_colnames[-which(overlayer_infos_colnames == x_var)]
   
   p <- ggplot(data) +
-    geom_boxplot(aes_base) +
+    # geom_boxplot(aes_base) +
     geom_violin(aes_base) +
     geom_jitter(
       aes_string(
