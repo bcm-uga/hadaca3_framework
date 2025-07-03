@@ -162,6 +162,16 @@ results_li %>%
   arrange(desc(GlobalScore))
 
 
+results_li_top5 = results_li %>%
+  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
+           preprocessing_RNA, feature_selection_RNA, 
+           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
+           preprocessing_mixMET,feature_selection_mixMET, 
+           preprocessing_MET, feature_selection_MET, deconvolution_met, 
+           late_integration, .groups = "keep") %>% 
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore)) 
+
 
 
 
@@ -357,16 +367,6 @@ datatable(
 # Visualisations of the top 5 methods
 
 ```{r table_top5_by_dataset, echo=FALSE}
-results_li_top5 = results_li %>%
-  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
-           preprocessing_RNA, feature_selection_RNA, 
-           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
-           preprocessing_mixMET,feature_selection_mixMET, 
-           preprocessing_MET, feature_selection_MET, deconvolution_met, 
-           late_integration, .groups = "keep") %>% 
-  summarise(GlobalScore = median(score_aggreg)) %>%
-  arrange(desc(GlobalScore)) 
-
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore))) > 5) {
   results_li_top5 = results_li_top5[which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore)), ]
@@ -375,7 +375,7 @@ if (length(which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore)
 }
 
 datatable(
-  results_li_top5,
+  results_li_top5[,-14],
   extensions = 'Buttons',
   options = list(
     pageLength = 10,
