@@ -57,6 +57,7 @@ workflow {
         def parsedContent = new YamlSlurper().parse(filePath as File)
         CONFIG[key] = parsedContent
     }
+    
     original_datasets_files = CONFIG['datasets'].collect { k, v -> v['path'] }.flatten()
     cleaned_datasets_files = CONFIG['datasets'].keySet().collect { "output/mixes/${it}" }
 
@@ -102,25 +103,45 @@ workflow {
 //     // ################## Generate combinaison and prediction for the preprocess 
 
 
-    pp_mix_path = []
+    pp_mix_path_classic = []
+    pp_block_path = []
+
+    /// creating pp_mixes and specific preprocess that could not be mixed with other pp and fs (not_intercompatible). 
     CONFIG['pre_proc'].each { pp, ppv ->
-        // println(ppv.getOrDefault('dependency','none'))
-        params.mixomics.each { omic ->
-            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
-                pp_mix_path.add(tuple(
+        // println(ppv.getOrDefault('not_intercompatible','false'))
+        if(!ppv.not_intercompatible){
+            params.mixomics.each { omic ->
+                if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
+                    pp_mix_path_classic.add(tuple(
+                        [ pp_fun: pp,
+                        omic: omic, 
+                        pp_create : ppv.getOrDefault('create','none'),
+                        pp_omics : ppv.omic             
+                        ],
+                        file(ppv['path']),
+                        tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
+                        ))
+                }
+            } 
+        }else{
+            ppv.omic.each{ omic -> 
+                pp_block_path.add(tuple(
                     [ pp_fun: pp,
-                    omic: omic, 
-                    pp_create : ppv.getOrDefault('create','none'),
-                    pp_omics : ppv.omic             
+                        fs_fun: pp,
+                        omic: omic, 
+                        pp_create : ppv.getOrDefault('create','none'),
+                        pp_omics : ppv.omic             
                     ],
                     file(ppv['path']),
-                    tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} )
-                    ))
+                    tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} ) )
+                )
             }
         }
     }
+    // println(pp_mix_path_classic.size())
+    // println(pp_block_path.size())
 
-    pp_mix = Channel.fromList( pp_mix_path)
+    pp_mix = Channel.fromList( pp_mix_path_classic)
     .combine(out_mix)
     .combine(out_cleaned_ref)
     .map{pp_meta,pp_file,file_dep,mix_meta,mix_file,ref_met,ref_file ->
@@ -130,21 +151,26 @@ workflow {
         dup_pp_meta['output']= "out-prepross-"+[dup_pp_meta.omic,mix_meta.id, ref_met.id,dup_pp_meta.pp_fun ].join('_')+'.h5'
         tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
+
+    // pp_ref_path could be populated during the loop above.... 
     pp_ref_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
-        params.refomics.each { omic ->
-            if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
-                pp_ref_path.add(tuple(
-                    [ pp_fun: pp,
-                    omic: omic, 
-                    pp_create : ppv.getOrDefault('create','none'),
-                    pp_omics : ppv.omic
-                    ],
-                file(ppv['path']),
-                tuple(ppv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+        if(!ppv.not_intercompatible){
 
-                file('none')
-                ))
+            params.refomics.each { omic ->
+                if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
+                    pp_ref_path.add(tuple(
+                        [ pp_fun: pp,
+                        omic: omic, 
+                        pp_create : ppv.getOrDefault('create','none'),
+                        pp_omics : ppv.omic
+                        ],
+                    file(ppv['path']),
+                    tuple(ppv.getOrDefault('dependency', ['none_dep']).collect {f -> file(f)} ),
+
+                    file('none')
+                    ))
+                }
             }
         }
     }
@@ -539,7 +565,7 @@ workflow {
 
         tuple(
            dup_meta_ei, ei_file,     
-        file_input_mixRNA,    file_input_RNA,    file_input_scRNA,      
+            file_input_mixRNA,    file_input_RNA,    file_input_scRNA,      
            file_input_mixMET, file_input_MET,  dataset_file_MET, ref_file_MET
         )
     }
@@ -588,7 +614,7 @@ workflow {
             dup_meta.li_fun    +'.h5'
         dup_meta["output"] = output_name
         tuple(dup_meta, file_path, file(CONFIG.datasets[dup_meta.dataset].groundtruth_file_path),file(params.wrapper.script_06),file(params.utils))//,file(params.config_files.datasets))
-     }   
+    }   
 
     score_input_ei = out_ei_de.map{ ei_meta, ei_file ->
         def dup_ei_de_meta = ei_meta.clone()

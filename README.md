@@ -299,7 +299,7 @@ For instance, data_list contains prop1 and prop2, *write_global_hdf5(file,data_l
 
 All data should have HDF5 format with a compression level set to 6 and 'gzip' as the compression algorithm. Furthermore, to reduce storage footprints, the data are shuffled and written in one single chunk (chunk size = length(data)). *HDF5 shuffling does not impact order of the uncompressed file*.
 
-# nextflow metadata fomart. 
+# nextflow metadata format. 
 
 the meta data in the nextflow (.nf) file contains : 
 
@@ -322,7 +322,6 @@ See the README.md inside benchmark folder.
 ## TODO
 
 
-* Deconvolution need
-* Early integration 
-* Test the function
-* How to deal with functions such as sc_cluster in FS that requires a specific pp. 
+* Deconvolution need -> for instance a decovolution tool needs a specific scRNA...
+* Early integration -> done but to test  !
+
