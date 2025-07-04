@@ -430,6 +430,7 @@ prediction_file = sapply(1:nrow(results_li_top5best), function(i){
 })
 pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
 
+
 df_scatter = do.call(
   what = rbind,
   args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
@@ -449,7 +450,7 @@ df_scatter = do.call(
       values_to = "pred_prop"
     )
     prediction_data[,"method"] = paste0("method top", method_i)
-    print(prediction_data)
+    # print(prediction_data)
     
     for (method_i in 2:nrow(results_li_top5best)) {
       prediction_data_tmp = t(pred[[method_i]])
@@ -479,8 +480,12 @@ df_scatter = do.call(
 
     ground_truth_data = rbind(ground_truth_data, ground_truth_data,
                               ground_truth_data, ground_truth_data, ground_truth_data)
-
-
+    
+    if (data == "invivo1" || data == "invivo2") {
+      prediction_data = prediction_data[prediction_data$cell_type == "classic" | prediction_data$cell_type == "basal", ]
+    }
+    # print(prediction_data)
+    # print(ground_truth_data)
     prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
   })
 )
@@ -632,6 +637,9 @@ df_scatter = do.call(
     ground_truth_data = rbind(ground_truth_data, ground_truth_data,
                               ground_truth_data, ground_truth_data, ground_truth_data)
 
+    if (data == "invivo1" || data == "invivo2") {
+      prediction_data = prediction_data[prediction_data$cell_type == "classic" | prediction_data$cell_type == "basal", ]
+    }
 
     prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
   })
