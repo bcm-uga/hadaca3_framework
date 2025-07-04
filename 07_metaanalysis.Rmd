@@ -402,7 +402,7 @@ number_part <- gsub("[^0-9]", "", test_dataset)
 ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
 ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 
-print(ground_truth)
+# print(ground_truth)
 
 
 prediction_file = sapply(1:nrow(results_li_top5best), function(i){
@@ -410,7 +410,7 @@ prediction_file = sapply(1:nrow(results_li_top5best), function(i){
 })
 pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred derrière peut être ? 
 
-print(pred)
+# print(pred)
 ```
 
 
@@ -606,7 +606,7 @@ df_scatter = do.call(
       values_to = "pred_prop"
     )
     prediction_data[,"method"] = paste0("method top", method_i)
-    print(prediction_data)
+    # print(prediction_data)
     
     for (method_i in 2:nrow(results_li_top5worst)) {
       prediction_data_tmp = t(pred[[method_i]])
@@ -705,7 +705,7 @@ pp
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
   
   # noBLOCK is joint with onlyOMIC late integration
-  if (y_var != "early_integration" && y_var != "late_integration") {
+  if (x_var != "early_integration" && x_var != "late_integration") {
     data = data[data$preprocessing_mixRNA != "nopp",]
     data = data[data$feature_selection_mixRNA != "nofs",]
     data = data[data$preprocessing_RNA != "nopp",]
@@ -719,7 +719,7 @@ plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, a
     data = data[data$feature_selection_MET != "nofs",]
     data = data[data$deconvolution_met != "node",]
   }
-  
+
   # Dynamically build aesthetics
   aes_base <- aes_string(x = x_var, y = y_var, fill = x_var)
   # aes_fill <- if (!is.null(fill_var)) aes_string(fill = fill_var) else NULL
@@ -816,7 +816,7 @@ add_tooltip_text = TRUE
 paper_figure <- function(data, x_var, y_var, title) {
   
   # noBLOCK is joint with onlyOMIC late integration
-  if (y_var != "early_integration" && y_var != "late_integration") {
+  if (x_var != "early_integration" && x_var != "late_integration") {
     data = data[data$preprocessing_mixRNA != "nopp",]
     data = data[data$feature_selection_mixRNA != "nofs",]
     data = data[data$preprocessing_RNA != "nopp",]
