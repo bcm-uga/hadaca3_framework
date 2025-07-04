@@ -45,10 +45,10 @@ mostmethylated : # Use original ref_met to get most methylated #must be a unique
 #  omic_need: [scRNA]
 #  omic: [mixRNA,RNA,scRNA]
 
-# Toastvst :  #must be a unique ID without _
-#   path: feature_selection/TOAST_vst.R
-#   short_name: Tvst
-#   omic: [mixRNA,RNA,scRNA]
+Toastvst :  #must be a unique ID without _
+  path: feature_selection/TOAST_vst.R
+  short_name: Tvst
+  omic: [mixRNA,RNA,scRNA]
 
 Toastnbfs :  #must be a unique ID without _
   path: feature_selection/TOAST_nbfs.R
