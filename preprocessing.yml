@@ -68,8 +68,9 @@ normalize :  #must be a unique ID
 
 ##### Working but need to change further steps and install decoupleR on the CI.
 
-#TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction = run in a separate setup
-#  path: preprocessing/TF.R
-#  short_name: TF
-#  dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
-#  omic: [mixRNA,RNA,scRNA]
+TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction = run in a separate setup
+ path: preprocessing/TF.R
+ short_name: TF
+ not_intercompatible : true
+ dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
+ omic: [mixRNA,RNA,scRNA]

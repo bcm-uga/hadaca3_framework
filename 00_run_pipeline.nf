@@ -103,19 +103,18 @@ workflow {
 //     // ################## Generate combinaison and prediction for the preprocess 
 
 
-    pp_mix_path_classic = []
-    pp_block_path = []
+    pp_mix_path = []
+    // pp_block_path = []
 
     /// creating pp_mixes and specific preprocess that could not be mixed with other pp and fs (not_intercompatible). 
     CONFIG['pre_proc'].each { pp, ppv ->
-        // println(ppv.getOrDefault('not_intercompatible','false'))
-        if(!ppv.not_intercompatible){
             params.mixomics.each { omic ->
                 if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
-                    pp_mix_path_classic.add(tuple(
+                    pp_mix_path.add(tuple(
                         [ pp_fun: pp,
                         omic: omic, 
                         pp_create : ppv.getOrDefault('create','none'),
+                        pp_not_intercompatible : ppv.getOrDefault('not_intercompatible',false),
                         pp_omics : ppv.omic             
                         ],
                         file(ppv['path']),
@@ -123,25 +122,10 @@ workflow {
                         ))
                 }
             } 
-        }else{
-            ppv.omic.each{ omic -> 
-                pp_block_path.add(tuple(
-                    [ pp_fun: pp,
-                        fs_fun: pp,
-                        omic: omic, 
-                        pp_create : ppv.getOrDefault('create','none'),
-                        pp_omics : ppv.omic             
-                    ],
-                    file(ppv['path']),
-                    tuple(ppv.getOrDefault('dependency',['none_dep']).collect{f -> file(f)} ) )
-                )
-            }
-        }
-    }
-    // println(pp_mix_path_classic.size())
-    // println(pp_block_path.size())
 
-    pp_mix = Channel.fromList( pp_mix_path_classic)
+    }
+
+    pp_mix = Channel.fromList( pp_mix_path)
     .combine(out_mix)
     .combine(out_cleaned_ref)
     .map{pp_meta,pp_file,file_dep,mix_meta,mix_file,ref_met,ref_file ->
@@ -155,13 +139,14 @@ workflow {
     // pp_ref_path could be populated during the loop above.... 
     pp_ref_path = []
     CONFIG['pre_proc'].each { pp, ppv ->
-        if(!ppv.not_intercompatible){
+        // if(!ppv.not_intercompatible){
 
             params.refomics.each { omic ->
                 if (ppv['omic'].contains(omic) || ppv['omic'].contains('ANY')){
                     pp_ref_path.add(tuple(
                         [ pp_fun: pp,
                         omic: omic, 
+                        pp_not_intercompatible : ppv.getOrDefault('not_intercompatible',false),
                         pp_create : ppv.getOrDefault('create','none'),
                         pp_omics : ppv.omic
                         ],
@@ -172,7 +157,7 @@ workflow {
                     ))
                 }
             }
-        }
+        // }
     }
 
     pp_ref =  Channel.fromList( pp_ref_path)
@@ -185,16 +170,21 @@ workflow {
         tuple(dup_pp_meta,pp_file,file_dep,mix_file,ref_file,file(params.wrapper.script_02),file(params.utils))
     }
     
-    // pp_ref.view()
-
-    // out_pp = pp_ref.concat(pp_mix) | Preprocessing
     out_pp = pp_ref.mix(pp_mix) | Preprocessing
 
+    out_pp.branch{ meta, outpp_file -> 
+        normal_pp :  !meta.pp_not_intercompatible
+        pp_met_incompatible : 'mixMET' in  meta.omic || 'MET' in  meta.omic
+        pp_rna_incompatible : 'true'
+    }.set{pp_filter}
 
 //     // ################## Generate combinaison and prediction for  features selection
+    
 
+    // pp_filter.pp_rna_incompatible.view()
+    // pp_filter.pp_met_incompatible.view()
 
-    fs_files = out_pp.map { meta , last_pp_file ->
+    fs_files = pp_filter.normal_pp.map { meta , last_pp_file ->
         def results = []
         def pp_create = meta.pp_create ;
         if (pp_create instanceof List) {
@@ -352,9 +342,21 @@ workflow {
         meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.fs_fun == meta_RNA.fs_fun
     }
 
+    non_comptible_rna_block = 
+    pp_filter.pp_rna_incompatible.combine(pp_filter.pp_rna_incompatible).combine(pp_filter.pp_rna_incompatible).combine(out_mix).combine(out_cleaned_ref)    
+    .filter{meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+        meta_mix.omic == 'mixRNA' && meta_RNA.omic == 'RNA' && meta_scRNA.omic =="scRNA" && 
+        meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id && 
+        meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.pp_fun == meta_scRNA.pp_fun
+    }
+
+    // non_comptible_rna_block.count().view()
+    // non_comptible_rna_block.view()
+
+    // pp_filter.pp_rna_incompatible.view()
 
     de_rna_unit = 
-    de_channel.combine(rna_unit)
+    de_channel.combine(rna_unit.mix(non_comptible_rna_block)) //.mix(non_comptible_rna_block)
     .map{ meta_de, de_script, meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file->
         // def meta_unit_rna = 
         def dup_meta_de =meta_de.clone()
@@ -372,7 +374,7 @@ workflow {
         tuple(dup_meta_de,de_script,file_input_mix, file_input_RNA,file_input_scRNA, dataset_file,ref_file)
     }
     
-
+    // de_rna_unit.view()
 
     out_de_rna_unit = 
     de_rna_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils)))) 
@@ -397,6 +399,14 @@ workflow {
     // filter mix and bulk to have the same functions : 
     .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_mix.pp_fun == meta_MET.pp_fun && meta_mix.fs_fun == meta_MET.fs_fun
+    }
+
+    non_comptible_met_block = 
+    pp_filter.pp_met_incompatible.combine(pp_filter.pp_met_incompatible).combine(out_mix).combine(out_cleaned_ref)    
+    .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
+        meta_mix.omic == 'mixMET' && meta_MET.omic == 'MET' && 
+        meta_MET.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id && 
+        meta_mix.pp_fun == meta_MET.pp_fun
     }
 
 
@@ -638,8 +648,6 @@ workflow {
     list_groundtruth_path =[]
     CONFIG.datasets.each {data,datav -> list_groundtruth_path.add(datav.groundtruth_file_path)
     }
-
-    println(list_groundtruth_path)
 
     score_out.map{ v-> 
     v[0] }.set{l_meta}

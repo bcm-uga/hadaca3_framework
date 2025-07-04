@@ -1,6 +1,9 @@
 program_block_PP <- function(data, path_og_dataset='', omic='') {
   
-  library(decoupleR)
+   if (omic == 'ref_bulkRNA') {
+    data = readRDS("teamHtfrna_ref_modules.rds")
+  }else{
+    library(decoupleR)
   net = decoupleR::get_collectri(organism = "human", split_complexes = F)
   warning("This method uses a priori knowledge from team H, should be coupled with matching FS")
 
@@ -43,22 +46,23 @@ program_block_PP <- function(data, path_og_dataset='', omic='') {
   
   network = readRDS("teamHtfrna_network_modules.rds")
 
-  if (is.list(data)) {
-    metadata = lapply(data, function(x) x$metadata)
-    data = lapply(data, function(x)
-      counts = t(minMax(create_tfs_modules(compute.TFs.activity(ADImpute::NormalizeTPM(x$counts, log = T),
-                                                                universe = net),
-                                           network))))
-    data = lapply(seq_along(data), function(x)
-      list(counts = SeuratObject::as.sparse(data[[x]]), metadata = metadata[[x]]))
+    if (is.list(data)) {
+      metadata = lapply(data, function(x) x$metadata)
+      data = lapply(data, function(x)
+        counts = t(minMax(create_tfs_modules(compute.TFs.activity(ADImpute::NormalizeTPM(x$counts, log = T),
+                                                                  universe = net),
+                                            network))))
+      data = lapply(seq_along(data), function(x)
+        list(counts = SeuratObject::as.sparse(data[[x]]), metadata = metadata[[x]]))
 
-  } else if (omic == 'ref_bulkRNA') {
-    ref_bulkRNA = readRDS("teamHtfrna_ref_modules.rds")
-  } else { 
-    data = t(minMax(create_tfs_modules(compute.TFs.activity(ADImpute::NormalizeTPM(data, log = T),
-                                                            universe = net),
-                                        network)))
+    } else { 
+      data = t(minMax(create_tfs_modules(compute.TFs.activity(ADImpute::NormalizeTPM(data, log = T),
+                                                              universe = net),
+                                          network)))
+    }
+
   }
+  
     
   return(data) 
 }
