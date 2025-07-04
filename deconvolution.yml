@@ -19,9 +19,9 @@ nnls :  #must be a unique ID
     # omic : [scRNA]
 #   EI : [spls_sc]
 
-# RLR :  #must be a unique ID
-#   path: deconvolution/RLR.R
-#   short_name: RLR
+RLR :  #must be a unique ID
+  path: deconvolution/RLR.R
+  short_name: RLR
 
 # nnlslargeref :  #must be a unique ID
 #   path: deconvolution/nnls_largeref.R

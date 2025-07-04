@@ -1,7 +1,7 @@
 
-# limean :  #must be a unique ID without "_" ! 
-#   path: late_integration/avg.R
-#   short_name: avg
+limean :  #must be a unique ID without "_" ! 
+  path: late_integration/avg.R
+  short_name: avg
 
 # liCtSens :  #must be a unique ID  without "_" !
 #   path: late_integration/CTS_ens.R
