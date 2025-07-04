@@ -162,7 +162,7 @@ results_li %>%
   arrange(desc(GlobalScore))
 
 
-results_li_top5 = results_li %>%
+results_li_arrange = results_li %>%
   group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
            preprocessing_RNA, feature_selection_RNA, 
            preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
@@ -364,18 +364,20 @@ datatable(
 ```
 
 
-# Visualisations of the top 5 methods
+# Visualisations of the top methods
 
-```{r table_top5_by_dataset, echo=FALSE}
+## top 5 best methods
+
+```{r table_top5best_by_dataset, echo=FALSE}
 #if more than 5 ex aequo combination, then taking them all
-if (length(which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore))) > 5) {
-  results_li_top5 = results_li_top5[which(results_li_top5$GlobalScore == max(results_li_top5$GlobalScore)), ]
+if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
+  results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
 } else {
-  results_li_top5 = results_li_top5[1:5,]
+  results_li_top5best = results_li_arrange[1:5,]
 }
 
 datatable(
-  results_li_top5[,-14],
+  results_li_top5best[,-14],
   extensions = 'Buttons',
   options = list(
     pageLength = 10,
@@ -392,7 +394,7 @@ datatable(
 ```
 
 
-```{r test_for_scatter}
+```{r test_for_scatter, echo=FALSE, eval=FALSE}
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
 number_part <- gsub("[^0-9]", "", test_dataset)
@@ -403,8 +405,8 @@ ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 print(ground_truth)
 
 
-prediction_file = sapply(1:nrow(results_li_top5), function(i){
-  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
+prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
 })
 pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred derrière peut être ? 
 
@@ -412,7 +414,7 @@ print(pred)
 ```
 
 
-```{r scatter_plot_top5_by_dataset, warning=FALSE, echo=FALSE}
+```{r scatter_plot_top5best_by_dataset, warning=FALSE, echo=FALSE, message=FALSE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
@@ -423,18 +425,18 @@ ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 
 
 
-prediction_file = sapply(1:nrow(results_li_top5), function(i){
-  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
+prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
 })
 pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
 
 df_scatter = do.call(
   what = rbind,
-  args = lapply(seq_along(unique(results_li$dataset)), function(data) { # we remove in vivo
+  args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
     
     
-    prediction_file = sapply(1:nrow(results_li_top5), function(i){
-      paste0("pred-li-",paste(c(data, "ref", results_li_top5[i,1:13]),collapse = "_") ,".h5")
+    prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+      paste0("pred-li-",paste(c(data, "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
     })
     pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})
     
@@ -446,26 +448,27 @@ df_scatter = do.call(
       names_to = "cell_type",
       values_to = "pred_prop"
     )
-    prediction_data$method = paste0("method top", method_i)
-      
-    for (method_i in 2:nrow(results_li_top5)) {
+    prediction_data[,"method"] = paste0("method top", method_i)
+    print(prediction_data)
+    
+    for (method_i in 2:nrow(results_li_top5best)) {
       prediction_data_tmp = t(pred[[method_i]])
       prediction_data_tmp = tidyr::pivot_longer(
-        as.data.frame(prediction_data),
+        as.data.frame(prediction_data_tmp),
         cols = everything(),
         names_to = "cell_type",
         values_to = "pred_prop"
       )
-      prediction_data_tmp$method = paste0("method top", method_i)
-      rbind(prediction_data, prediction_data_tmp)
+      prediction_data_tmp[,"method"] = paste0("method top", method_i)
+      prediction_data = rbind(prediction_data, prediction_data_tmp)
     }
-    
-    
+
+
     name_part <- gsub("[0-9]+$", "", data)
     number_part <- gsub("[^0-9]", "", data)
     ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
     ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
-    
+
     ground_truth_data = t(ground_truth)
     ground_truth_data = tidyr::pivot_longer(
       as.data.frame(ground_truth_data),
@@ -473,11 +476,11 @@ df_scatter = do.call(
       names_to = "cell_type",
       values_to = "true_prop"
     )
-    
-    ground_truth_data = rbind(ground_truth_data, ground_truth_data, 
+
+    ground_truth_data = rbind(ground_truth_data, ground_truth_data,
                               ground_truth_data, ground_truth_data, ground_truth_data)
-    
-    
+
+
     prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
   })
 )
@@ -485,6 +488,7 @@ df_scatter$Dataset = factor(df_scatter$Dataset, levels = unique(results_li$datas
 df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth_invitro1))
 df_scatter$method = factor(df_scatter$method)
 
+# print(df_scatter)
 
 scatter_prop = ggplot(df_scatter) +
   facet_wrap( ~ Dataset) +
@@ -514,33 +518,186 @@ scatter_prop = ggplot(df_scatter) +
 pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
 # pp
 pp = plotly::layout(pp, legend = list(orientation = 'h'))
-# pp
-invisible(
-  lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
-  
-  # if a strip shape (using the strip color), reduce the height of the strip box
-  if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
-   pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
-  }
-  # there are less annotations than shapes
-  if(i <= length(pp$x$layout$annotations)) { 
-    # reduce the font size of the strip text
-    if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
-      pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
-    }
-  }
-})
-)
 pp
+# invisible(
+  # lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
+# 
+#   # if a strip shape (using the strip color), reduce the height of the strip box
+#   if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
+#    pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
+#   }
+#   # there are less annotations than shapes
+#   if(i <= length(pp$x$layout$annotations)) {
+#     # reduce the font size of the strip text
+#     if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
+#       pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
+#     }
+#   }
+# })
+# )
+# pp
 ```
+
+## top 5 worst methods
+
+```{r table_top5worst_by_dataset, echo=FALSE}
+#if more than 5 ex aequo combination, then taking them all
+if (length(which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore))) > 5) {
+  results_li_top5worst = results_li_arrange[which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore)), ]
+} else {
+  results_li_top5worst = results_li_arrange[(nrow(results_li_arrange)-4):nrow(results_li_arrange),]
+}
+
+datatable(
+  results_li_top5worst[,-14],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
+
+
+```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=FALSE}
+
+test_dataset = 'invitro1'
+name_part <- gsub("[0-9]+$", "", test_dataset)
+number_part <- gsub("[^0-9]", "", test_dataset)
+
+ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+
+
+prediction_file = sapply(1:nrow(results_li_top5worst), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5worst[i,1:13]),collapse = "_") ,".h5")
+})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
+
+df_scatter = do.call(
+  what = rbind,
+  args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
+    
+    
+    prediction_file = sapply(1:nrow(results_li_top5worst), function(i){
+      paste0("pred-li-",paste(c(data, "ref", results_li_top5worst[i,1:13]),collapse = "_") ,".h5")
+    })
+    pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})
+    
+    method_i = 1
+    prediction_data = t(pred[[method_i]])
+    prediction_data = tidyr::pivot_longer(
+      as.data.frame(prediction_data),
+      cols = everything(),
+      names_to = "cell_type",
+      values_to = "pred_prop"
+    )
+    prediction_data[,"method"] = paste0("method top", method_i)
+    print(prediction_data)
+    
+    for (method_i in 2:nrow(results_li_top5worst)) {
+      prediction_data_tmp = t(pred[[method_i]])
+      prediction_data_tmp = tidyr::pivot_longer(
+        as.data.frame(prediction_data_tmp),
+        cols = everything(),
+        names_to = "cell_type",
+        values_to = "pred_prop"
+      )
+      prediction_data_tmp[,"method"] = paste0("method top", method_i)
+      prediction_data = rbind(prediction_data, prediction_data_tmp)
+    }
+
+
+    name_part <- gsub("[0-9]+$", "", data)
+    number_part <- gsub("[^0-9]", "", data)
+    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+    ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+    ground_truth_data = t(ground_truth)
+    ground_truth_data = tidyr::pivot_longer(
+      as.data.frame(ground_truth_data),
+      cols = colnames(ground_truth_data),
+      names_to = "cell_type",
+      values_to = "true_prop"
+    )
+
+    ground_truth_data = rbind(ground_truth_data, ground_truth_data,
+                              ground_truth_data, ground_truth_data, ground_truth_data)
+
+
+    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
+  })
+)
+df_scatter$Dataset = factor(df_scatter$Dataset, levels = unique(results_li$dataset))
+df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth_invitro1))
+df_scatter$method = factor(df_scatter$method)
+
+# print(df_scatter)
+
+scatter_prop = ggplot(df_scatter) +
+  facet_wrap( ~ Dataset) +
+  geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
+  geom_point(aes(x = true_prop, y = pred_prop, col = method, shape = cell_type)) +
+  coord_cartesian(
+    xlim = c(0,1),
+    ylim = c(0,1)
+  ) +
+  labs(
+    x = "Ground truth proportion",
+    y = "Prediction",
+    title = paste("Proportions predicted by top 5 method vs true ones for all datasets")
+  ) +
+  scale_x_continuous(
+    labels = scales::percent
+  ) +
+  scale_y_continuous(
+    labels = scales::percent
+  ) +
+  scale_color_discrete(
+    name = "Cell type"
+  ) +
+  theme_light() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
+# pp
+pp = plotly::layout(pp, legend = list(orientation = 'h'))
+pp
+# invisible(
+  # lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
+# 
+#   # if a strip shape (using the strip color), reduce the height of the strip box
+#   if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
+#    pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
+#   }
+#   # there are less annotations than shapes
+#   if(i <= length(pp$x$layout$annotations)) {
+#     # reduce the font size of the strip text
+#     if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
+#       pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
+#     }
+#   }
+# })
+# )
+# pp
+```
+
 
 # Visualisations of the different metrics
 
 ```{r plot_FUN, echo=FALSE, message=FALSE}
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
   
-  # noBOCK is joint with onlyOMIC late integration
-  if (y_var != "early_integration" || y_var != "late_integration") {
+  # noBLOCK is joint with onlyOMIC late integration
+  if (y_var != "early_integration" && y_var != "late_integration") {
     data = data[data$preprocessing_mixRNA != "nopp",]
     data = data[data$feature_selection_mixRNA != "nofs",]
     data = data[data$preprocessing_RNA != "nopp",]
@@ -642,6 +799,106 @@ add_tooltip_text = FALSE
 facet_var = "dataset"
 ########### Only for exploration
 add_tooltip_text = TRUE
+```
+
+
+## Paper figures
+
+```{r paper_figure_FUN, echo=FALSE, message=FALSE}
+paper_figure <- function(data, x_var, y_var, title) {
+  
+  # noBLOCK is joint with onlyOMIC late integration
+  if (y_var != "early_integration" && y_var != "late_integration") {
+    data = data[data$preprocessing_mixRNA != "nopp",]
+    data = data[data$feature_selection_mixRNA != "nofs",]
+    data = data[data$preprocessing_RNA != "nopp",]
+    data = data[data$feature_selection_RNA != "nofs",]
+    data = data[data$preprocessing_scRNA != "nopp",]
+    data = data[data$feature_selection_scRNA != "nofs",]
+    data = data[data$deconvolution_rna != "node",]
+    data = data[data$preprocessing_mixMET != "nopp",]
+    data = data[data$feature_selection_mixMET != "nofs",]
+    data = data[data$preprocessing_MET != "nopp",]
+    data = data[data$feature_selection_MET != "nofs",]
+    data = data[data$deconvolution_met != "node",]
+  }
+  
+  # Dynamically build aesthetics
+  aes_base <- aes_string(x = x_var, y = y_var, fill = x_var)
+  # aes_fill <- if (!is.null(fill_var)) aes_string(fill = fill_var) else NULL
+  
+
+  
+  p <- ggplot(data) +
+    # geom_boxplot(aes_base) +
+    geom_violin(aes_base) +
+    geom_jitter(
+      aes_string(
+        x = x_var, 
+        y = y_var, 
+        color = "dataset"
+      ),
+      size = 0.4, alpha = 0.5
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+      plot.title = element_text(hjust = 0.5),
+      legend.position = "bottom"
+    ) +
+    labs(
+      title = title,
+      x = "Methods",
+      # y = "Aggregated score",
+      fill = x_var
+    ) +
+    scale_color_grey(start = 0.2, end = 0.2)
+  
+  p
+}
+```
+
+```{r paper_figure_common_var_score_aggreg, echo=FALSE}
+metric = "score_aggreg"
+metric_title = "Aggregated score (-> 1), per dataset"
+```
+
+
+### PP
+
+```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+#### MET
+plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title)
+
+#### RNA
+plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title)
+```
+
+
+### FS
+
+```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
+#### MET
+paper_figure(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title)
+
+#### RNA
+paper_figure(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title)
+```
+
+### DE
+
+```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE, eval=TRUE}
+#### MET
+paper_figure(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title)
+
+#### RNA
+paper_figure(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title)
+```
+
+### LI
+
+```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE, eval=TRUE}
+paper_figure(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title)
 ```
 
 
