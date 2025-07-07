@@ -70,7 +70,14 @@ jobs:
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
-      
+
+      - name : copy report if failure 
+        if : failure()   
+        run : |
+          cd ${{ env.REPO_DIR }}
+          LATEST_REPORT=$(ls -t report-* | head -n 1)
+          cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
+          cp index.html ${{ github.workspace }}/public/
       # name: 
       # - name: Check for errors and read logs 
       #   if: failure()

@@ -176,6 +176,9 @@ total                           62570
 
 
 ### setup 10 
+
+2,5, 4,2 6 for the number datasets, pp, fs, de, li functions respectively. 
+
 (85min dag creation)
 ```
 job                             count
