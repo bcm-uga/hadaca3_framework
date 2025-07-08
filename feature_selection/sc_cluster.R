@@ -3,7 +3,7 @@ program_block_FS <- function(data, path_og_dataset='') {
   library("Seurat")
   # select common genes with single cells
   
-  sc = read_all_ref_hdf5(og_dataset_path$ref)
+  sc = read_all_ref_hdf5(path_og_dataset$ref)
 
   if (!("seurat_clustered" %in% names(sc$ref_cluster))) {stop("This FS method requires the PP sc_cluster")} 
   sc_markers = FindAllMarkers(sc$ref_cluster$seurat_clustered, assay = NULL, features = NULL,
