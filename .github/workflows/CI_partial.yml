@@ -41,8 +41,6 @@ jobs:
             echo "$line"
             eval "$line"
           done
-      
-
 
       # shell: bash
       - name: download data
@@ -71,15 +69,23 @@ jobs:
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
+          cp results_li.csv ${{ github.workspace }}/public/
+          cp results_ei.csv ${{ github.workspace }}/public/
 
       - name : copy report if failure 
         if : failure()   
         run : |
           cd ${{ env.REPO_DIR }}
           mkdir -p ${{ github.workspace }}/public
+
+          # this will still copy the last metaanalysis
+          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
+          cp results_li.csv ${{ github.workspace }}/public/
+          cp results_ei.csv ${{ github.workspace }}/public/
+
       # name: 
       # - name: Check for errors and read logs 
       #   if: failure()

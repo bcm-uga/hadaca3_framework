@@ -18,3 +18,5 @@ work/*
 .nextflow*
 
 results/
+
+results_* 

@@ -189,7 +189,7 @@ for( fun in all_functions_li){
   levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset=='invitro1'],decreasing = T)])) # sort based on the results_li on the in vitro dataset
 }
 
-
+write.csv(results_li, "results_li.csv", row.names = FALSE)
 
 index_aggreg <- which(names(results_li) == "score_aggreg")
 
@@ -343,6 +343,7 @@ for( fun in all_functions_ei){
 #   levels = unique(results_ei[[data_used]])) # levels will be alphabeticaly ordered
 # }
 
+write.csv(results_ei, "results_ei.csv", row.names = FALSE)
 
 index_aggreg <- which(names(results_ei) == "score_aggreg")
 
