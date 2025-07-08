@@ -32,16 +32,16 @@ CPM : # Sequence depth normalization for RNA
   short_name: cpm
   omic: [mixRNA,RNA,scRNA]
 
-# sccluster : # seurat created object
-#   path: preprocessing/sc_cluster.R
-#   short_name: sccl
-#   create: [ref_cluster]
-#   omic: [scRNA]
+sccluster : # seurat created object
+  path: preprocessing/sc_cluster.R
+  short_name: sccl
+  create: [ref_cluster]
+  omic: [scRNA]
 
-# Scale :  #scale with sweep function  #must be a unique ID
-#   path: preprocessing/scale.R
-#   short_name: scal
-#   omic: [ANY]
+Scale :  #scale with sweep function  #must be a unique ID
+  path: preprocessing/scale.R
+  short_name: scal
+  omic: [ANY]
 
 normalize :  #must be a unique ID
   path: preprocessing/normalize.R
@@ -59,12 +59,12 @@ scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add th
   create: [ref_concat]
   omic: [scRNA]
 
-# scteamH :  #return ref_teamH
-#   path: preprocessing/sc_teamH.R
-#   short_name: tH
-#   create: [ref_teamH]
-#   dependency: [preprocessing/attachement/teamH_scSignature.csv]
-#   omic: [mixRNA,RNA,scRNA]
+scteamH :  #return ref_teamH
+  path: preprocessing/sc_teamH.R
+  short_name: tH
+  create: [ref_teamH]
+  dependency: [preprocessing/attachement/teamH_scSignature.csv]
+  omic: [mixRNA,RNA,scRNA]
 
 ##### Working but need to change further steps and install decoupleR on the CI.
 
