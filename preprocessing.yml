@@ -48,16 +48,16 @@ normalize :  #must be a unique ID
   short_name: norm
   omic: [mixMET,MET] #,mixRNA,RNA
 
-# scScale :  #must be a unique ID
-#   path: preprocessing/sc_scale.R
-#   short_name: scSc
-#   omic: [scRNA]
+scScale :  #must be a unique ID
+  path: preprocessing/sc_scale.R
+  short_name: scSc
+  omic: [scRNA]
 
-# scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
-#   path: preprocessing/sc_concat.R
-#   short_name: scCo
-#   create: [ref_concat]
-#   omic: [scRNA]
+scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
+  path: preprocessing/sc_concat.R
+  short_name: scCo
+  create: [ref_concat]
+  omic: [scRNA]
 
 # scteamH :  #return ref_teamH
 #   path: preprocessing/sc_teamH.R
