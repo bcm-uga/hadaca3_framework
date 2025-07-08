@@ -1,7 +1,7 @@
 program_block_FS <- function(data, path_og_dataset='') {
 
     if (!is.list(data)) {
-    sc = read_all_ref_hdf5(path_og_dataset$ref)
+    sc = read_all_ref_hdf5(path_og_dataset$ref)$ref_scRNA
     } else {sc = data}
     
     if (!(any(c("ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log") %in% names(sc)))) {stop("This FS method requires to run the PP set to concat, CCAintegration, cluster or binarypseudobulk_log")}
