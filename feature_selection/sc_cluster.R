@@ -1,6 +1,4 @@
 program_block_FS <- function(data,path_og_dataset='') {
-    
-
     library("Seurat")
 
     if(is.list(data)){
