@@ -4,7 +4,7 @@ program_block_FS <- function(data, path_og_dataset='') {
   # select common genes with single cells
   
   if (!is.list(data)) {
-    sc = read_all_ref_hdf5(path_og_dataset$ref)
+    sc = read_all_ref_hdf5(path_og_dataset$ref)$ref_scRNA
     } else {sc = data}
 
   if (!("seurat_clustered" %in% names(sc$ref_cluster))) {stop("This FS method requires the PP sc_cluster")} 
