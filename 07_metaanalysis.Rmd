@@ -414,7 +414,7 @@ pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred de
 ```
 
 
-```{r scatter_plot_top5best_by_dataset, warning=FALSE, echo=FALSE, message=FALSE}
+```{r scatter_plot_top5best_by_dataset,eval=FALSE, warning=FALSE, echo=FALSE, message=FALSE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
@@ -545,7 +545,7 @@ pp
 
 ## top 5 worst methods
 
-```{r table_top5worst_by_dataset, echo=FALSE}
+```{r table_top5worst_by_dataset, echo=FALSE, eval = FALSE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5worst = results_li_arrange[which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore)), ]
@@ -571,7 +571,7 @@ datatable(
 ```
 
 
-```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=FALSE}
+```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=FALSE, eval = FALSE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
@@ -874,7 +874,7 @@ metric_title = "Aggregated score (-> 1), per dataset"
 
 ### PP
 
-```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE , eval = FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title)
 
@@ -920,7 +920,7 @@ metric_title = "Aggregated score (-> 1), per dataset"
 
 ### PP
 
-```{r combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r combinaisons_aggregated_scores_PP, echo=FALSE, eval=FALSE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -931,7 +931,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
+```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -941,7 +941,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_aggregated_scores_DE, echo=FALSE, eval=TRUE}
+```{r combinaisons_aggregated_scores_DE, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -966,7 +966,7 @@ metric_title = "MAE (-> 0), per dataset"
 
 ### PP
 
-```{r combinaisons_mae_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r combinaisons_mae_PP, echo=FALSE, eval=FALSE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -977,7 +977,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_mae_FS, echo=FALSE, eval=TRUE}
+```{r combinaisons_mae_FS, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -987,7 +987,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_mae_DE, echo=FALSE, eval=TRUE}
+```{r combinaisons_mae_DE, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1012,7 +1012,7 @@ metric_title = "RMSE (-> 0), per dataset"
 
 ### PP
 
-```{r combinaisons_rmse_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r combinaisons_rmse_PP, echo=FALSE, eval=FALSE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1023,7 +1023,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_rmse_FS, echo=FALSE, eval=TRUE}
+```{r combinaisons_rmse_FS, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1033,7 +1033,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_rmse_DE, echo=FALSE, eval=TRUE}
+```{r combinaisons_rmse_DE, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1043,7 +1043,7 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_rmse_LI, echo=FALSE, eval=TRUE}
+```{r combinaisons_rmse_LI, echo=FALSE, eval=FALSE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
@@ -1057,7 +1057,7 @@ metric_title = "Spearman correlation (row) (-> 1), per dataset"
 
 ### PP
 
-```{r combinaisons_spearman_row_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r combinaisons_spearman_row_PP, echo=FALSE, eval=FALSE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1068,7 +1068,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_spearman_row_FS, echo=FALSE, eval=TRUE}
+```{r combinaisons_spearman_row_FS, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1078,7 +1078,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_spearman_row_DE, echo=FALSE, eval=TRUE}
+```{r combinaisons_spearman_row_DE, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1088,7 +1088,7 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_spearman_row_LI, echo=FALSE, eval=TRUE}
+```{r combinaisons_spearman_row_LI, echo=FALSE, eval=FALSE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
@@ -1102,7 +1102,7 @@ metric_title = "Aitchison distance (-> 0), per dataset"
 
 ### PP
 
-```{r combinaisons_aitchison_PP, echo=FALSE, eval=TRUE, warning = FALSE }
+```{r combinaisons_aitchison_PP, echo=FALSE, eval=FALSE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1113,7 +1113,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_aitchison_FS, echo=FALSE, eval=TRUE}
+```{r combinaisons_aitchison_FS, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1123,7 +1123,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_aitchison_DE, echo=FALSE, eval=TRUE}
+```{r combinaisons_aitchison_DE, echo=FALSE, eval=FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1133,6 +1133,6 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_aitchison_LI, echo=FALSE, eval=TRUE}
+```{r combinaisons_aitchison_LI, echo=FALSE, eval=FALSE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
