@@ -4,12 +4,12 @@ fsID :  #This is a required function
   omic: [ANY]
 
 ##### working
-#scpseudobulk :
-#  path: feature_selection/sc_pseudobulk.R
-#  short_name: scpf
-#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
-#  omic_need: [scRNA]
-#  omic: [mixRNA,RNA,scRNA]
+scpseudobulk :
+ path: feature_selection/sc_pseudobulk.R
+ short_name: scpf
+ need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
+ omic_need: [scRNA]
+ omic: [mixRNA,RNA,scRNA]
 
 #scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
 #  path: feature_selection/sc_SPLS-DA.R
