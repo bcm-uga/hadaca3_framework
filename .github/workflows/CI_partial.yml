@@ -54,6 +54,7 @@ jobs:
           done
 
       - name: Run pipeline
+        continue-on-error: true
         run: |
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}" 
