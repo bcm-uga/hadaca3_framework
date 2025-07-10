@@ -64,16 +64,17 @@ jobs:
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
           # nextflow run 00_run_pipeline.nf -resume -with-report --setup_folder benchmark/setup/1/
           nextflow run 00_run_pipeline.nf -resume -with-report 
-          mkdir -p ${{ github.workspace }}/public
-          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
-          LATEST_REPORT=$(ls -t report-* | head -n 1)
-          cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
-          cp index.html ${{ github.workspace }}/public/
-          cp results_li.csv ${{ github.workspace }}/public/
-          cp results_ei.csv ${{ github.workspace }}/public/
+          
+          # mkdir -p ${{ github.workspace }}/public
+          # cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          # LATEST_REPORT=$(ls -t report-* | head -n 1)
+          # cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
+          # cp index.html ${{ github.workspace }}/public/
+          # cp results_li.csv ${{ github.workspace }}/public/
+          # cp results_ei.csv ${{ github.workspace }}/public/
 
       - name : copy report if failure 
-        if : failure()   
+        if : success() || failure()  # always() always will run even if cancelled manually   #failure()
         run : |
           cd ${{ env.REPO_DIR }}
           mkdir -p ${{ github.workspace }}/public
@@ -121,6 +122,7 @@ jobs:
       #     done
 
       - name: Deploy to GitHub Pages
+        if: success() || failure() 
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
