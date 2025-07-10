@@ -54,7 +54,7 @@ jobs:
           done
 
       - name: Run pipeline
-        continue-on-error: true
+        # continue-on-error: true  This will not show an error if the pipeline fail  !
         run: |
           cd ${{ env.REPO_DIR }}
           source "${{ env.CONDA }}" 
@@ -66,21 +66,21 @@ jobs:
           # nextflow run 00_run_pipeline.nf -resume -with-report --setup_folder benchmark/setup/1/
           nextflow run 00_run_pipeline.nf -resume -with-report 
           
-          # mkdir -p ${{ github.workspace }}/public
-          # cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
-          # LATEST_REPORT=$(ls -t report-* | head -n 1)
-          # cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
-          # cp index.html ${{ github.workspace }}/public/
-          # cp results_li.csv ${{ github.workspace }}/public/
-          # cp results_ei.csv ${{ github.workspace }}/public/
+          mkdir -p ${{ github.workspace }}/public
+          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          LATEST_REPORT=$(ls -t report-* | head -n 1)
+          cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
+          cp index.html ${{ github.workspace }}/public/
+          cp results_li.csv ${{ github.workspace }}/public/
+          cp results_ei.csv ${{ github.workspace }}/public/
 
       - name : copy report if failure 
-        if : success() || failure()  # always() always will run even if cancelled manually   #failure()
+        if : failure()  # always() always will run even if cancelled manually   #failure()
         run : |
           cd ${{ env.REPO_DIR }}
-          mkdir -p ${{ github.workspace }}/public
-
+          
           # this will still copy the last metaanalysis
+          mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
