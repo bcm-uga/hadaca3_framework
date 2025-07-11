@@ -28,10 +28,10 @@ Toastbulknbfs : #must be a unique ID without _
   short_name: TNBR
   omic: [mixRNA,RNA,scRNA]
 
-# maxdiscriminant : # Use original ref_met to get max discriminant #must be a unique ID without _
-#   path: feature_selection/max_discriminant.R
-#   short_name: Mdis
-#   omic: [mixMET,MET]
+maxdiscriminant : # Use original ref_met to get max discriminant #must be a unique ID without _
+  path: feature_selection/max_discriminant.R
+  short_name: Mdis
+  omic: [mixMET,MET]
 
 mostmethylated : # Use original ref_met to get most methylated #must be a unique ID without _
   path: feature_selection/most_methylated.R
@@ -55,7 +55,7 @@ Toastnbfs :  #must be a unique ID without _
   short_name: TNBM
   omic: [mixMET,MET]
 
-# Toastpercent :  #must be a unique ID without _
-#   path: feature_selection/TOAST_percent.R
-#   short_name: Tper
-#   omic: [mixMET,MET]
+Toastpercent :  #must be a unique ID without _
+  path: feature_selection/TOAST_percent.R
+  short_name: Tper
+  omic: [mixMET,MET]
