@@ -78,7 +78,6 @@ jobs:
         if : failure()  # always() always will run even if cancelled manually   #failure()
         run : |
           cd ${{ env.REPO_DIR }}
-          
           # this will still copy the last metaanalysis
           mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
@@ -87,7 +86,7 @@ jobs:
           cp index.html ${{ github.workspace }}/public/
           cp results_li.csv ${{ github.workspace }}/public/
           cp results_ei.csv ${{ github.workspace }}/public/
-
+          ls -la ${{ github.workspace }}/public
       # name: 
       # - name: Check for errors and read logs 
       #   if: failure()

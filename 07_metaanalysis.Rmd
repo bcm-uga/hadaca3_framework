@@ -193,6 +193,8 @@ write.csv(results_li, "results_li.csv", row.names = FALSE)
 
 index_aggreg <- which(names(results_li) == "score_aggreg")
 
+```
+```{r display LI table,echo=FALSE,eval=FALSE }
 datatable(
   results_li[, c(1:length(all_functions_li)+2, index_aggreg)],
   extensions = 'Buttons',
@@ -211,7 +213,7 @@ datatable(
 ```
 
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE}
+```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
 
 list_wd = strsplit(getwd(),'/')[[1]]
 # Snakemake script : the current working dir is hadaca3_framework
@@ -875,7 +877,7 @@ metric_title = "Aggregated score (-> 1), per dataset"
 
 ### PP
 
-```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE , eval = FALSE}
+```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=FALSE, warning = FALSE , eval = FALSE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title)
 
@@ -886,7 +888,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
+```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=FALSE}
 #### MET
 paper_figure(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title)
 
@@ -896,7 +898,7 @@ paper_figure(data = results_li, x_var = "feature_selection_mixRNA", y_var = metr
 
 ### DE
 
-```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE, eval=TRUE}
+```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE, eval=FALSE}
 #### MET
 paper_figure(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title)
 
@@ -906,7 +908,7 @@ paper_figure(data = results_li, x_var = "deconvolution_rna", y_var = metric, tit
 
 ### LI
 
-```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE, eval=TRUE}
+```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE, eval=FALSE}
 paper_figure(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title)
 ```
 
@@ -952,7 +954,7 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_aggregated_scores_LI, echo=FALSE, eval=TRUE}
+```{r combinaisons_aggregated_scores_LI, echo=FALSE, eval=FALSE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
@@ -998,7 +1000,7 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_mae_LI, echo=FALSE, eval=TRUE}
+```{r combinaisons_mae_LI, echo=FALSE, eval=FALSE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
