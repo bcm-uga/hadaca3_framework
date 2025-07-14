@@ -18,10 +18,10 @@ fsID :  #This is a required function
 #  omic_need: [scRNA]
 #  omic: [mixRNA,RNA,scRNA]
 
-# SPLSDA : #must be a unique ID without _
-#   path: feature_selection/SPLS-DA.R
-#   short_name: SPLS
-#   omic: [mixMET,MET]
+SPLSDA : #must be a unique ID without _
+  path: feature_selection/SPLS-DA.R
+  short_name: SPLS
+  omic: [mixMET,MET]
 
 Toastbulknbfs : #must be a unique ID without _
   path: feature_selection/TOAST_bulk_nbfs.R
