@@ -68,6 +68,7 @@ jobs:
           
           mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
@@ -81,6 +82,7 @@ jobs:
           # this will still copy the last metaanalysis
           mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/

@@ -1088,8 +1088,8 @@ process Metaanalysis {
 
     output:
     path("07_metaanalysis.html")
-    path("results_li.csv")
-    path("results_ei.csv")
+    path("results_li.csv.gz")
+    path("results_ei.csv.gz")
 
 
     script:

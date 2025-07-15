@@ -5,6 +5,7 @@ author: ""
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_document:
+    self_contained: false
     toc: true
     toc_float: true
     toc_depth: 3
@@ -25,6 +26,8 @@ library(dplyr)
 library(ggplot2)
 theme_set(theme_light())
 library(plotly)
+# library(utils)
+
 
 okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
@@ -189,7 +192,10 @@ for( fun in all_functions_li){
   levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset=='invitro1'],decreasing = T)])) # sort based on the results_li on the in vitro dataset
 }
 
-write.csv(results_li, "results_li.csv", row.names = FALSE)
+# write.csv(results_li, "results_li.csv", row.names = FALSE)
+write.csv(results_li, file =gzfile("results_li.csv.gz"), row.names = FALSE)
+
+
 
 index_aggreg <- which(names(results_li) == "score_aggreg")
 
@@ -213,7 +219,7 @@ datatable(
 ```
 
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
+```{r Early_integration pipeline,echo=FALSE}
 
 list_wd = strsplit(getwd(),'/')[[1]]
 # Snakemake script : the current working dir is hadaca3_framework
@@ -345,10 +351,14 @@ for( fun in all_functions_ei){
 #   levels = unique(results_ei[[data_used]])) # levels will be alphabeticaly ordered
 # }
 
-write.csv(results_ei, "results_ei.csv", row.names = FALSE)
+write.csv(results_ei, file = gzfile("results_ei.csv.gz"), row.names = FALSE)
 
 index_aggreg <- which(names(results_ei) == "score_aggreg")
 
+
+```
+
+```{r display EI table,echo=FALSE,eval=FALSE }
 datatable(
   results_ei[, c(1:length(all_functions_ei)+2, index_aggreg)],
   extensions = 'Buttons',
@@ -371,7 +381,7 @@ datatable(
 
 ## top 5 best methods
 
-```{r table_top5best_by_dataset, echo=FALSE}
+```{r table_top5best_by_dataset, echo=FALSE, eval=TRUE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
@@ -704,7 +714,7 @@ pp
 
 # Visualisations of the different metrics
 
-```{r plot_FUN, echo=FALSE, message=FALSE}
+```{r plot_FUN, echo=FALSE, message=FALSE, eval=FALSE}
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
   
   # noBLOCK is joint with onlyOMIC late integration
