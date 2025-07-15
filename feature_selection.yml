@@ -38,12 +38,12 @@ mostmethylated : # Use original ref_met to get most methylated #must be a unique
   short_name: Mmet
   omic: [mixMET,MET]
 
-#SCcluster :
-#  path: feature_selection/sc_cluster.R
-#  short_name: SCCL
-#  need: [ref_cluster]
-#  omic_need: [scRNA]
-#  omic: [mixRNA,RNA,scRNA]
+SCcluster :
+  path: feature_selection/sc_cluster.R
+  short_name: SCCL
+  need: [ref_cluster]
+  omic_need: [scRNA]
+  omic: [mixRNA,RNA,scRNA]
 
 Toastvst :  #must be a unique ID without _
   path: feature_selection/TOAST_vst.R
