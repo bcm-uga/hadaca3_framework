@@ -2,9 +2,9 @@ program_block_FS <- function(data, path_og_dataset='') {
   
   if (is.list(data)) {
     sc = data
-  } else {sc = read_hdf5(path_og_dataset$ref)}
+  } else {sc = read_hdf5(path_og_dataset$ref)$ref_scRNA}
   
-  if (!(any(c("ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log") %in% names(sc)))) {stop("This FS method requires to run the PP set to concat, CCAintegration, cluster or binarypseudobulk_log")}
+  #if (!(any(c("ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log") %in% names(sc)))) {stop("This FS method requires to run the PP set to concat, CCAintegration, cluster or binarypseudobulk_log")}
   
   # select markers based on t statistic on sc data
   metadata = sc[[1]]$metadata
