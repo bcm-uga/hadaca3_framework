@@ -257,27 +257,38 @@ workflow {
         fs_dependency_RNA : true 
     }.set { fs_branch }
 
-    
+    // fs_branch.fs_dependency_RNA.view{v ->  v[0].output  + " fs_branch_dep " }
+    // out_pp_create_filtered.view{v -> v[0].output + " pp " }
+
     fs_RNA = fs_branch.fs_dependency_RNA
     .combine(out_pp_create_filtered)
     .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
-        pp_meta.create in fs_meta.need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
+        // println(pp_meta.pp_create + ' ' + fs_meta)
+
+        pp_meta.pp_create[0] in fs_meta.fs_need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
     }
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
-        if( "mixRNA" in  fs_meta.omic_need   ){
+        if( "mixRNA" in  fs_meta.fs_omic_need   ){
             tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
         }else { //place the ref in ref of og_path.... 
             tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
         }
     }
 
+
+    // fs_branch.fs_dependency_RNA
+    // .combine(out_pp_create_filtered).view{v ->   v[0].output }
+    
+    fs_RNA.view{v ->   v[0].output + v[7] + " fs_RNA "}
+
+
     fs_MET = fs_branch.fs_dependency_MET
     .combine(out_pp_create_filtered)
     .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
-        pp_meta.create in fs_meta.need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
+        pp_meta.pp_create[0] in fs_meta.fs_need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
     }
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
-        if( "mixMET" in  fs_meta.omic_need   ){
+        if( "mixMET" in  fs_meta.fs_omic_need   ){
             tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
         }else { //place the pp_file in ref. 
             tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
@@ -317,7 +328,7 @@ workflow {
     out_fs =  fs_branch.simple_fs.mix(fs_MET , fs_RNA) | Features_selection
     // out_fs = complete_fs_files | Features_selection
 
-
+    // out_fs.view{v -> v[0].output}
 
 // ################## Generate combinaison for the RNA unit 
 
@@ -380,7 +391,8 @@ workflow {
     de_rna_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils)))) 
     | Prediction_deconvolution_rna 
 
-    
+    // out_de_rna_unit.view{v -> v[0].output}
+
 // ################## Generate combinaison for the MET unit 
 
     fs_mixMET = out_fs.filter{meta,a -> meta.omic=='mixMET'  }
@@ -528,6 +540,8 @@ workflow {
     out_li = li_combinaison | Late_integration 
     // out_li = Channel.of()
 
+
+    // out_li.view{v -> v[0].output}
     // out_li.view()
 // ################################  Early integration and deconvolution path
 
@@ -641,6 +655,8 @@ workflow {
 
     score_out = score_input_li.mix(score_input_ei) | Scoring
 
+    // score_out.view{ v -> v[0].output}
+
 
 // ################## Generate Metaanalysis
 
@@ -666,7 +682,7 @@ workflow {
 
 
     // input_meta.count().view()
-    // input_meta.view()
+    // input_meta.map{v-> v[0].output.each{k -> println(k)}}
 
     // input.count().view()
     // input_meta.view { v-> v.size()  }
@@ -1088,6 +1104,7 @@ process Metaanalysis {
 
     output:
     path("07_metaanalysis.html")
+    path("07_metaanalysis_files")
     path("results_li.csv.gz")
     path("results_ei.csv.gz")
 
@@ -1114,6 +1131,9 @@ process Metaanalysis {
     rmarkdown::render('${meta_script}');"
     echo \$RCODE 
     touch 07_metaanalysis.html
+    mkdir -p 07_metaanalysis_files
+    touch results_li.csv.gz
+    touch results_ei.csv.gz
     """
 
 }
