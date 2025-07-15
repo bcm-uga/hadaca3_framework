@@ -3,7 +3,7 @@ program_block_FS <- function(data,path_og_dataset='') {
 
     if (is.list(data)) {
       sc = data$ref_cluster
-    } else {sc = read_hdf5(path_og_dataset$ref)$ref_scRNA$ref_cluster}
+    } else {sc = read_hdf5(path_og_dataset$ref)$ref_cluster}
 
     sc_markers = FindAllMarkers(sc$seurat_clustered, assay = NULL, features = NULL,
                               logfc.threshold = 0.1, test.use = "wilcox", slot = "data")
