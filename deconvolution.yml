@@ -1,4 +1,3 @@
-
 ##Working 
 nnls :  #must be a unique ID
   path: deconvolution/nnls.R
@@ -16,7 +15,7 @@ epic :  #must be a unique ID
 # BisqueRNA : #Totest  #must be a unique ID
 #   path: deconvolution/BisqueRNA.R
 #   short_name: BRNA
-    # omic : [scRNA]
+#   omic : [scRNA]
 #   EI : [spls_sc]
 
 RLR :  #must be a unique ID
@@ -31,8 +30,6 @@ RLRpoisson :  #must be a unique ID
   path: deconvolution/RLR_poisson.R
   short_name: RLRp
 
-
-
-# RLRnnls :  #must be a unique ID
-#   path: deconvolution/RLR_nnls.R
-#   short_name: RLRn
+RLRnnls :  #must be a unique ID
+  path: deconvolution/RLR_nnls.R
+  short_name: RLRn
