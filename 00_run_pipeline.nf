@@ -260,18 +260,22 @@ workflow {
     // fs_branch.fs_dependency_RNA.view{v ->  v[0].output  + " fs_branch_dep " }
     // out_pp_create_filtered.view{v -> v[0].output + " pp " }
 
+    // we want to give the needed preprocessing into the original_dataset path... 
     fs_RNA = fs_branch.fs_dependency_RNA
     .combine(out_pp_create_filtered)
     .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
         // println(pp_meta.pp_create + ' ' + fs_meta)
-
+//      We keep pp_create in fs_need and omic treated not in fs_omic_need 
         pp_meta.pp_create[0] in fs_meta.fs_need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
     }
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
-        if( "mixRNA" in  fs_meta.fs_omic_need   ){
-            tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
+        def dup_fs_meta = fs_meta.clone()
+        dup_fs_meta["need_used"] = pp_meta.pp_create[0]
+
+        if( "mixRNA" in  dup_fs_meta.fs_omic_need   ){
+            tuple(dup_fs_meta, a,b,c,d,e,pp_file,ref_file )
         }else { //place the ref in ref of og_path.... 
-            tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
+            tuple(dup_fs_meta, a,b,c,d,e,dataset_file,pp_file )
         }
     }
 
@@ -279,7 +283,7 @@ workflow {
     // fs_branch.fs_dependency_RNA
     // .combine(out_pp_create_filtered).view{v ->   v[0].output }
     
-    fs_RNA.view{v ->   v[0].output + v[7] + " fs_RNA "}
+    // fs_RNA.view{v ->   v[0].output + v[7] + " fs_RNA "}
 
 
     fs_MET = fs_branch.fs_dependency_MET
@@ -288,10 +292,13 @@ workflow {
         pp_meta.pp_create[0] in fs_meta.fs_need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
     }
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
-        if( "mixMET" in  fs_meta.fs_omic_need   ){
-            tuple(fs_meta, a,b,c,d,e,pp_file,ref_file )
+        def dup_fs_meta = fs_meta.clone()
+        dup_fs_meta["need_used"] = pp_meta.pp_create[0]
+
+        if( "mixMET" in  dup_fs_meta.fs_omic_need   ){
+            tuple(dup_fs_meta, a,b,c,d,e,pp_file,ref_file )
         }else { //place the pp_file in ref. 
-            tuple(fs_meta, a,b,c,d,e,dataset_file,pp_file )
+            tuple(dup_fs_meta, a,b,c,d,e,dataset_file,pp_file )
         }
     }
 
@@ -350,9 +357,23 @@ workflow {
     //filter on same function for mix and bulk 
     .filter{ meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
         // println(meta_mix.pp_fun + meta_mix.fs_fun)
-        meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.fs_fun == meta_RNA.fs_fun
+        meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.fs_fun == meta_RNA.fs_fun && meta_mix.need_used == meta_RNA.need_used
+    }
+    .filter{ meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
+
+        def  not_in_need = 
+        (meta_RNA.need_used == null  && meta_scRNA.pp_create =='none'   )// meta_mix.omic in fs_meta.fs_omic_need )
+        
+        // println(meta_RNA.need_used + ' ' + meta_scRNA.pp_create[0] )
+
+        def in_need_matching_scRNA = (
+            // RNA and mix should match the pp and fs function! 
+            meta_RNA.need_used != null  && meta_RNA.need_used == meta_scRNA.pp_create[0]  
+        )
+         return (not_in_need  || in_need_matching_scRNA)
     }
 
+    // resolve non comptaible blocks
     non_comptible_rna_block = 
     pp_filter.pp_rna_incompatible.combine(pp_filter.pp_rna_incompatible).combine(pp_filter.pp_rna_incompatible).combine(out_mix).combine(out_cleaned_ref)    
     .filter{meta_mix,file_input_mix, meta_RNA,file_input_RNA,meta_scRNA,file_input_scRNA,   dataset_meta, dataset_file, ref_meta, ref_file ->
@@ -360,11 +381,6 @@ workflow {
         meta_scRNA.ref == ref_meta.id && meta_RNA.ref == ref_meta.id && meta_mix.ref == ref_meta.id && meta_mix.dataset == dataset_meta.id && 
         meta_mix.pp_fun == meta_RNA.pp_fun && meta_mix.pp_fun == meta_scRNA.pp_fun
     }
-
-    // non_comptible_rna_block.count().view()
-    // non_comptible_rna_block.view()
-
-    // pp_filter.pp_rna_incompatible.view()
 
     de_rna_unit = 
     de_channel.combine(rna_unit.mix(non_comptible_rna_block)) //.mix(non_comptible_rna_block)
@@ -387,11 +403,14 @@ workflow {
     
     // de_rna_unit.view()
 
+    // de_rna_unit.view{v -> v[0].output   + "   " + v[6]}
+
     out_de_rna_unit = 
     de_rna_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils)))) 
     | Prediction_deconvolution_rna 
 
-    // out_de_rna_unit.view{v -> v[0].output}
+    out_de_rna_unit.view{v -> v[0].output}
+    // out_de_rna_unit.view{v -> v[0].output   + "   " + v[0].mixRNA.need_used + "   " + v[0].RNA.need_used}
 
 // ################## Generate combinaison for the MET unit 
 
@@ -412,6 +431,19 @@ workflow {
     .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_mix.pp_fun == meta_MET.pp_fun && meta_mix.fs_fun == meta_MET.fs_fun
     }
+    // .filter{ meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file  ->
+
+    //     def  not_in_need = 
+    //     (meta_RNA.need_used == null  && meta_scRNA.pp_create =='none'   )// meta_mix.omic in fs_meta.fs_omic_need )
+        
+    //     // println(meta_RNA.need_used + ' ' + meta_scRNA.pp_create[0] )
+
+    //     def in_need_matching_scRNA = (
+    //         // RNA and mix should match the pp and fs function! 
+    //         meta_RNA.need_used != null  && meta_RNA.need_used == meta_scRNA.pp_create[0]  
+    //     )
+    //      return (not_in_need  || in_need_matching_scRNA)
+    // }
 
     non_comptible_met_block = 
     pp_filter.pp_met_incompatible.combine(pp_filter.pp_met_incompatible).combine(out_mix).combine(out_cleaned_ref)    
