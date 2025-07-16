@@ -409,8 +409,8 @@ workflow {
     de_rna_unit.combine(Channel.of(tuple(file(params.wrapper.script_04_rna),file(params.utils)))) 
     | Prediction_deconvolution_rna 
 
-    out_de_rna_unit.view{v -> v[0].output}
-    // out_de_rna_unit.view{v -> v[0].output   + "   " + v[0].mixRNA.need_used + "   " + v[0].RNA.need_used}
+    // out_de_rna_unit.view{v -> v[0].output}
+    // out_de_rna_unit.view{v -> v[0].output   + "   " + v[0].mixRNA.need_used + "   " + v[0].RNA.need_used + v[0].de_fun}
 
 // ################## Generate combinaison for the MET unit 
 
