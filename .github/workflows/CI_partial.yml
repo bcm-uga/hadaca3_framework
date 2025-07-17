@@ -64,31 +64,56 @@ jobs:
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p clean
           # snakemake --cores ${{ env.SNK_CORES }} -s 00_run_pipeline.smk -p --resources mem_mb=${{ env.MEM_MB }} --max-jobs-per-second 1
           # nextflow run 00_run_pipeline.nf -resume -with-report --setup_folder benchmark/setup/1/
-          nextflow run 00_run_pipeline.nf -resume -with-report 
+          
+          # nextflow run 00_run_pipeline.nf -resume -with-report 
+
+          # Start nextflow in the background and redirect output to log.txt
+          rm -f log.txt
+          nextflow run 00_run_pipeline.nf -resume -with-report > log.txt 2>&1 &
+
+          # Save the PID of the background job
+          PIPELINE_PID=$!
+
+          echo "Nextflow pipeline started with PID $PIPELINE_PID"
+
+          # Periodically print the last 10 lines of the log
+          while kill -0 "$PIPELINE_PID" 2>/dev/null; do
+            echo "===== Log snapshot at $(date) ====="
+            tail -n 15 log.txt
+            echo ""
+            sleep 300  # Wait for 5 minutes
+          done
+
+          # Wait for nextflow to finish to capture the final exit status
+          wait $PIPELINE_PID
+          EXIT_CODE=$?
+
+          echo "Nextflow pipeline finished with exit code $EXIT_CODE"
           
           mkdir -p ${{ github.workspace }}/public
           cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
-          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
-          cp results_li.csv ${{ github.workspace }}/public/
-          cp results_ei.csv ${{ github.workspace }}/public/
+          cp results_li.csv.gz ${{ github.workspace }}/public/
+          cp results_ei.csv.gz ${{ github.workspace }}/public/
+          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
+          exit $EXIT_CODE
 
-      - name : copy report if failure 
-        if : failure()  # always() always will run even if cancelled manually   #failure()
-        run : |
-          cd ${{ env.REPO_DIR }}
-          # this will still copy the last metaanalysis
-          mkdir -p ${{ github.workspace }}/public
-          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
-          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
-          LATEST_REPORT=$(ls -t report-* | head -n 1)
-          cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
-          cp index.html ${{ github.workspace }}/public/
-          cp results_li.csv ${{ github.workspace }}/public/
-          cp results_ei.csv ${{ github.workspace }}/public/
-          ls -la ${{ github.workspace }}/public
+      # - name : copy report if failure 
+      #   if : failure()  # always() always will run even if cancelled manually   #failure()
+      #   run : |
+      #     cd ${{ env.REPO_DIR }}
+      #     # this will still copy the last metaanalysis
+      #     mkdir -p ${{ github.workspace }}/public
+      #     cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+      #     cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
+      #     LATEST_REPORT=$(ls -t report-* | head -n 1)
+      #     cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
+      #     cp index.html ${{ github.workspace }}/public/
+      #     cp results_li.csv ${{ github.workspace }}/public/
+      #     cp results_ei.csv ${{ github.workspace }}/public/
+      #     ls -la ${{ github.workspace }}/public
       # name: 
       # - name: Check for errors and read logs 
       #   if: failure()
