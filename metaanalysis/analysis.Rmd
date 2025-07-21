@@ -1,0 +1,86 @@
+---
+title: "Meta Analysis"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim")
+```
+
+# Stat. Desc.
+
+```{r, results="verbatim"}
+layout(1, respect=TRUE)
+
+df = read.table("results_li.csv", sep=",", header=TRUE) 
+dim(df)
+head(df)
+
+  foo = sapply(names(df), function(k) {
+    print(k)
+    main = k
+    if (is.character(df[,k])) {
+      barplot(table(df[,k], useNA="always"), las=2, main=main)
+      return("char")
+  k  } else if (is.numeric(df[,k])){
+        plot(density(df[,k], na.rm=TRUE), main=main)
+        print(paste0("#NA: ", sum(is.na(df[,k]))))
+      return("num")
+    } else {
+      stop(paste0("Data type not treated: ", k))
+    }
+  })
+
+```
+
+# Correlation
+
+```{r fig.height=9}
+pairs(df[,rev(names(foo)[foo == "num"])[1:5]])
+```
+
+# ANOVA
+
+```{r}
+bar = sapply(names(foo)[foo == "char"], function(k) {
+  print(paste0(k, ": ", length(unique(df[,k]))))
+  if (length(unique(df[,k]))>1) {
+    return(k) 
+  } else {
+    return(NULL)
+  }
+})
+facts = unlist(bar)
+score = "spearman_tot"
+f_lo = formula(paste0(score, "~1"))
+f_up = formula(paste0(score, "~."))
+m_lo = lm(f_lo, data=df[,c(facts, score)])
+m_up = lm(f_up, data=df[,c(facts, score)])
+life.lm = step(m_lo, method="forward", scope=list(upper=m_up,lower=m_lo))
+life.lm = step(m_lo, method="both", scope=list(upper=m_up,lower=m_lo))
+
+# spearman_tot ~ late_integration + deconvolution_rna + feature_selection_mixRNA + 
+#     dataset + deconvolution_met + preprocessing_mixMET + preprocessing_mixRNA + 
+#     feature_selection_mixMET
+
+
+boxplot(formula(paste0(score, "~late_integration")), df[,c(facts, score)])
+
+boxplot(formula(paste0(score, "~late_integration + deconvolution_rna")), df[,c(facts, score)], las=2)
+
+```
+
+# Session Information
+
+```{r, results="verbatim"}
+sessionInfo()
+```
+
