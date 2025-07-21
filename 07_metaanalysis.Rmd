@@ -20,16 +20,19 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12
 
 ```{r loading_pckgs, echo=FALSE, message=FALSE}
 library(yaml)
-library(DT)
+# library(DT)
 library(stringr)
 library(dplyr)
-library(ggplot2)
-theme_set(theme_light())
+# library(ggplot2)
+# theme_set(theme_light())
 library(plotly)
+
+library(future.apply)
+
 # library(utils)
 
 
-okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
 source(utils_script)
@@ -37,169 +40,96 @@ source(utils_script)
 ```
 
 
-```{r Late_integration pipeline,echo=TRUE}
+# read 
+```{r Late_integration_pipeline improved}
 
 
-# datasets = read_yaml("datasets.yml") 
-# print(score_file)
-
-# datasets = read_yaml("datasets.yml") 
-# datasets = read_yaml(file_dataset) 
 
 
-list_wd = strsplit(getwd(),'/')[[1]]
-# Snakemake script : the current working dir is hadaca3_framework
-if(list_wd[length(list_wd)] == 'hadaca3_framework'){
-  score_files = list(list.files(path = "./output/scores/", full.names = TRUE))
-
-# nextflow script :
-}else{
-  score_files = list(list.files(pattern = 'score-li*' ))
+list_wd <- strsplit(getwd(), '/')[[1]]
+if (list_wd[length(list_wd)] == 'hadaca3_framework') {
+  score_files <- list.files(path = "./output/scores/", full.names = TRUE)
+} else {
+  score_files <- list.files(pattern = 'score-li*', full.names = TRUE)
 }
 
-
-results_li <- data.frame(
-  dataset = character(),
-  ref = character(),
-
-  preprocessing_mixRNA = character(),
-  feature_selection_mixRNA = character(),
-
-  preprocessing_RNA = character(),
-  feature_selection_RNA = character(),
-
-  preprocessing_scRNA = character(),
-  feature_selection_scRNA = character(),
-  deconvolution_rna = character(),
-
-  preprocessing_mixMET = character(),
-  feature_selection_mixMET = character(),
-
-  preprocessing_MET = character(),
-  feature_selection_MET = character(),
-  deconvolution_met = character(),
-  late_integration = character(),
-  
-  aid = numeric(),
-  aid_norm = numeric(),
-  aitchison = numeric(),
-  aitchison_norm = numeric(),
-  jsd = numeric(),
-  jsd_norm = numeric(),
-  mae = numeric(),
-  mae_norm = numeric(),
-  pearson_col = numeric(),
-  pearson_col_norm = numeric(),
-  pearson_row = numeric(),
-  pearson_row_norm = numeric(),
-  pearson_tot = numeric(),
-  pearson_tot_norm = numeric(),
-  rmse = numeric(),
-  rmse_norm = numeric(),
-  score_aggreg = numeric(),
-  sdid = numeric(),
-  sdid_norm = numeric(),
-  spearman_col = numeric(),
-  spearman_col_norm = numeric(),
-  spearman_row = numeric(),
-  spearman_row_norm = numeric(),
-  spearman_tot = numeric(),
-  spearman_tot_norm = numeric()
-)
+plan(multisession)
 
 
-i = 0 
-for (score_file in score_files[[1]]) {
-  # Extract the base name of the file
-
+process_file <- function(score_file) {
   base_name <- basename(score_file)
-
-  # Extract components from the file name
-
   components <- str_match(base_name, 
-  #       dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR  deR   omic  ppmM fsmM omic ppM  fsM  deM  li
-  # "score-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
-  "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
-  
+    "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
 
-  # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
-  scores <- read_hdf5(score_file)
-  # Append the extracted information to the results data frame
-  results_li <- rbind(results_li,
-    cbind(
-     data.frame(
-       dataset = components[1],
-       ref = components[2],
+  # If file name doesn't match expected pattern, skip
+  if (any(is.na(components))) return(NULL)
 
-       preprocessing_mixRNA = components[3],
-       feature_selection_mixRNA = components[4],
+  scores <- tryCatch({
+    read_hdf5(score_file)
+  }, error = function(e) return(NULL))
 
-       preprocessing_RNA = components[5],
-       feature_selection_RNA = components[6],
+  if (is.null(scores)) return(NULL)
 
-       preprocessing_scRNA = components[7],
-       feature_selection_scRNA = components[8],
-       deconvolution_rna = components[9],
-
-       preprocessing_mixMET = components[10],
-       feature_selection_mixMET = components[11],
-
-       preprocessing_MET = components[12],
-       feature_selection_MET = components[13],
-       deconvolution_met = components[14],
-
-       late_integration = components[15],
-       stringsAsFactors = FALSE
-     ),
-     scores
-    ))
-  rownames(results_li) = NULL
-
-  i = i +1 
+  cbind(
+    data.frame(
+      dataset = components[1],
+      ref = components[2],
+      preprocessing_mixRNA = components[3],
+      feature_selection_mixRNA = components[4],
+      preprocessing_RNA = components[5],
+      feature_selection_RNA = components[6],
+      preprocessing_scRNA = components[7],
+      feature_selection_scRNA = components[8],
+      deconvolution_rna = components[9],
+      preprocessing_mixMET = components[10],
+      feature_selection_mixMET = components[11],
+      preprocessing_MET = components[12],
+      feature_selection_MET = components[13],
+      deconvolution_met = components[14],
+      late_integration = components[15],
+      stringsAsFactors = FALSE
+    ),
+    scores
+  )
 }
 
-results_li %>%
-  # filter(dc==2) %>%
-  group_by(late_integration) %>%
-  summarise(GlobalScore = median(score_aggreg)) %>%
-  arrange(desc(GlobalScore))
+# Process files in parallel
+results_list <- future_lapply(score_files, process_file)
 
+# bind rows
+results_li <- do.call(rbind, results_list)
 
-results_li_arrange = results_li %>%
-  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
-           preprocessing_RNA, feature_selection_RNA, 
-           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
-           preprocessing_mixMET,feature_selection_mixMET, 
-           preprocessing_MET, feature_selection_MET, deconvolution_met, 
-           late_integration, .groups = "keep") %>% 
-  summarise(GlobalScore = median(score_aggreg)) %>%
-  arrange(desc(GlobalScore)) 
-
-
-
-
-all_data_used = c('dataset', 'ref')
-for(data_used in all_data_used){
-  results_li[[data_used]] = factor(results_li[[data_used]], 
-  levels = unique(results_li[[data_used]])) # levels will be alphabeticaly ordered
+# Optional: reorder factors
+all_data_used <- c('dataset', 'ref')
+for (data_used in all_data_used) {
+  results_li[[data_used]] <- factor(results_li[[data_used]], levels = unique(results_li[[data_used]]))
 }
 
-
-
-all_functions_li = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'preprocessing_RNA', 'feature_selection_RNA', 'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna', 'preprocessing_mixMET', 'feature_selection_mixMET', 'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met', 'late_integration' )
-for( fun in all_functions_li){
-  results_li[[fun]] = factor(results_li[[fun]], 
-  levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset=='invitro1'],decreasing = T)])) # sort based on the results_li on the in vitro dataset
+# Optional: order other factors based on performance on 'invitro1'
+if ("invitro1" %in% results_li$dataset) {
+  all_functions_li <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
+    'late_integration'
+  )
+  for (fun in all_functions_li) {
+    results_li[[fun]] <- factor(results_li[[fun]],
+      levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset == 'invitro1'], decreasing = TRUE)]))
+  }
 }
 
-# write.csv(results_li, "results_li.csv", row.names = FALSE)
-write.csv(results_li, file =gzfile("results_li.csv.gz"), row.names = FALSE)
+# Write compressed output
+write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
 
-
-
-index_aggreg <- which(names(results_li) == "score_aggreg")
+# index_aggreg <- which(names(results_li) == "score_aggreg")
 
 ```
+
+
+
 ```{r display LI table,echo=FALSE,eval=FALSE }
 datatable(
   results_li[, c(1:length(all_functions_li)+2, index_aggreg)],
@@ -218,142 +148,106 @@ datatable(
 )
 ```
 
+
+
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE}
+```{r Early_integration pipeline,echo=FALSE,eval=TRUE}
 
-list_wd = strsplit(getwd(),'/')[[1]]
-# Snakemake script : the current working dir is hadaca3_framework
-if(list_wd[length(list_wd)] == 'hadaca3_framework'){
-  score_files = list(list.files(path = "./output/scores/", full.names = TRUE))
 
-# nextflow script :
-}else{
-  score_files = list(list.files(pattern = 'score-ei*' ))
-
+list_wd <- strsplit(getwd(), '/')[[1]]
+if (list_wd[length(list_wd)] == 'hadaca3_framework') {
+  score_files <- list.files(path = "./output/scores/", full.names = TRUE)
+} else {
+  score_files <- list.files(pattern = 'score-ei*', full.names = TRUE)
 }
 
 
-results_ei <- data.frame(
-  dataset = character(),
-  ref = character(),
-
-  preprocessing_mixRNA = character(),
-  feature_selection_mixRNA = character(),
-
-  preprocessing_RNA = character(),
-  feature_selection_RNA = character(),
-
-  preprocessing_scRNA = character(),
-  feature_selection_scRNA = character(),
-
-  preprocessing_mixMET = character(),
-  feature_selection_mixMET = character(),
-
-  preprocessing_MET = character(),
-  feature_selection_MET = character(),
-
-  early_integration = character(),
-  deconvolution = character(),
-  
-  aid = numeric(),
-  aid_norm = numeric(),
-  aitchison = numeric(),
-  aitchison_norm = numeric(),
-  jsd = numeric(),
-  jsd_norm = numeric(),
-  mae = numeric(),
-  mae_norm = numeric(),
-  pearson_col = numeric(),
-  pearson_col_norm = numeric(),
-  pearson_row = numeric(),
-  pearson_row_norm = numeric(),
-  pearson_tot = numeric(),
-  pearson_tot_norm = numeric(),
-  rmse = numeric(),
-  rmse_norm = numeric(),
-  score_aggreg = numeric(),
-  sdid = numeric(),
-  sdid_norm = numeric(),
-  spearman_col = numeric(),
-  spearman_col_norm = numeric(),
-  spearman_row = numeric(),
-  spearman_row_norm = numeric(),
-  spearman_tot = numeric(),
-  spearman_tot_norm = numeric()
-)
+plan(multisession)
 
 
-i = 0 
-for (score_file in score_files[[1]]) {
-  # Extract the base name of the file
-
+process_file <- function(score_file) {
   base_name <- basename(score_file)
 
-  # Extract components from the file name
-
+  # Extract metadata from file name
   components <- str_match(base_name, 
-  #        dt   ref  OMIC  ppmR fsmR omic ppR fsR omic  ppSR fsSR     omic  ppmM fsmM omic ppM  fsM  ei  de
-  "score-ei-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:15]
-  
-  
-  # components <- str_match(base_name, "score-(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)_(.+)")[2:8]
-  scores <- read_hdf5(score_file)
-  # Append the extracted information to the results data frame
-  results_ei <- rbind(results_ei,
-    cbind(
-     data.frame(
-       dataset = components[1],
-       ref = components[2],
+    "score-ei-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:15]
 
-       preprocessing_mixRNA = components[3],
-       feature_selection_mixRNA = components[4],
+  # Skip file if regex fails
+  if (any(is.na(components))) return(NULL)
 
-       preprocessing_RNA = components[5],
-       feature_selection_RNA = components[6],
+  # Read HDF5 file safely
+  scores <- tryCatch({
+    read_hdf5(score_file)
+  }, error = function(e) return(NULL))
 
-       preprocessing_scRNA = components[7],
-       feature_selection_scRNA = components[8],
+  if (is.null(scores)) return(NULL)
 
-       preprocessing_mixMET = components[9],
-       feature_selection_mixMET = components[10],
-
-       preprocessing_MET = components[11],
-       feature_selection_MET = components[12],
-
-       early_integration = components[13],
-       deconvolution = components[14],
-
-       stringsAsFactors = FALSE
-     ),
-     scores
-    ))
-  rownames(results_ei) = NULL
-
-  i = i +1 
+  # Combine metadata and scores
+  cbind(
+    data.frame(
+      dataset = components[1],
+      ref = components[2],
+      preprocessing_mixRNA = components[3],
+      feature_selection_mixRNA = components[4],
+      preprocessing_RNA = components[5],
+      feature_selection_RNA = components[6],
+      preprocessing_scRNA = components[7],
+      feature_selection_scRNA = components[8],
+      preprocessing_mixMET = components[9],
+      feature_selection_mixMET = components[10],
+      preprocessing_MET = components[11],
+      feature_selection_MET = components[12],
+      early_integration = components[13],
+      deconvolution = components[14],
+      stringsAsFactors = FALSE
+    ),
+    scores
+  )
 }
 
-results_ei %>%
-  # filter(dc==2) %>%
-  group_by(early_integration) %>%
-  summarise(GlobalScore = median(score_aggreg)) %>%
-  arrange(desc(GlobalScore))
+results_list <- future_lapply(score_files, process_file)
 
+all_functions_ei <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET',
+    'early_integration', 'deconvolution'
+  )
 
-all_functions_ei = c('preprocessing_mixRNA', 'feature_selection_mixRNA', 'preprocessing_RNA', 'feature_selection_RNA', 'preprocessing_scRNA', 'feature_selection_scRNA', 'preprocessing_mixMET', 'feature_selection_mixMET', 'preprocessing_MET', 'feature_selection_MET', 'early_integration','deconvolution' )
-for( fun in all_functions_ei){
-  results_ei[[fun]] = factor(results_ei[[fun]], 
-  levels = unique(results_ei[[fun]][order(results_ei$score_aggreg[results_ei$dataset=='invitro1'],decreasing = T)])) # sort based on the results_ei on the in vitro dataset
+  
+
+if(length(results_list) != 0  ){
+  results_ei <- do.call(rbind, Filter(Negate(is.null), results_list))
+
+  if ("invitro1" %in% results_ei$dataset) {
+    # all_functions_ei <- c(
+    #   'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    #   'preprocessing_RNA', 'feature_selection_RNA',
+    #   'preprocessing_scRNA', 'feature_selection_scRNA',
+    #   'preprocessing_mixMET', 'feature_selection_mixMET',
+    #   'preprocessing_MET', 'feature_selection_MET',
+    #   'early_integration', 'deconvolution'
+    # )
+
+    for (fun in all_functions_ei) {
+      results_ei[[fun]] <- factor(results_ei[[fun]],
+        levels = unique(results_ei[[fun]][order(results_ei$score_aggreg[results_ei$dataset == 'invitro1'], decreasing = TRUE)]))
+    }
+  }
+
+}else{
+  results_ei = all_functions_ei
 }
 
-# all_data_used = c('dataset', 'ref')
-# for(data_used in all_data_used){
-#   results_ei[[data_used]] = factor(results_ei[[data_used]], 
-#   levels = unique(results_ei[[data_used]])) # levels will be alphabeticaly ordered
-# }
+
+
 
 write.csv(results_ei, file = gzfile("results_ei.csv.gz"), row.names = FALSE)
 
-index_aggreg <- which(names(results_ei) == "score_aggreg")
+
+# index_aggreg <- which(names(results_ei) == "score_aggreg")
 
 
 ```
@@ -381,7 +275,7 @@ datatable(
 
 ## top 5 best methods
 
-```{r table_top5best_by_dataset, echo=FALSE, eval=TRUE}
+```{r table_top5best_by_dataset, echo=FALSE, eval=FALSE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
@@ -554,598 +448,4 @@ pp
 # })
 # )
 # pp
-```
-
-## top 5 worst methods
-
-```{r table_top5worst_by_dataset, echo=FALSE, eval = FALSE}
-#if more than 5 ex aequo combination, then taking them all
-if (length(which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore))) > 5) {
-  results_li_top5worst = results_li_arrange[which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore)), ]
-} else {
-  results_li_top5worst = results_li_arrange[(nrow(results_li_arrange)-4):nrow(results_li_arrange),]
-}
-
-datatable(
-  results_li_top5worst[,-14],
-  extensions = 'Buttons',
-  options = list(
-    pageLength = 10,
-    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
-    buttons = list(
-      list(
-        extend = 'colvis',
-        text = 'Show/Hide Columns',
-        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
-      )
-    )
-  )
-)
-```
-
-
-```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=FALSE, eval = FALSE}
-
-test_dataset = 'invitro1'
-name_part <- gsub("[0-9]+$", "", test_dataset)
-number_part <- gsub("[^0-9]", "", test_dataset)
-
-ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
-ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
-
-
-
-prediction_file = sapply(1:nrow(results_li_top5worst), function(i){
-  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5worst[i,1:13]),collapse = "_") ,".h5")
-})
-pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
-
-df_scatter = do.call(
-  what = rbind,
-  args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
-    
-    
-    prediction_file = sapply(1:nrow(results_li_top5worst), function(i){
-      paste0("pred-li-",paste(c(data, "ref", results_li_top5worst[i,1:13]),collapse = "_") ,".h5")
-    })
-    pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})
-    
-    method_i = 1
-    prediction_data = t(pred[[method_i]])
-    prediction_data = tidyr::pivot_longer(
-      as.data.frame(prediction_data),
-      cols = everything(),
-      names_to = "cell_type",
-      values_to = "pred_prop"
-    )
-    prediction_data[,"method"] = paste0("method top", method_i)
-    # print(prediction_data)
-    
-    for (method_i in 2:nrow(results_li_top5worst)) {
-      prediction_data_tmp = t(pred[[method_i]])
-      prediction_data_tmp = tidyr::pivot_longer(
-        as.data.frame(prediction_data_tmp),
-        cols = everything(),
-        names_to = "cell_type",
-        values_to = "pred_prop"
-      )
-      prediction_data_tmp[,"method"] = paste0("method top", method_i)
-      prediction_data = rbind(prediction_data, prediction_data_tmp)
-    }
-
-
-    name_part <- gsub("[0-9]+$", "", data)
-    number_part <- gsub("[^0-9]", "", data)
-    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
-    ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
-
-    ground_truth_data = t(ground_truth)
-    ground_truth_data = tidyr::pivot_longer(
-      as.data.frame(ground_truth_data),
-      cols = colnames(ground_truth_data),
-      names_to = "cell_type",
-      values_to = "true_prop"
-    )
-
-    ground_truth_data = rbind(ground_truth_data, ground_truth_data,
-                              ground_truth_data, ground_truth_data, ground_truth_data)
-
-    if (data == "invivo1" || data == "invivo2") {
-      prediction_data = prediction_data[prediction_data$cell_type == "classic" | prediction_data$cell_type == "basal", ]
-    }
-
-    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
-  })
-)
-df_scatter$Dataset = factor(df_scatter$Dataset, levels = unique(results_li$dataset))
-df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth_invitro1))
-df_scatter$method = factor(df_scatter$method)
-
-# print(df_scatter)
-
-scatter_prop = ggplot(df_scatter) +
-  facet_wrap( ~ Dataset) +
-  geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
-  geom_point(aes(x = true_prop, y = pred_prop, col = method, shape = cell_type)) +
-  coord_cartesian(
-    xlim = c(0,1),
-    ylim = c(0,1)
-  ) +
-  labs(
-    x = "Ground truth proportion",
-    y = "Prediction",
-    title = paste("Proportions predicted by top 5 method vs true ones for all datasets")
-  ) +
-  scale_x_continuous(
-    labels = scales::percent
-  ) +
-  scale_y_continuous(
-    labels = scales::percent
-  ) +
-  scale_color_discrete(
-    name = "Cell type"
-  ) +
-  theme_light() +
-  theme(plot.title = element_text(hjust = 0.5))
-
-pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
-# pp
-pp = plotly::layout(pp, legend = list(orientation = 'h'))
-pp
-# invisible(
-  # lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
-# 
-#   # if a strip shape (using the strip color), reduce the height of the strip box
-#   if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
-#    pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
-#   }
-#   # there are less annotations than shapes
-#   if(i <= length(pp$x$layout$annotations)) {
-#     # reduce the font size of the strip text
-#     if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
-#       pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
-#     }
-#   }
-# })
-# )
-# pp
-```
-
-
-# Visualisations of the different metrics
-
-```{r plot_FUN, echo=FALSE, message=FALSE, eval=FALSE}
-plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
-  
-  # noBLOCK is joint with onlyOMIC late integration
-  if (x_var != "early_integration" && x_var != "late_integration") {
-    data = data[data$preprocessing_mixRNA != "nopp",]
-    data = data[data$feature_selection_mixRNA != "nofs",]
-    data = data[data$preprocessing_RNA != "nopp",]
-    data = data[data$feature_selection_RNA != "nofs",]
-    data = data[data$preprocessing_scRNA != "nopp",]
-    data = data[data$feature_selection_scRNA != "nofs",]
-    data = data[data$deconvolution_rna != "node",]
-    data = data[data$preprocessing_mixMET != "nopp",]
-    data = data[data$feature_selection_mixMET != "nofs",]
-    data = data[data$preprocessing_MET != "nopp",]
-    data = data[data$feature_selection_MET != "nofs",]
-    data = data[data$deconvolution_met != "node",]
-  }
-
-  # Dynamically build aesthetics
-  aes_base <- aes_string(x = x_var, y = y_var, fill = x_var)
-  # aes_fill <- if (!is.null(fill_var)) aes_string(fill = fill_var) else NULL
-  
-  overlayer_infos_colnames = colnames(data)[c(3:15, which(colnames(data) == y_var))]
-  # overlayer_infos = c("PP_RNA_mix: ", "FS_RNA_mix: ", "PP_RNA_ref: ", "FS_RNA_ref: ",
-  #                     "PP_RNA_mix: ")
-  overlayer_infos_colnames = overlayer_infos_colnames[-which(overlayer_infos_colnames == x_var)]
-  
-  
-  p <- ggplot(data) +
-    # geom_boxplot(aes_base) +
-    geom_violin(aes_base) +
-    geom_jitter(
-      aes_string(
-        x = x_var, 
-        y = y_var, 
-        color = "dataset", 
-        text = NULL  # Placeholder
-        # text = paste0( 
-        #   data[[overlayer_infos_colnames[1]]], data[[overlayer_infos_colnames[2]]],
-        #   data[[overlayer_infos_colnames[3]]], data[[overlayer_infos_colnames[4]]],
-        #   data[[overlayer_infos_colnames[5]]], data[[overlayer_infos_colnames[6]]],
-        #   data[[overlayer_infos_colnames[7]]], data[[overlayer_infos_colnames[8]]],
-        #   data[[overlayer_infos_colnames[9]]], data[[overlayer_infos_colnames[10]]],
-        #   data[[overlayer_infos_colnames[11]]], data[[overlayer_infos_colnames[11]]],
-        #   data[[overlayer_infos_colnames[13]]]
-        # )
-      ),
-      size = 0.4, alpha = 0.5
-    ) +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
-      plot.title = element_text(hjust = 0.5),
-      legend.position = "bottom"
-    ) +
-    labs(
-      title = title,
-      x = "Methods",
-      # y = "Aggregated score",
-      fill = x_var
-    ) +
-    scale_color_grey(start = 0.2, end = 0.2)
-  
-  tooltip_cols <- c(y_var,
-    "preprocessing_mixRNA", "preprocessing_RNA", "preprocessing_scRNA",
-    "preprocessing_mixMET", "preprocessing_MET",
-    "feature_selection_mixRNA", "feature_selection_RNA", "feature_selection_scRNA",
-    "feature_selection_mixMET", "feature_selection_MET",
-    "deconvolution_rna", "deconvolution_met", "late_integration"
-  )
-  tooltip_cols_short <- c(y_var, #racourci
-    "PP_mixRNA", "PP_RNA", "PP_scRNA", "PP_mixMET", "PP_MET",
-    "FS_mixRNA", "FS_RNA", "FS_scRNA", "FS_mixMET", "FS_MET",
-    "DE_rna", "DE_met", "LI"
-  )
-  # suppr_active_col 
-  active_col = which(tooltip_cols == x_var)
-  tooltip_cols = tooltip_cols[-active_col]
-  tooltip_cols_short = tooltip_cols_short[-active_col]
-  
-  # Générer le texte dynamiquement : "Nom_colonne: valeur"
-  tooltip_text <- do.call(paste, c(
-    lapply(1:length(tooltip_cols), function(i, col, col_short) {
-      paste(col_short[i], ":", data[[col[i]]])
-    }, col = tooltip_cols, col_short = tooltip_cols_short),
-    sep = "\n"
-  ))
-  # L’injecter dans aes()
-  p$layers[[2]]$mapping$text <- aes(text = tooltip_text)$text
-  
-  if (!is.null(facet_var)) {
-    p <- p + facet_wrap(as.formula(paste("~", facet_var)), scales = "free_x")
-  }
-  
-  plotly::layout(
-    plotly::ggplotly(p, tooltip = if (add_tooltip_text) "text" else NULL), 
-    legend = list(orientation = 'h')
-  )
-}
-
-########### BASE
-add_tooltip_text = FALSE
-facet_var = "dataset"
-########### Only for exploration
-add_tooltip_text = TRUE
-```
-
-
-## Paper figures
-
-```{r paper_figure_FUN, echo=FALSE, message=FALSE}
-paper_figure <- function(data, x_var, y_var, title) {
-  
-  # noBLOCK is joint with onlyOMIC late integration
-  if (x_var != "early_integration" && x_var != "late_integration") {
-    data = data[data$preprocessing_mixRNA != "nopp",]
-    data = data[data$feature_selection_mixRNA != "nofs",]
-    data = data[data$preprocessing_RNA != "nopp",]
-    data = data[data$feature_selection_RNA != "nofs",]
-    data = data[data$preprocessing_scRNA != "nopp",]
-    data = data[data$feature_selection_scRNA != "nofs",]
-    data = data[data$deconvolution_rna != "node",]
-    data = data[data$preprocessing_mixMET != "nopp",]
-    data = data[data$feature_selection_mixMET != "nofs",]
-    data = data[data$preprocessing_MET != "nopp",]
-    data = data[data$feature_selection_MET != "nofs",]
-    data = data[data$deconvolution_met != "node",]
-  }
-  
-  # Dynamically build aesthetics
-  aes_base <- aes_string(x = x_var, y = y_var, fill = x_var)
-  # aes_fill <- if (!is.null(fill_var)) aes_string(fill = fill_var) else NULL
-  
-
-  
-  p <- ggplot(data) +
-    # geom_boxplot(aes_base) +
-    geom_violin(aes_base) +
-    geom_jitter(
-      aes_string(
-        x = x_var, 
-        y = y_var, 
-        color = "dataset"
-      ),
-      size = 0.4, alpha = 0.5
-    ) +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
-      plot.title = element_text(hjust = 0.5),
-      legend.position = "bottom"
-    ) +
-    labs(
-      title = title,
-      x = "Methods",
-      # y = "Aggregated score",
-      fill = x_var
-    ) +
-    scale_color_grey(start = 0.2, end = 0.2)
-  
-  p
-}
-```
-
-```{r paper_figure_common_var_score_aggreg, echo=FALSE}
-metric = "score_aggreg"
-metric_title = "Aggregated score (-> 1), per dataset"
-```
-
-
-### PP
-
-```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=FALSE, warning = FALSE , eval = FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title)
-```
-
-
-### FS
-
-```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=FALSE}
-#### MET
-paper_figure(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title)
-
-#### RNA
-paper_figure(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title)
-```
-
-### DE
-
-```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE, eval=FALSE}
-#### MET
-paper_figure(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title)
-
-#### RNA
-paper_figure(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title)
-```
-
-### LI
-
-```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE, eval=FALSE}
-paper_figure(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title)
-```
-
-
-## Aggregated scores
-
-```{r common_var_score_aggreg, echo=FALSE}
-metric = "score_aggreg"
-metric_title = "Aggregated score (-> 1), per dataset"
-```
-
-
-### PP
-
-```{r combinaisons_aggregated_scores_PP, echo=FALSE, eval=FALSE, warning = FALSE }
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-### FS
-
-```{r combinaisons_aggregated_scores_FS, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### DE
-
-```{r combinaisons_aggregated_scores_DE, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### LI
-
-```{r combinaisons_aggregated_scores_LI, echo=FALSE, eval=FALSE}
-plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-## MAE
-
-```{r common_var_mae, echo=FALSE}
-metric = "mae"
-metric_title = "MAE (-> 0), per dataset"
-```
-
-
-### PP
-
-```{r combinaisons_mae_PP, echo=FALSE, eval=FALSE, warning = FALSE }
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-### FS
-
-```{r combinaisons_mae_FS, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### DE
-
-```{r combinaisons_mae_DE, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### LI
-
-```{r combinaisons_mae_LI, echo=FALSE, eval=FALSE}
-plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-## RMSE
-
-```{r common_var_rmse, echo=FALSE}
-metric = "rmse"
-metric_title = "RMSE (-> 0), per dataset"
-```
-
-
-### PP
-
-```{r combinaisons_rmse_PP, echo=FALSE, eval=FALSE, warning = FALSE }
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-### FS
-
-```{r combinaisons_rmse_FS, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### DE
-
-```{r combinaisons_rmse_DE, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### LI
-
-```{r combinaisons_rmse_LI, echo=FALSE, eval=FALSE}
-plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-## Spearman correlation (row)
-
-```{r common_var_spearman_row, echo=FALSE}
-metric = "spearman_row"
-metric_title = "Spearman correlation (row) (-> 1), per dataset"
-```
-
-
-### PP
-
-```{r combinaisons_spearman_row_PP, echo=FALSE, eval=FALSE, warning = FALSE }
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-### FS
-
-```{r combinaisons_spearman_row_FS, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### DE
-
-```{r combinaisons_spearman_row_DE, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### LI
-
-```{r combinaisons_spearman_row_LI, echo=FALSE, eval=FALSE}
-plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-## Aitchison distance
-
-```{r common_var_aitchison, echo=FALSE}
-metric = "aitchison"
-metric_title = "Aitchison distance (-> 0), per dataset"
-```
-
-
-### PP
-
-```{r combinaisons_aitchison_PP, echo=FALSE, eval=FALSE, warning = FALSE }
-#### MET
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-
-### FS
-
-```{r combinaisons_aitchison_FS, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### DE
-
-```{r combinaisons_aitchison_DE, echo=FALSE, eval=FALSE}
-#### MET
-plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-
-#### RNA
-plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
-```
-
-### LI
-
-```{r combinaisons_aitchison_LI, echo=FALSE, eval=FALSE}
-plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
