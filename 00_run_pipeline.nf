@@ -1141,24 +1141,24 @@ process Metaanalysis {
     path("results_ei.csv.gz")
 
 
+    // score_files = strsplit(trimws('${input_score}'),' ') ; 
+    // pred_files = strsplit(trimws('${pred_files}'),' ');
+    // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     script:
     """
     RCODE="
-    score_files = strsplit(trimws('${input_score}'),' ') ; 
-    pred_files = strsplit(trimws('${pred_files}'),' ');
-    groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE | Rscript -
     """  
     // file_dataset = '${file_dataset}';
 
+    // score_files = strsplit(trimws('${input_score}'),' ') ;
+    // pred_files = strsplit(trimws('${pred_files}'),' ');
+    // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     stub:
     """
     RCODE="
-    score_files = strsplit(trimws('${input_score}'),' ') ;
-    pred_files = strsplit(trimws('${pred_files}'),' ');
-    groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');"
     echo \$RCODE 

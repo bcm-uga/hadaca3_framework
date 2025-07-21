@@ -26,6 +26,7 @@ library(dplyr)
 # library(ggplot2)
 # theme_set(theme_light())
 library(plotly)
+library(fs)
 
 library(future.apply)
 
@@ -50,7 +51,9 @@ list_wd <- strsplit(getwd(), '/')[[1]]
 if (list_wd[length(list_wd)] == 'hadaca3_framework') {
   score_files <- list.files(path = "./output/scores/", full.names = TRUE)
 } else {
-  score_files <- list.files(pattern = 'score-li*', full.names = TRUE)
+  # score_files <- list.files(pattern = 'score-li*', full.names = TRUE)
+  # score_files <- system("find . -maxdepth 1 -type f -name 'score-li*'", intern = TRUE)
+  score_files <- dir_ls(".", regexp = "score-li.*")
 }
 
 plan(multisession)
@@ -159,6 +162,8 @@ if (list_wd[length(list_wd)] == 'hadaca3_framework') {
   score_files <- list.files(path = "./output/scores/", full.names = TRUE)
 } else {
   score_files <- list.files(pattern = 'score-ei*', full.names = TRUE)
+  # score_files <- system("find . -maxdepth 1 -type f -name 'score-ei*'", intern = TRUE)
+
 }
 
 
