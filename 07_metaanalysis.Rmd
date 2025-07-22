@@ -28,8 +28,7 @@ library(dplyr)
 library(plotly)
 library(fs)
 
-library(future.apply)
-
+library(furrr)
 # library(utils)
 
 
@@ -56,7 +55,8 @@ if (list_wd[length(list_wd)] == 'hadaca3_framework') {
   score_files <- dir_ls(".", regexp = "score-li.*")
 }
 
-plan(multisession)
+plan(multisession,workers=25)
+# plan(sequential)
 
 
 process_file <- function(score_file) {
@@ -68,8 +68,18 @@ process_file <- function(score_file) {
   if (any(is.na(components))) return(NULL)
 
   scores <- tryCatch({
-    read_hdf5(score_file)
-  }, error = function(e) return(NULL))
+    s <- read_hdf5(score_file)
+    gc()
+    s
+  }, error = function(e) {
+    message("Error reading file: ", score_file)
+    message(e)
+    NULL
+  })
+
+  # scores <- tryCatch({
+  #   read_hdf5(score_file)
+  # }, error = function(e) return(NULL))
 
   if (is.null(scores)) return(NULL)
 
@@ -97,7 +107,13 @@ process_file <- function(score_file) {
 }
 
 # Process files in parallel
-results_list <- future_lapply(score_files, process_file)
+# results_list <- lapply(score_files, process_file)
+
+results_list <- future_map(score_files, function(f) {
+  tryCatch(process_file(f), error = function(e) NULL)
+})
+
+
 
 # bind rows
 results_li <- do.call(rbind, results_list)
@@ -159,18 +175,20 @@ datatable(
 
 list_wd <- strsplit(getwd(), '/')[[1]]
 if (list_wd[length(list_wd)] == 'hadaca3_framework') {
-  score_files <- list.files(path = "./output/scores/", full.names = TRUE)
+  score_files_ei <- list.files(path = "./output/scores/", full.names = TRUE)
 } else {
-  score_files <- list.files(pattern = 'score-ei*', full.names = TRUE)
-  # score_files <- system("find . -maxdepth 1 -type f -name 'score-ei*'", intern = TRUE)
+  # score_files_ei <- list.files(pattern = 'score-ei*', full.names = TRUE)
+  score_files_ei <- dir_ls(".", regexp = "score-ei*")
+
+  # score_files_ei <- system("find . -maxdepth 1 -type f -name 'score-ei*'", intern = TRUE)
 
 }
 
 
-plan(multisession)
+# plan(multisession)
 
 
-process_file <- function(score_file) {
+process_file_ei <- function(score_file) {
   base_name <- basename(score_file)
 
   # Extract metadata from file name
@@ -210,7 +228,9 @@ process_file <- function(score_file) {
   )
 }
 
-results_list <- future_lapply(score_files, process_file)
+results_list_ei <- future_map(score_files_ei, function(f) {
+  tryCatch(process_file_ei(f), error = function(e) NULL)
+})
 
 all_functions_ei <- c(
     'preprocessing_mixRNA', 'feature_selection_mixRNA',
@@ -223,8 +243,8 @@ all_functions_ei <- c(
 
   
 
-if(length(results_list) != 0  ){
-  results_ei <- do.call(rbind, Filter(Negate(is.null), results_list))
+if(length(results_list_ei) != 0  ){
+  results_ei <- do.call(rbind, Filter(Negate(is.null), results_list_ei))
 
   if ("invitro1" %in% results_ei$dataset) {
     # all_functions_ei <- c(
