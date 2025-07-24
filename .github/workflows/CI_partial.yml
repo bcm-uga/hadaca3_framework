@@ -105,7 +105,7 @@ jobs:
         run : |
           cd ${{ env.REPO_DIR }}
           echo "===== Log failled snapshot at $(date) ====="
-          tail -n 60 log.txt
+          tail -n 200 log.txt
 
       # - name : copy report if failure 
       #   if : failure()  # always() always will run even if cancelled manually   #failure()
