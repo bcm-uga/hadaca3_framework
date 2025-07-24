@@ -100,6 +100,13 @@ jobs:
           cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
           exit $EXIT_CODE
 
+      - name : copy report if failure 
+        if : failure()  # always() always will run even if cancelled manually   #failure()
+        run : |
+          cd ${{ env.REPO_DIR }}
+          echo "===== Log failled snapshot at $(date) ====="
+          tail -n 60 log.txt
+
       # - name : copy report if failure 
       #   if : failure()  # always() always will run even if cancelled manually   #failure()
       #   run : |
@@ -114,6 +121,7 @@ jobs:
       #     cp results_li.csv ${{ github.workspace }}/public/
       #     cp results_ei.csv ${{ github.workspace }}/public/
       #     ls -la ${{ github.workspace }}/public
+
       # name: 
       # - name: Check for errors and read logs 
       #   if: failure()
