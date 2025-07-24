@@ -264,19 +264,23 @@ workflow {
     fs_RNA = fs_branch.fs_dependency_RNA
     .combine(out_pp_create_filtered)
     .filter{ fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file ->
-        // println(pp_meta.pp_create + ' ' + fs_meta)
+        // println(pp_meta.omic +" " + pp_meta.pp_create + ' ' + fs_meta.fs_need)
 //      We keep pp_create in fs_need and omic treated not in fs_omic_need 
-        pp_meta.pp_create[0] in fs_meta.fs_need   &&    fs_meta.omic !in fs_meta.fs_omic_need   
+        pp_meta.omic =="scRNA" &&   pp_meta.pp_create[0] in fs_meta.fs_need  &&    fs_meta.omic !in fs_meta.fs_omic_need   
     }
     .map{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file  ->
+        // println(pp_meta.omic +" " + pp_meta.pp_create + ' ' + fs_meta.fs_need)
+
         def dup_fs_meta = fs_meta.clone()
         dup_fs_meta["need_used"] = pp_meta.pp_create[0]
 
-        if( "mixRNA" in  dup_fs_meta.fs_omic_need   ){
-            tuple(dup_fs_meta, a,b,c,d,e,pp_file,ref_file )
-        }else { //place the ref in ref of og_path.... 
+        // if( "mixRNA" in  dup_fs_meta.fs_omic_need   ){
+        //     tuple(dup_fs_meta, a,b,c,d,e,pp_file,ref_file )
+        // }
+        // else { 
+            //place the ref in ref of og_path.... 
             tuple(dup_fs_meta, a,b,c,d,e,dataset_file,pp_file )
-        }
+        // }
     }
 
 

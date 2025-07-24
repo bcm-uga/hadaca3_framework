@@ -8,6 +8,7 @@ scpseudobulk :
  path: feature_selection/sc_pseudobulk.R
  short_name: scpf
  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log,ref_pseudobulk]
+#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log,ref_pseudobulk]
  omic_need: [scRNA]
  omic: [mixRNA,RNA,scRNA]
 
