@@ -20,7 +20,7 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12
 
 ```{r loading_pckgs, echo=FALSE, message=FALSE}
 library(yaml)
-# library(DT)
+library(DT)
 library(stringr)
 library(dplyr)
 # library(ggplot2)
@@ -118,6 +118,26 @@ results_list <- future_map(score_files, function(f) {
 # bind rows
 results_li <- do.call(rbind, results_list)
 
+
+results_li %>%
+  # filter(dc==2) %>%
+  group_by(late_integration) %>%
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore))
+
+
+results_li_arrange = results_li %>%
+  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
+           preprocessing_RNA, feature_selection_RNA, 
+           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
+           preprocessing_mixMET,feature_selection_mixMET, 
+           preprocessing_MET, feature_selection_MET, deconvolution_met, 
+           late_integration, .groups = "keep") %>% 
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore)) 
+
+
+
 # Optional: reorder factors
 all_data_used <- c('dataset', 'ref')
 for (data_used in all_data_used) {
@@ -143,13 +163,13 @@ if ("invitro1" %in% results_li$dataset) {
 # Write compressed output
 write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
 
-# index_aggreg <- which(names(results_li) == "score_aggreg")
+index_aggreg <- which(names(results_li) == "score_aggreg")
 
 ```
 
 
 
-```{r display LI table,echo=FALSE,eval=FALSE }
+```{r display LI table,echo=FALSE,eval=TRUE }
 datatable(
   results_li[, c(1:length(all_functions_li)+2, index_aggreg)],
   extensions = 'Buttons',
@@ -296,17 +316,129 @@ datatable(
 ```
 
 
+# Nico test visu (GPT...) 
+
+```{r prepare data}
+multi_level_cols <- sapply(results_li[all_functions_li], function(x) nlevels(x) > 1)
+filtered_functions <- all_functions_li[multi_level_cols]
+dropped_cols <- all_functions_li[!multi_level_cols]
+cat("Dropped columns (only 1 level):", paste(dropped_cols, collapse = ", "), "\n")
+
+```
+
+```{r lm model  }
+
+
+# Now run the model
+model <- lm(score_aggreg ~ ., data = results_li[, c(filtered_functions, "score_aggreg")])
+summary(model)
+
+
+
+```
+
+```{r anova}
+anova_results <- anova(model)
+anova_results <- anova_results[order(-anova_results$`Sum Sq`), ]
+print(anova_results)
+```
+
+```{r}
+# Get coefficients sorted by value
+coefs <- coef(model)
+coefs <- coefs[!grepl("(Intercept)", names(coefs))]
+coefs_sorted <- sort(coefs, decreasing = TRUE)
+
+# Top positive and negative functions
+head(coefs_sorted, 10)  # most positive
+tail(coefs_sorted, 10)  # most negative
+
+```
+
+
+```{r Convert function-type columns to dummy variables}
+# Load required package
+library(fastDummies)
+
+# Use only multi-level function columns (from before)
+df_pca <- results_li[, c(filtered_functions, "score_aggreg")]
+
+# One-hot encode the factor columns
+df_pca_encoded <- dummy_cols(df_pca, select_columns = filtered_functions, remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+
+```
+
+
+```{r Run PCA}
+# Run PCA on all features (excluding score_aggreg)
+pca_result <- prcomp(df_pca_encoded[, !colnames(df_pca_encoded) %in% "score_aggreg"], center = TRUE, scale. = TRUE)
+
+# View explained variance
+summary(pca_result)
+
+# Scree plot
+plot(pca_result, type = "l", main = "Scree Plot")
+
+```
+
+```{r Visualize PCA with Score Overlay , eval= FALSE}
+# Use ggplot2 for PCA biplot with color = score_aggreg
+library(ggplot2)
+
+# Extract PCA coordinates
+pca_data <- as.data.frame(pca_result$x)
+pca_data$score_aggreg <- df_pca_encoded$score_aggreg
+
+# ggplot(pca_data, aes(x = PC1, y = PC2, color = score_aggreg)) +
+#   geom_point(size = 3) +
+#   scale_color_gradient(low = "blue", high = "red") +
+#   theme_minimal() +
+#   labs(title = "PCA of Function Combinations Colored by score_aggreg")
+
+  ggplot(pca_data, aes(x = PC1, y = score_aggreg)) +
+  geom_point(size = 3, color = "steelblue") +
+  theme_minimal() +
+  labs(title = "PC1 vs score_aggreg")
+
+```
+
+
+
+```{r contributing components}
+# Get the proportion of variance explained
+explained_var <- summary(pca_result)$importance["Proportion of Variance", ]
+
+meaningful_pcs <- names(explained_var[explained_var > 0])
+
+n_pcs_to_show <- min(length(meaningful_pcs), 3)
+meaningful_pcs <- meaningful_pcs[1:n_pcs_to_show]
+
+
+for (pc in meaningful_pcs) {
+  cat("\nTop contributing variables to", pc, ":\n")
+  loadings <- sort(abs(pca_result$rotation[, pc]), decreasing = TRUE)
+  print(head(loadings, 10))
+}
+
+if (length(meaningful_pcs) == 0) {
+  cat("No meaningful principal components found (explained variance is zero).")
+}
+```
+
 # Visualisations of the top methods
 
 ## top 5 best methods
 
-```{r table_top5best_by_dataset, echo=FALSE, eval=FALSE}
+```{r table_top5best_by_dataset, echo=FALSE, eval=TRUE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
 } else {
   results_li_top5best = results_li_arrange[1:5,]
 }
+
+results_li_top5best <- results_li_top5best[complete.cases(results_li_top5best[, 1:13]), ]
+
 
 datatable(
   results_li_top5best[,-14],
@@ -326,7 +458,7 @@ datatable(
 ```
 
 
-```{r test_for_scatter, echo=FALSE, eval=FALSE}
+```{r test_for_scatter, echo=FALSE, eval=TRUE}
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
 number_part <- gsub("[^0-9]", "", test_dataset)
@@ -346,7 +478,7 @@ pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred de
 ```
 
 
-```{r scatter_plot_top5best_by_dataset,eval=FALSE, warning=FALSE, echo=FALSE, message=FALSE}
+```{r scatter_plot_top5best_by_dataset,eval=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
