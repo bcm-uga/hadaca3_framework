@@ -427,8 +427,34 @@ if (length(meaningful_pcs) == 0) {
 
 
 ```{r pca}
+# results_li = read.table("metaanalysis/results_li.csv", sep=",", header=TRUE)
+foo = sapply(colnames(results_li), function(k) {
+  print(paste0(k, " ", is.numeric(results_li[,k])))
+  is.numeric(results_li[,k])
+})
+keys = colnames(results_li)[foo]
+data = as.matrix(results_li[,keys])
+head(data)[,1:10]
+# remove NA
+table(apply(is.na(data), 2, sum))
+data = data[,apply(!is.na(data), 2, all)]
+table(apply(is.na(data), 2, sum))
+pca = prcomp(data, scale=TRUE)
+v = pca$sdev * pca$sdev
+p = v / sum(v) * 100
+names(p) = paste0("PC", 1:length(p))
 
-
+pc_max = length(p)
+cols = 1
+layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
+barplot(p[1:pc_max], main="% of expl. var.", las=2)
+i=1
+for (i in 1:6) {
+  j=i+1
+  plot(pca$x[,i], pca$x[,j], xlab=paste0("PC", i, "(", signif(p[i], 3), "%)"), ylab=paste0("PC", j, "(", signif(p[j], 3), "%)"), col=adjustcolor(cols, alpha.f=0.3), pch=16)
+}
+# plot.new()
+# legend("topright", levels(s$exp_grp$tissue), pch=16, col=1:length(levels(s$exp_grp$tissue)))
 ```
 # Visualisations of the top methods
 
