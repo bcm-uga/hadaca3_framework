@@ -371,7 +371,7 @@ df_pca_encoded <- dummy_cols(df_pca, select_columns = filtered_functions, remove
 
 ```{r Run PCA}
 # Run PCA on all features (excluding score_aggreg)
-pca_result <- prcomp(df_pca_encoded[, !colnames(df_pca_encoded) %in% "score_aggreg"], center = TRUE, scale. = TRUE)
+pca_result <- prcom(df_pca_encoded[, !colnames(df_pca_encoded) %in% "score_aggreg"], center = TRUE, scale. = TRUE)
 
 # View explained variance
 summary(pca_result)
@@ -425,6 +425,11 @@ if (length(meaningful_pcs) == 0) {
 }
 ```
 
+
+```{r pca}
+
+
+```
 # Visualisations of the top methods
 
 ## top 5 best methods
