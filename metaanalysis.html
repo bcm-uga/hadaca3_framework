@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="" />
+
+<meta name="date" content="2025-07-29" />
+
+<title>HADACA3 Framework - Generate data for data challenge hadaca</title>
+
+<script src="08_metaanalysis_files/header-attrs-2.29/header-attrs.js"></script>
+<script src="08_metaanalysis_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="08_metaanalysis_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="08_metaanalysis_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="08_metaanalysis_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="08_metaanalysis_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="08_metaanalysis_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="08_metaanalysis_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="08_metaanalysis_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="08_metaanalysis_files/navigation-1.1/tabsets.js"></script>
+<link href="08_metaanalysis_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="08_metaanalysis_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">HADACA3 Framework - Generate data for data
+challenge hadaca</h1>
+<h3 class="subtitle">Meta analysis</h3>
+<h4 class="author"></h4>
+<h4 class="date">2025-07-29</h4>
+
+</div>
+
+
+<div id="aggregated-and-atomic-scores-per-method" class="section level1"
+number="1">
+<h1><span class="header-section-number">1</span> Aggregated and atomic
+scores per method</h1>
+<pre class="r"><code>
+if(!exists(&quot;results_li&quot;)){
+  print(&quot;reading reulsts li csv&quot;)
+    all_functions_li &lt;- c(
+    &#39;preprocessing_mixRNA&#39;, &#39;feature_selection_mixRNA&#39;,
+    &#39;preprocessing_RNA&#39;, &#39;feature_selection_RNA&#39;,
+    &#39;preprocessing_scRNA&#39;, &#39;feature_selection_scRNA&#39;, &#39;deconvolution_rna&#39;,
+    &#39;preprocessing_mixMET&#39;, &#39;feature_selection_mixMET&#39;,
+    &#39;preprocessing_MET&#39;, &#39;feature_selection_MET&#39;, &#39;deconvolution_met&#39;,
+    &#39;late_integration&#39;
+  )
+  results_li = read.csv(file = gzfile(&quot;results_li.csv.gz&quot;))
+  results_li[all_functions_li] &lt;- lapply(results_li[all_functions_li], as.factor)
+
+}
+if(!exists(&quot;results_ei&quot;)){
+  all_functions_ei &lt;- c(
+    &#39;preprocessing_mixRNA&#39;, &#39;feature_selection_mixRNA&#39;,
+    &#39;preprocessing_RNA&#39;, &#39;feature_selection_RNA&#39;,
+    &#39;preprocessing_scRNA&#39;, &#39;feature_selection_scRNA&#39;,
+    &#39;preprocessing_mixMET&#39;, &#39;feature_selection_mixMET&#39;,
+    &#39;preprocessing_MET&#39;, &#39;feature_selection_MET&#39;,
+    &#39;early_integration&#39;, &#39;deconvolution&#39;
+  )
+  print(&quot;reading reulsts ei csv&quot;)
+  results_ei = read.csv(file = gzfile(&quot;results_ei.csv.gz&quot;))
+
+  if(length(results_ei)&gt;1 ){
+    results_ei[all_functions_ei] &lt;- lapply(results_ei[all_functions_ei], as.factor)
+
+  }
+
+}
+</code></pre>
+</div>
+<div id="nico-test-visu-gpt" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Nico test visu
+(GPT…)</h1>
+<pre class="r"><code>multi_level_cols &lt;- sapply(results_li[all_functions_li], function(x) nlevels(x) &gt; 1)
+filtered_functions &lt;- all_functions_li[multi_level_cols]
+dropped_cols &lt;- all_functions_li[!multi_level_cols]
+cat(&quot;Dropped columns (only 1 level):&quot;, paste(dropped_cols, collapse = &quot;, &quot;), &quot;\n&quot;)
+#&gt; Dropped columns (only 1 level):</code></pre>
+<pre class="r"><code>
+
+# Now run the model
+model &lt;- lm(score_aggreg ~ ., data = results_li[, c(filtered_functions, &quot;score_aggreg&quot;)])
+summary(model)
+#&gt; 
+#&gt; Call:
+#&gt; lm(formula = score_aggreg ~ ., data = results_li[, c(filtered_functions, 
+#&gt;     &quot;score_aggreg&quot;)])
+#&gt; 
+#&gt; Residuals:
+#&gt;      Min       1Q   Median       3Q      Max 
+#&gt; -0.53087 -0.04254  0.00356  0.04958  0.42686 
+#&gt; 
+#&gt; Coefficients: (22 not defined because of singularities)
+#&gt;                                              Estimate Std. Error t value
+#&gt; (Intercept)                                 6.546e-01  1.151e-03 568.673
+#&gt; preprocessing_mixRNAppID                   -2.539e-02  5.743e-04 -44.201
+#&gt; preprocessing_mixRNAScale                  -6.536e-03  5.743e-04 -11.381
+#&gt; preprocessing_mixRNACPM                    -6.343e-03  5.743e-04 -11.044
+#&gt; preprocessing_mixRNAnopp                    2.760e-02  6.558e-03   4.209
+#&gt; feature_selection_mixRNAfsID                1.258e-03  9.948e-04   1.265
+#&gt; feature_selection_mixRNAscSPLSDA           -3.294e-02  7.034e-04 -46.832
+#&gt; feature_selection_mixRNAnofs                       NA         NA      NA
+#&gt; preprocessing_RNAppID                              NA         NA      NA
+#&gt; preprocessing_RNAScale                             NA         NA      NA
+#&gt; preprocessing_RNACPM                               NA         NA      NA
+#&gt; preprocessing_RNAnopp                              NA         NA      NA
+#&gt; feature_selection_RNAfsID                          NA         NA      NA
+#&gt; feature_selection_RNAscSPLSDA                      NA         NA      NA
+#&gt; feature_selection_RNAnofs                          NA         NA      NA
+#&gt; preprocessing_scRNAscCCAintegration         3.253e-03  9.948e-04   3.270
+#&gt; preprocessing_scRNAsccluster                3.253e-03  9.305e-04   3.496
+#&gt; preprocessing_scRNAsc_binarypseudobulk_log  1.853e-02  9.948e-04  18.624
+#&gt; preprocessing_scRNACPM                     -6.179e-18  9.948e-04   0.000
+#&gt; preprocessing_scRNALogNorm                 -4.316e-18  9.948e-04   0.000
+#&gt; preprocessing_scRNAScale                   -4.926e-18  9.948e-04   0.000
+#&gt; preprocessing_scRNAppID                    -4.440e-18  9.948e-04   0.000
+#&gt; preprocessing_scRNAscScale                         NA         NA      NA
+#&gt; preprocessing_scRNAnopp                            NA         NA      NA
+#&gt; feature_selection_scRNAscSPLSDA             3.097e-18  7.034e-04   0.000
+#&gt; feature_selection_scRNAfsID                        NA         NA      NA
+#&gt; feature_selection_scRNAnofs                        NA         NA      NA
+#&gt; deconvolution_rnaRLR                        4.862e-02  7.598e-04  63.990
+#&gt; deconvolution_rnaRLRnnls                   -4.363e-03  7.598e-04  -5.742
+#&gt; deconvolution_rnaepic                       6.462e-03  7.598e-04   8.505
+#&gt; deconvolution_rnaRLRpoisson                 6.038e-02  7.598e-04  79.467
+#&gt; deconvolution_rnannls                      -9.064e-03  7.598e-04 -11.930
+#&gt; deconvolution_rnannlslargeref              -6.391e-02  7.598e-04 -84.120
+#&gt; deconvolution_rnanode                              NA         NA      NA
+#&gt; preprocessing_mixMETScale                  -9.697e-03  5.775e-04 -16.792
+#&gt; preprocessing_mixMETnormalize              -9.697e-03  5.775e-04 -16.792
+#&gt; preprocessing_mixMETLogNorm                -1.294e-02  5.775e-04 -22.414
+#&gt; preprocessing_mixMETnopp                   -1.226e-01  2.001e-03 -61.264
+#&gt; feature_selection_mixMETnofs                       NA         NA      NA
+#&gt; preprocessing_METScale                             NA         NA      NA
+#&gt; preprocessing_METnormalize                         NA         NA      NA
+#&gt; preprocessing_METLogNorm                           NA         NA      NA
+#&gt; preprocessing_METnopp                              NA         NA      NA
+#&gt; feature_selection_METnofs                          NA         NA      NA
+#&gt; deconvolution_metRLRnnls                   -4.510e-04  7.639e-04  -0.590
+#&gt; deconvolution_metnnls                      -4.510e-04  7.639e-04  -0.590
+#&gt; deconvolution_metnnlslargeref              -4.510e-04  7.639e-04  -0.590
+#&gt; deconvolution_metRLR                        2.229e-02  7.639e-04  29.181
+#&gt; deconvolution_metRLRpoisson                 1.860e-02  7.639e-04  24.352
+#&gt; deconvolution_metepic                      -2.162e-02  7.639e-04 -28.305
+#&gt; deconvolution_metnode                              NA         NA      NA
+#&gt; late_integrationlimean                     -6.239e-09  5.003e-04   0.000
+#&gt; late_integrationlimeanRMSE                  2.229e-02  5.003e-04  44.551
+#&gt; late_integrationOnlyRna                            NA         NA      NA
+#&gt; late_integrationOnlyMet                            NA         NA      NA
+#&gt;                                            Pr(&gt;|t|)    
+#&gt; (Intercept)                                 &lt; 2e-16 ***
+#&gt; preprocessing_mixRNAppID                    &lt; 2e-16 ***
+#&gt; preprocessing_mixRNAScale                   &lt; 2e-16 ***
+#&gt; preprocessing_mixRNACPM                     &lt; 2e-16 ***
+#&gt; preprocessing_mixRNAnopp                   2.57e-05 ***
+#&gt; feature_selection_mixRNAfsID               0.205954    
+#&gt; feature_selection_mixRNAscSPLSDA            &lt; 2e-16 ***
+#&gt; feature_selection_mixRNAnofs                     NA    
+#&gt; preprocessing_RNAppID                            NA    
+#&gt; preprocessing_RNAScale                           NA    
+#&gt; preprocessing_RNACPM                             NA    
+#&gt; preprocessing_RNAnopp                            NA    
+#&gt; feature_selection_RNAfsID                        NA    
+#&gt; feature_selection_RNAscSPLSDA                    NA    
+#&gt; feature_selection_RNAnofs                        NA    
+#&gt; preprocessing_scRNAscCCAintegration        0.001074 ** 
+#&gt; preprocessing_scRNAsccluster               0.000472 ***
+#&gt; preprocessing_scRNAsc_binarypseudobulk_log  &lt; 2e-16 ***
+#&gt; preprocessing_scRNACPM                     1.000000    
+#&gt; preprocessing_scRNALogNorm                 1.000000    
+#&gt; preprocessing_scRNAScale                   1.000000    
+#&gt; preprocessing_scRNAppID                    1.000000    
+#&gt; preprocessing_scRNAscScale                       NA    
+#&gt; preprocessing_scRNAnopp                          NA    
+#&gt; feature_selection_scRNAscSPLSDA            1.000000    
+#&gt; feature_selection_scRNAfsID                      NA    
+#&gt; feature_selection_scRNAnofs                      NA    
+#&gt; deconvolution_rnaRLR                        &lt; 2e-16 ***
+#&gt; deconvolution_rnaRLRnnls                   9.37e-09 ***
+#&gt; deconvolution_rnaepic                       &lt; 2e-16 ***
+#&gt; deconvolution_rnaRLRpoisson                 &lt; 2e-16 ***
+#&gt; deconvolution_rnannls                       &lt; 2e-16 ***
+#&gt; deconvolution_rnannlslargeref               &lt; 2e-16 ***
+#&gt; deconvolution_rnanode                            NA    
+#&gt; preprocessing_mixMETScale                   &lt; 2e-16 ***
+#&gt; preprocessing_mixMETnormalize               &lt; 2e-16 ***
+#&gt; preprocessing_mixMETLogNorm                 &lt; 2e-16 ***
+#&gt; preprocessing_mixMETnopp                    &lt; 2e-16 ***
+#&gt; feature_selection_mixMETnofs                     NA    
+#&gt; preprocessing_METScale                           NA    
+#&gt; preprocessing_METnormalize                       NA    
+#&gt; preprocessing_METLogNorm                         NA    
+#&gt; preprocessing_METnopp                            NA    
+#&gt; feature_selection_METnofs                        NA    
+#&gt; deconvolution_metRLRnnls                   0.554915    
+#&gt; deconvolution_metnnls                      0.554915    
+#&gt; deconvolution_metnnlslargeref              0.554915    
+#&gt; deconvolution_metRLR                        &lt; 2e-16 ***
+#&gt; deconvolution_metRLRpoisson                 &lt; 2e-16 ***
+#&gt; deconvolution_metepic                       &lt; 2e-16 ***
+#&gt; deconvolution_metnode                            NA    
+#&gt; late_integrationlimean                     0.999990    
+#&gt; late_integrationlimeanRMSE                  &lt; 2e-16 ***
+#&gt; late_integrationOnlyRna                          NA    
+#&gt; late_integrationOnlyMet                          NA    
+#&gt; ---
+#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+#&gt; 
+#&gt; Residual standard error: 0.07673 on 142907 degrees of freedom
+#&gt; Multiple R-squared:  0.2709, Adjusted R-squared:  0.2708 
+#&gt; F-statistic:  1660 on 32 and 142907 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>anova_results &lt;- anova(model)
+anova_results &lt;- anova_results[order(-anova_results$`Sum Sq`), ]
+print(anova_results)
+#&gt; Analysis of Variance Table
+#&gt; 
+#&gt; Response: score_aggreg
+#&gt;                              Df Sum Sq Mean Sq  F value Pr(&gt;F)    
+#&gt; Residuals                142907 841.44   0.006                    
+#&gt; deconvolution_rna             6 204.60  34.099 5791.293 &lt;2e-16 ***
+#&gt; preprocessing_mixMET          4  29.06   7.266 1234.049 &lt;2e-16 ***
+#&gt; deconvolution_met             6  25.53   4.255  722.707 &lt;2e-16 ***
+#&gt; feature_selection_mixRNA      2  22.37  11.183 1899.310 &lt;2e-16 ***
+#&gt; late_integration              2  15.58   7.791 1323.201 &lt;2e-16 ***
+#&gt; preprocessing_mixRNA          4  13.01   3.252  552.332 &lt;2e-16 ***
+#&gt; preprocessing_scRNA           7   2.56   0.365   62.066 &lt;2e-16 ***
+#&gt; feature_selection_scRNA       1   0.00   0.000    0.000      1    
+#&gt; ---
+#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Get coefficients sorted by value
+coefs &lt;- coef(model)
+coefs &lt;- coefs[!grepl(&quot;(Intercept)&quot;, names(coefs))]
+coefs_sorted &lt;- sort(coefs, decreasing = TRUE)
+
+# Top positive and negative functions
+head(coefs_sorted, 10)  # most positive
+#&gt;                deconvolution_rnaRLRpoisson 
+#&gt;                                0.060376812 
+#&gt;                       deconvolution_rnaRLR 
+#&gt;                                0.048618243 
+#&gt;                   preprocessing_mixRNAnopp 
+#&gt;                                0.027601578 
+#&gt;                       deconvolution_metRLR 
+#&gt;                                0.022291250 
+#&gt;                 late_integrationlimeanRMSE 
+#&gt;                                0.022290777 
+#&gt;                deconvolution_metRLRpoisson 
+#&gt;                                0.018602474 
+#&gt; preprocessing_scRNAsc_binarypseudobulk_log 
+#&gt;                                0.018526968 
+#&gt;                      deconvolution_rnaepic 
+#&gt;                                0.006461853 
+#&gt;               preprocessing_scRNAsccluster 
+#&gt;                                0.003253401 
+#&gt;        preprocessing_scRNAscCCAintegration 
+#&gt;                                0.003253401
+tail(coefs_sorted, 10)  # most negative
+#&gt;        preprocessing_mixRNAScale            deconvolution_rnannls 
+#&gt;                     -0.006536359                     -0.009064465 
+#&gt;        preprocessing_mixMETScale    preprocessing_mixMETnormalize 
+#&gt;                     -0.009696672                     -0.009696672 
+#&gt;      preprocessing_mixMETLogNorm            deconvolution_metepic 
+#&gt;                     -0.012943282                     -0.021622150 
+#&gt;         preprocessing_mixRNAppID feature_selection_mixRNAscSPLSDA 
+#&gt;                     -0.025386243                     -0.032942080 
+#&gt;    deconvolution_rnannlslargeref         preprocessing_mixMETnopp 
+#&gt;                     -0.063912036                     -0.122606269</code></pre>
+<pre class="r"><code># Load required package
+library(fastDummies)
+
+# Use only multi-level function columns (from before)
+df_pca &lt;- results_li[, c(filtered_functions, &quot;score_aggreg&quot;)]
+
+# One-hot encode the factor columns
+df_pca_encoded &lt;- dummy_cols(df_pca, select_columns = filtered_functions, remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+</code></pre>
+<pre class="r"><code># Run PCA on all features (excluding score_aggreg)
+pca_result &lt;- prcomp(df_pca_encoded[, !colnames(df_pca_encoded) %in% &quot;score_aggreg&quot;], center = TRUE, scale. = TRUE)
+
+# View explained variance
+summary(pca_result)
+#&gt; Importance of components:
+#&gt;                           PC1    PC2     PC3     PC4     PC5     PC6     PC7
+#&gt; Standard deviation     2.8301 2.4599 2.23142 1.63273 1.63273 1.62980 1.62980
+#&gt; Proportion of Variance 0.1483 0.1120 0.09221 0.04937 0.04937 0.04919 0.04919
+#&gt; Cumulative Proportion  0.1483 0.2604 0.35258 0.40195 0.45132 0.50051 0.54970
+#&gt;                            PC8    PC9   PC10   PC11   PC12   PC13   PC14
+#&gt; Standard deviation     1.44262 1.2209 1.0800 1.0800 1.0800 1.0800 1.0800
+#&gt; Proportion of Variance 0.03854 0.0276 0.0216 0.0216 0.0216 0.0216 0.0216
+#&gt; Cumulative Proportion  0.58824 0.6158 0.6374 0.6590 0.6806 0.7022 0.7238
+#&gt;                           PC15    PC16    PC17    PC18    PC19   PC20   PC21
+#&gt; Standard deviation     1.07907 1.07907 1.07907 1.07907 1.07907 1.0444 1.0444
+#&gt; Proportion of Variance 0.02156 0.02156 0.02156 0.02156 0.02156 0.0202 0.0202
+#&gt; Cumulative Proportion  0.74541 0.76697 0.78853 0.81010 0.83166 0.8519 0.8721
+#&gt;                          PC22   PC23   PC24    PC25    PC26    PC27    PC28
+#&gt; Standard deviation     1.0444 1.0444 1.0444 0.92890 0.81625 0.81314 0.70407
+#&gt; Proportion of Variance 0.0202 0.0202 0.0202 0.01598 0.01234 0.01224 0.00918
+#&gt; Cumulative Proportion  0.8923 0.9125 0.9327 0.94864 0.96098 0.97322 0.98240
+#&gt;                           PC29    PC30    PC31    PC32      PC33      PC34
+#&gt; Standard deviation     0.68807 0.40819 0.40744 0.37982 4.854e-15 4.341e-15
+#&gt; Proportion of Variance 0.00877 0.00309 0.00307 0.00267 0.000e+00 0.000e+00
+#&gt; Cumulative Proportion  0.99117 0.99425 0.99733 1.00000 1.000e+00 1.000e+00
+#&gt;                             PC35      PC36      PC37      PC38      PC39
+#&gt; Standard deviation     3.948e-15 3.035e-15 9.559e-16 8.283e-16 3.638e-16
+#&gt; Proportion of Variance 0.000e+00 0.000e+00 0.000e+00 0.000e+00 0.000e+00
+#&gt; Cumulative Proportion  1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00
+#&gt;                             PC40      PC41      PC42      PC43      PC44
+#&gt; Standard deviation     2.533e-16 2.457e-16 2.457e-16 2.457e-16 2.457e-16
+#&gt; Proportion of Variance 0.000e+00 0.000e+00 0.000e+00 0.000e+00 0.000e+00
+#&gt; Cumulative Proportion  1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00
+#&gt;                             PC45      PC46      PC47      PC48      PC49
+#&gt; Standard deviation     2.457e-16 2.457e-16 2.457e-16 2.457e-16 2.457e-16
+#&gt; Proportion of Variance 0.000e+00 0.000e+00 0.000e+00 0.000e+00 0.000e+00
+#&gt; Cumulative Proportion  1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00
+#&gt;                             PC50      PC51      PC52      PC53      PC54
+#&gt; Standard deviation     2.457e-16 2.457e-16 2.457e-16 2.457e-16 8.894e-17
+#&gt; Proportion of Variance 0.000e+00 0.000e+00 0.000e+00 0.000e+00 0.000e+00
+#&gt; Cumulative Proportion  1.000e+00 1.000e+00 1.000e+00 1.000e+00 1.000e+00
+
+# Scree plot
+plot(pca_result, type = &quot;l&quot;, main = &quot;Scree Plot&quot;)</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/Run%20PCA-1.png" width="900" /></p>
+<pre class="r"><code># Use ggplot2 for PCA biplot with color = score_aggreg
+library(ggplot2)
+
+# Extract PCA coordinates
+pca_data &lt;- as.data.frame(pca_result$x)
+pca_data$score_aggreg &lt;- df_pca_encoded$score_aggreg
+
+# ggplot(pca_data, aes(x = PC1, y = PC2, color = score_aggreg)) +
+#   geom_point(size = 3) +
+#   scale_color_gradient(low = &quot;blue&quot;, high = &quot;red&quot;) +
+#   theme_minimal() +
+#   labs(title = &quot;PCA of Function Combinations Colored by score_aggreg&quot;)
+
+  ggplot(pca_data, aes(x = PC1, y = score_aggreg)) +
+  geom_point(size = 3, color = &quot;steelblue&quot;) +
+  theme_minimal() +
+  labs(title = &quot;PC1 vs score_aggreg&quot;)
+</code></pre>
+<pre class="r"><code># Get the proportion of variance explained
+explained_var &lt;- summary(pca_result)$importance[&quot;Proportion of Variance&quot;, ]
+
+meaningful_pcs &lt;- names(explained_var[explained_var &gt; 0])
+
+n_pcs_to_show &lt;- min(length(meaningful_pcs), 3)
+meaningful_pcs &lt;- meaningful_pcs[1:n_pcs_to_show]
+
+
+for (pc in meaningful_pcs) {
+  cat(&quot;\nTop contributing variables to&quot;, pc, &quot;:\n&quot;)
+  loadings &lt;- sort(abs(pca_result$rotation[, pc]), decreasing = TRUE)
+  print(head(loadings, 10))
+}
+#&gt; 
+#&gt; Top contributing variables to PC1 :
+#&gt;        preprocessing_RNA_nopp    feature_selection_RNA_nofs 
+#&gt;                     0.3532744                     0.3532744 
+#&gt;      preprocessing_scRNA_nopp  feature_selection_scRNA_nofs 
+#&gt;                     0.3532744                     0.3532744 
+#&gt;        deconvolution_rna_node feature_selection_mixRNA_nofs 
+#&gt;                     0.3532744                     0.3532744 
+#&gt;      late_integration_OnlyMet     preprocessing_mixRNA_nopp 
+#&gt;                     0.3532744                     0.3532744 
+#&gt;  feature_selection_scRNA_fsID    feature_selection_RNA_fsID 
+#&gt;                     0.0152800                     0.0152800 
+#&gt; 
+#&gt; Top contributing variables to PC2 :
+#&gt;      preprocessing_mixMET_nopp  feature_selection_mixMET_nofs 
+#&gt;                     0.40633984                     0.40633984 
+#&gt;         preprocessing_MET_nopp     feature_selection_MET_nofs 
+#&gt;                     0.40633984                     0.40633984 
+#&gt;         deconvolution_met_node       late_integration_OnlyRna 
+#&gt;                     0.40633984                     0.40633984 
+#&gt;        late_integration_limean    late_integration_limeanRMSE 
+#&gt;                     0.03393037                     0.03393037 
+#&gt;    preprocessing_MET_normalize preprocessing_mixMET_normalize 
+#&gt;                     0.02851307                     0.02851307 
+#&gt; 
+#&gt; Top contributing variables to PC3 :
+#&gt;        feature_selection_RNA_fsID      feature_selection_scRNA_fsID 
+#&gt;                         0.4147463                         0.4147463 
+#&gt;     feature_selection_mixRNA_fsID     preprocessing_scRNA_sccluster 
+#&gt;                         0.4147463                         0.3566051 
+#&gt; feature_selection_mixRNA_scSPLSDA    feature_selection_RNA_scSPLSDA 
+#&gt;                         0.2971756                         0.2971756 
+#&gt;  feature_selection_scRNA_scSPLSDA       preprocessing_scRNA_LogNorm 
+#&gt;                         0.2564685                         0.1480072 
+#&gt;           preprocessing_scRNA_CPM          preprocessing_scRNA_ppID 
+#&gt;                         0.1480072                         0.1480072
+
+if (length(meaningful_pcs) == 0) {
+  cat(&quot;No meaningful principal components found (explained variance is zero).&quot;)
+}</code></pre>
+</div>
+<div id="florents-pca" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Florent’s pca</h1>
+<pre class="r"><code># results_li = read.table(&quot;metaanalysis/results_li.csv&quot;, sep=&quot;,&quot;, header=TRUE)
+foo = sapply(colnames(results_li), function(k) {
+  print(paste0(k, &quot; &quot;, is.numeric(results_li[,k])))
+  is.numeric(results_li[,k])
+})
+#&gt; [1] &quot;dataset FALSE&quot;
+#&gt; [1] &quot;ref FALSE&quot;
+#&gt; [1] &quot;preprocessing_mixRNA FALSE&quot;
+#&gt; [1] &quot;feature_selection_mixRNA FALSE&quot;
+#&gt; [1] &quot;preprocessing_RNA FALSE&quot;
+#&gt; [1] &quot;feature_selection_RNA FALSE&quot;
+#&gt; [1] &quot;preprocessing_scRNA FALSE&quot;
+#&gt; [1] &quot;feature_selection_scRNA FALSE&quot;
+#&gt; [1] &quot;deconvolution_rna FALSE&quot;
+#&gt; [1] &quot;preprocessing_mixMET FALSE&quot;
+#&gt; [1] &quot;feature_selection_mixMET FALSE&quot;
+#&gt; [1] &quot;preprocessing_MET FALSE&quot;
+#&gt; [1] &quot;feature_selection_MET FALSE&quot;
+#&gt; [1] &quot;deconvolution_met FALSE&quot;
+#&gt; [1] &quot;late_integration FALSE&quot;
+#&gt; [1] &quot;aid TRUE&quot;
+#&gt; [1] &quot;aid_norm TRUE&quot;
+#&gt; [1] &quot;aitchison TRUE&quot;
+#&gt; [1] &quot;aitchison_norm TRUE&quot;
+#&gt; [1] &quot;jsd TRUE&quot;
+#&gt; [1] &quot;jsd_norm TRUE&quot;
+#&gt; [1] &quot;mae TRUE&quot;
+#&gt; [1] &quot;mae_norm TRUE&quot;
+#&gt; [1] &quot;pearson_col TRUE&quot;
+#&gt; [1] &quot;pearson_col_norm TRUE&quot;
+#&gt; [1] &quot;pearson_row TRUE&quot;
+#&gt; [1] &quot;pearson_row_norm TRUE&quot;
+#&gt; [1] &quot;pearson_tot TRUE&quot;
+#&gt; [1] &quot;pearson_tot_norm TRUE&quot;
+#&gt; [1] &quot;rmse TRUE&quot;
+#&gt; [1] &quot;rmse_norm TRUE&quot;
+#&gt; [1] &quot;score_aggreg TRUE&quot;
+#&gt; [1] &quot;sdid TRUE&quot;
+#&gt; [1] &quot;sdid_norm TRUE&quot;
+#&gt; [1] &quot;spearman_col TRUE&quot;
+#&gt; [1] &quot;spearman_col_norm TRUE&quot;
+#&gt; [1] &quot;spearman_row TRUE&quot;
+#&gt; [1] &quot;spearman_row_norm TRUE&quot;
+#&gt; [1] &quot;spearman_tot TRUE&quot;
+#&gt; [1] &quot;spearman_tot_norm TRUE&quot;
+keys = colnames(results_li)[foo]
+data = as.matrix(results_li[,keys])
+head(data)[,1:10]
+#&gt;                                                                                                                                                       aid
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       21.68641
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         21.68641
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     17.89965
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   21.35958
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     21.35958
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 21.23371
+#&gt;                                                                                                                                                   aid_norm
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       0.7590399
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         0.7590399
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     0.8011150
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   0.7626713
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     0.7626713
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 0.7640699
+#&gt;                                                                                                                                                  aitchison
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5        1.724379
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5          1.724379
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5      1.548359
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5    1.726266
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5      1.726266
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5  1.822228
+#&gt;                                                                                                                                                  aitchison_norm
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5            0.9143316
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5              0.9143316
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5          0.9230764
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5        0.9142379
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5          0.9142379
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5      0.9094704
+#&gt;                                                                                                                                                         jsd
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       0.04210104
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         0.04210104
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     0.02994039
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   0.04138249
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     0.04138249
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 0.04046977
+#&gt;                                                                                                                                                   jsd_norm
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       0.9303698
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         0.9303698
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     0.9504821
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   0.9315582
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     0.9315582
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 0.9330677
+#&gt;                                                                                                                                                         mae
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       0.07359081
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         0.07359081
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     0.06772128
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   0.07463829
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     0.07463829
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 0.08095504
+#&gt;                                                                                                                                                   mae_norm
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5       0.8072930
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5         0.8072930
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5     0.8226632
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5   0.8045501
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5     0.8045501
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5 0.7880089
+#&gt;                                                                                                                                                  pearson_col
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5         0.7008890
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5           0.7008890
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5       0.8582900
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5     0.7081583
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5       0.7081583
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5   0.7699148
+#&gt;                                                                                                                                                  pearson_col_norm
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_liCtSens.h5              0.8504445
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limean.h5                0.8504445
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLR_limeanRMSE.h5            0.9291450
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_liCtSens.h5          0.8540792
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limean.h5            0.8540792
+#&gt; score-li-insilicodirichletCopule1_ref_mixRNA_CPM_fsID_RNA_CPM_fsID_scRNA_CPM_fsID_RLR_mixMET_LogNorm_fsID_MET_LogNorm_fsID_RLRnnls_limeanRMSE.h5        0.8849574
+# remove NA
+table(apply(is.na(data), 2, sum))
+#&gt; 
+#&gt;     0 28588 57176 
+#&gt;     5    18     2
+data = data[,apply(!is.na(data), 2, all)]
+table(apply(is.na(data), 2, sum))
+#&gt; 
+#&gt; 0 
+#&gt; 5
+pca = prcomp(data, scale=TRUE)
+v = pca$sdev * pca$sdev
+p = v / sum(v) * 100
+names(p) = paste0(&quot;PC&quot;, 1:length(p))
+
+pc_max = length(p)
+cols = 1
+layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
+barplot(p[1:pc_max], main=&quot;% of expl. var.&quot;, las=2)
+# i=1
+n_pcs &lt;- min(6, ncol(pca$x) - 1)
+for (i in 1:n_pcs) {
+  j &lt;- i + 1
+  plot(
+    pca$x[, i], pca$x[, j],
+    xlab = paste0(&quot;PC&quot;, i, &quot; (&quot;, signif(p[i], 3), &quot;%)&quot;),
+    ylab = paste0(&quot;PC&quot;, j, &quot; (&quot;, signif(p[j], 3), &quot;%)&quot;),
+    col = adjustcolor(cols, alpha.f = 0.3), pch = 16
+  )
+}
+
+# plot.new()
+# legend(&quot;topright&quot;, levels(s$exp_grp$tissue), pch=16, col=1:length(levels(s$exp_grp$tissue)))</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/pca%20-1.png" width="900" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
