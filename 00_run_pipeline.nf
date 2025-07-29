@@ -1157,7 +1157,7 @@ process Metaanalysis {
     """
     RCODE="
     utils_script ='${utils}';
-    rmarkdown::render('${meta_script}');
+    rmarkdown::render('${meta_script}');"
     echo \$RCODE | Rscript -
     """  
     // file_dataset = '${file_dataset}';
@@ -1170,7 +1170,7 @@ process Metaanalysis {
     """
     RCODE="
     utils_script ='${utils}';
-    rmarkdown::render('${meta_script}');
+    rmarkdown::render('${meta_script}');"
     echo \$RCODE 
     touch 07_prep_metaanalysis.html
     touch 08_metaanalysis.html
