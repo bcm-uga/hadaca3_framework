@@ -1152,12 +1152,12 @@ process Metaanalysis {
     // score_files = strsplit(trimws('${input_score}'),' ') ; 
     // pred_files = strsplit(trimws('${pred_files}'),' ');
     // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
+    // #rmarkdown::render('${meta_script2}');"
     script:
     """
     RCODE="
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');
-    #rmarkdown::render('${meta_script2}');"
     echo \$RCODE | Rscript -
     """  
     // file_dataset = '${file_dataset}';
@@ -1165,12 +1165,12 @@ process Metaanalysis {
     // score_files = strsplit(trimws('${input_score}'),' ') ;
     // pred_files = strsplit(trimws('${pred_files}'),' ');
     // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
+    // #rmarkdown::render('${meta_script2}');"
     stub:
     """
     RCODE="
     utils_script ='${utils}';
     rmarkdown::render('${meta_script}');
-    #rmarkdown::render('${meta_script2}');"
     echo \$RCODE 
     touch 07_prep_metaanalysis.html
     touch 08_metaanalysis.html
