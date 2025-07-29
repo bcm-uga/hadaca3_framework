@@ -1,0 +1,230 @@
+---
+title: "HADACA3 Framework - Generate data for data challenge hadaca"
+subtitle: "Meta analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    self_contained: false
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+# Aggregated and atomic scores per method
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+```{r re_loading_pckgs, echo=FALSE, message=FALSE}
+library(yaml)
+library(DT)
+library(stringr)
+library(dplyr)
+# library(ggplot2)
+# theme_set(theme_light())
+library(plotly)
+library(fs)
+
+library(furrr)
+# library(utils)
+
+
+# okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# if(exists("utils_script")){
+#   source(utils_script)
+# }else{
+#   source("utils/data_processing.R")
+# }
+```
+
+```{r load table if they do not exist }
+
+if(!exists("results_li")){
+  print("reading reulsts li csv")
+    all_functions_li <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
+    'late_integration'
+  )
+  results_li = read.csv(file = gzfile("results_li.csv.gz"))
+  results_li[all_functions_li] <- lapply(results_li[all_functions_li], as.factor)
+
+}
+if(!exists("results_ei")){
+  all_functions_ei <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET',
+    'early_integration', 'deconvolution'
+  )
+  print("reading reulsts ei csv")
+  results_ei = read.csv(file = gzfile("results_ei.csv.gz"))
+
+  if(length(results_ei)>1 ){
+    results_ei[all_functions_ei] <- lapply(results_ei[all_functions_ei], as.factor)
+
+  }
+
+}
+
+
+
+```
+
+# Nico test visu (GPT...) 
+
+```{r prepare data}
+multi_level_cols <- sapply(results_li[all_functions_li], function(x) nlevels(x) > 1)
+filtered_functions <- all_functions_li[multi_level_cols]
+dropped_cols <- all_functions_li[!multi_level_cols]
+cat("Dropped columns (only 1 level):", paste(dropped_cols, collapse = ", "), "\n")
+
+```
+
+```{r lm model  }
+
+
+# Now run the model
+model <- lm(score_aggreg ~ ., data = results_li[, c(filtered_functions, "score_aggreg")])
+summary(model)
+
+
+
+```
+
+```{r anova}
+anova_results <- anova(model)
+anova_results <- anova_results[order(-anova_results$`Sum Sq`), ]
+print(anova_results)
+```
+
+```{r}
+# Get coefficients sorted by value
+coefs <- coef(model)
+coefs <- coefs[!grepl("(Intercept)", names(coefs))]
+coefs_sorted <- sort(coefs, decreasing = TRUE)
+
+# Top positive and negative functions
+head(coefs_sorted, 10)  # most positive
+tail(coefs_sorted, 10)  # most negative
+
+```
+
+
+```{r Convert function-type columns to dummy variables}
+# Load required package
+library(fastDummies)
+
+# Use only multi-level function columns (from before)
+df_pca <- results_li[, c(filtered_functions, "score_aggreg")]
+
+# One-hot encode the factor columns
+df_pca_encoded <- dummy_cols(df_pca, select_columns = filtered_functions, remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+
+```
+
+
+```{r Run PCA}
+# Run PCA on all features (excluding score_aggreg)
+pca_result <- prcomp(df_pca_encoded[, !colnames(df_pca_encoded) %in% "score_aggreg"], center = TRUE, scale. = TRUE)
+
+# View explained variance
+summary(pca_result)
+
+# Scree plot
+plot(pca_result, type = "l", main = "Scree Plot")
+
+```
+
+```{r Visualize PCA with Score Overlay , eval= FALSE}
+# Use ggplot2 for PCA biplot with color = score_aggreg
+library(ggplot2)
+
+# Extract PCA coordinates
+pca_data <- as.data.frame(pca_result$x)
+pca_data$score_aggreg <- df_pca_encoded$score_aggreg
+
+# ggplot(pca_data, aes(x = PC1, y = PC2, color = score_aggreg)) +
+#   geom_point(size = 3) +
+#   scale_color_gradient(low = "blue", high = "red") +
+#   theme_minimal() +
+#   labs(title = "PCA of Function Combinations Colored by score_aggreg")
+
+  ggplot(pca_data, aes(x = PC1, y = score_aggreg)) +
+  geom_point(size = 3, color = "steelblue") +
+  theme_minimal() +
+  labs(title = "PC1 vs score_aggreg")
+
+```
+
+
+
+```{r contributing components}
+# Get the proportion of variance explained
+explained_var <- summary(pca_result)$importance["Proportion of Variance", ]
+
+meaningful_pcs <- names(explained_var[explained_var > 0])
+
+n_pcs_to_show <- min(length(meaningful_pcs), 3)
+meaningful_pcs <- meaningful_pcs[1:n_pcs_to_show]
+
+
+for (pc in meaningful_pcs) {
+  cat("\nTop contributing variables to", pc, ":\n")
+  loadings <- sort(abs(pca_result$rotation[, pc]), decreasing = TRUE)
+  print(head(loadings, 10))
+}
+
+if (length(meaningful_pcs) == 0) {
+  cat("No meaningful principal components found (explained variance is zero).")
+}
+```
+
+# Florent's pca 
+
+```{r pca ,eval=TRUE}
+# results_li = read.table("metaanalysis/results_li.csv", sep=",", header=TRUE)
+foo = sapply(colnames(results_li), function(k) {
+  print(paste0(k, " ", is.numeric(results_li[,k])))
+  is.numeric(results_li[,k])
+})
+keys = colnames(results_li)[foo]
+data = as.matrix(results_li[,keys])
+head(data)[,1:10]
+# remove NA
+table(apply(is.na(data), 2, sum))
+data = data[,apply(!is.na(data), 2, all)]
+table(apply(is.na(data), 2, sum))
+pca = prcomp(data, scale=TRUE)
+v = pca$sdev * pca$sdev
+p = v / sum(v) * 100
+names(p) = paste0("PC", 1:length(p))
+
+pc_max = length(p)
+cols = 1
+layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
+barplot(p[1:pc_max], main="% of expl. var.", las=2)
+# i=1
+n_pcs <- min(6, ncol(pca$x) - 1)
+for (i in 1:n_pcs) {
+  j <- i + 1
+  plot(
+    pca$x[, i], pca$x[, j],
+    xlab = paste0("PC", i, " (", signif(p[i], 3), "%)"),
+    ylab = paste0("PC", j, " (", signif(p[j], 3), "%)"),
+    col = adjustcolor(cols, alpha.f = 0.3), pch = 16
+  )
+}
+
+# plot.new()
+# legend("topright", levels(s$exp_grp$tissue), pch=16, col=1:length(levels(s$exp_grp$tissue)))
+```

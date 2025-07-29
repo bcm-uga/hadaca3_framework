@@ -38,7 +38,8 @@ params.wrapper = [
     script_05_early_deco : '05_early_decovolution.R',
     script_05 : '05_late_integration_A.R',
     script_06 : '06_scoring.R',
-    script_07 : '07_metaanalysis.Rmd'
+    script_07 : '07_prep_metaanalysis.Rmd',
+    script_08 : '08_metaanalysis.Rmd'
 ]
 
 params.utils = "utils/data_processing.R"
@@ -714,7 +715,7 @@ workflow {
     Channel_groundtruth_files = Channel.fromPath(list_groundtruth_path).collect(flat: false) 
     
     input_meta = l_meta.collect(flat: false).concat(l_path.collect(flat: false).concat( pred_files.collect(flat:false)).concat(Channel_groundtruth_files)).collect(flat: false)
-    .combine(  Channel.of(tuple(file(params.wrapper.script_07),file(params.utils))))
+    .combine(  Channel.of(tuple(file(params.wrapper.script_07),file(params.wrapper.script_08),file(params.utils))))
 
 
     // input_meta.count().view()
@@ -1131,6 +1132,7 @@ process Metaanalysis {
         path(pred_files),
         path(groundtruth_files),
         path(meta_script), 
+        path(meta_script2),
         path(utils), 
         // path(file_dataset)
     )
@@ -1139,8 +1141,10 @@ process Metaanalysis {
     // path(utils))
 
     output:
-    path("07_metaanalysis.html")
-    path("07_metaanalysis_files")
+    path("07_prep_metaanalysis.html")
+    path("07_prep_metaanalysis_files")
+    path("08_metaanalysis.html")
+    path("08_metaanalysis_files")
     path("results_li.csv.gz")
     path("results_ei.csv.gz")
 
@@ -1152,7 +1156,8 @@ process Metaanalysis {
     """
     RCODE="
     utils_script ='${utils}';
-    rmarkdown::render('${meta_script}');"
+    rmarkdown::render('${meta_script}');
+    #rmarkdown::render('${meta_script2}');"
     echo \$RCODE | Rscript -
     """  
     // file_dataset = '${file_dataset}';
@@ -1164,9 +1169,11 @@ process Metaanalysis {
     """
     RCODE="
     utils_script ='${utils}';
-    rmarkdown::render('${meta_script}');"
+    rmarkdown::render('${meta_script}');
+    #rmarkdown::render('${meta_script2}');"
     echo \$RCODE 
-    touch 07_metaanalysis.html
+    touch 07_prep_metaanalysis.html
+    touch 08_metaanalysis.html
     mkdir -p 07_metaanalysis_files
     touch results_li.csv.gz
     touch results_ei.csv.gz

@@ -59,7 +59,8 @@ bar = sapply(names(foo)[foo == "char"], function(k) {
   }
 })
 facts = unlist(bar)
-score = "spearman_tot"
+# score = "spearman_tot"
+score = "score_aggreg"
 f_lo = formula(paste0(score, "~1"))
 f_up = formula(paste0(score, "~."))
 m_lo = lm(f_lo, data=df[,c(facts, score)])
@@ -72,9 +73,14 @@ life.lm = step(m_lo, method="both", scope=list(upper=m_up,lower=m_lo))
 #     feature_selection_mixMET
 
 
-boxplot(formula(paste0(score, "~late_integration")), df[,c(facts, score)])
+# boxplot(formula(paste0(score, "~late_integration")), df[,c(facts, score)])
 
-boxplot(formula(paste0(score, "~late_integration + deconvolution_rna")), df[,c(facts, score)], las=2)
+# boxplot(formula(paste0(score, "~late_integration + deconvolution_rna")), df[,c(facts, score)], las=2)
+
+
+boxplot(formula(paste0(score, "~feature_selection_scRNA")), df[,c(facts, score)])
+
+boxplot(formula(paste0(score, "~feature_selection_scRNA + preprocessing_scRNA")), df[,c(facts, score)], las=2)
 
 ```
 

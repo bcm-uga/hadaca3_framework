@@ -1,0 +1,506 @@
+---
+title: "HADACA3 Framework - Generate data for data challenge hadaca"
+subtitle: "Meta analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    self_contained: false
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+# Aggregated and atomic scores per method
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+```{r loading_pckgs, echo=FALSE, message=FALSE}
+library(yaml)
+library(DT)
+library(stringr)
+library(dplyr)
+# library(ggplot2)
+# theme_set(theme_light())
+library(plotly)
+library(fs)
+
+library(furrr)
+# library(utils)
+
+
+# okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+source(utils_script)
+# source("utils/data_processing.R")
+```
+
+
+# read 
+```{r Late_integration_pipeline improved}
+
+
+
+
+list_wd <- strsplit(getwd(), '/')[[1]]
+if (list_wd[length(list_wd)] == 'hadaca3_framework') {
+  score_files <- list.files(path = "./output/scores/", full.names = TRUE)
+} else {
+  # score_files <- list.files(pattern = 'score-li*', full.names = TRUE)
+  # score_files <- system("find . -maxdepth 1 -type f -name 'score-li*'", intern = TRUE)
+  score_files <- dir_ls(".", regexp = "score-li.*")
+}
+
+plan(multisession,workers=25)
+# plan(sequential)
+
+
+process_file <- function(score_file) {
+  base_name <- basename(score_file)
+  components <- str_match(base_name, 
+    "score-li-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:16]
+
+  # If file name doesn't match expected pattern, skip
+  if (any(is.na(components))) return(NULL)
+
+  scores <- tryCatch({
+    s <- read_hdf5(score_file)
+    gc()
+    s
+  }, error = function(e) {
+    message("Error reading file: ", score_file)
+    message(e)
+    NULL
+  })
+
+  # scores <- tryCatch({
+  #   read_hdf5(score_file)
+  # }, error = function(e) return(NULL))
+
+  if (is.null(scores)) return(NULL)
+
+  cbind(
+    data.frame(
+      dataset = components[1],
+      ref = components[2],
+      preprocessing_mixRNA = components[3],
+      feature_selection_mixRNA = components[4],
+      preprocessing_RNA = components[5],
+      feature_selection_RNA = components[6],
+      preprocessing_scRNA = components[7],
+      feature_selection_scRNA = components[8],
+      deconvolution_rna = components[9],
+      preprocessing_mixMET = components[10],
+      feature_selection_mixMET = components[11],
+      preprocessing_MET = components[12],
+      feature_selection_MET = components[13],
+      deconvolution_met = components[14],
+      late_integration = components[15],
+      stringsAsFactors = FALSE
+    ),
+    scores
+  )
+}
+
+# Process files in parallel
+# results_list <- lapply(score_files, process_file)
+
+results_list <- future_map(score_files, function(f) {
+  tryCatch(process_file(f), error = function(e) NULL)
+})
+
+
+
+# bind rows
+results_li <- do.call(rbind, results_list)
+
+
+results_li %>%
+  # filter(dc==2) %>%
+  group_by(late_integration) %>%
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore))
+
+
+results_li_arrange = results_li %>%
+  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
+           preprocessing_RNA, feature_selection_RNA, 
+           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
+           preprocessing_mixMET,feature_selection_mixMET, 
+           preprocessing_MET, feature_selection_MET, deconvolution_met, 
+           late_integration, .groups = "keep") %>% 
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore)) 
+
+
+
+# Optional: reorder factors
+all_data_used <- c('dataset', 'ref')
+for (data_used in all_data_used) {
+  results_li[[data_used]] <- factor(results_li[[data_used]], levels = unique(results_li[[data_used]]))
+}
+
+# Optional: order other factors based on performance on 'invitro1'
+if ("invitro1" %in% results_li$dataset) {
+  all_functions_li <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
+    'late_integration'
+  )
+  for (fun in all_functions_li) {
+    results_li[[fun]] <- factor(results_li[[fun]],
+      levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset == 'invitro1'], decreasing = TRUE)]))
+  }
+}
+
+# Write compressed output
+write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
+
+index_aggreg <- which(names(results_li) == "score_aggreg")
+
+```
+
+
+
+```{r display LI table,echo=FALSE,eval=TRUE }
+datatable(
+  results_li[, c(1:length(all_functions_li)+2, index_aggreg)],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
+
+
+
+# Early integration_table 
+```{r Early_integration pipeline,echo=FALSE,eval=TRUE}
+
+
+list_wd <- strsplit(getwd(), '/')[[1]]
+if (list_wd[length(list_wd)] == 'hadaca3_framework') {
+  score_files_ei <- list.files(path = "./output/scores/", full.names = TRUE)
+} else {
+  # score_files_ei <- list.files(pattern = 'score-ei*', full.names = TRUE)
+  score_files_ei <- dir_ls(".", regexp = "score-ei*")
+
+  # score_files_ei <- system("find . -maxdepth 1 -type f -name 'score-ei*'", intern = TRUE)
+
+}
+
+
+# plan(multisession)
+
+
+process_file_ei <- function(score_file) {
+  base_name <- basename(score_file)
+
+  # Extract metadata from file name
+  components <- str_match(base_name, 
+    "score-ei-(.+)_(.+)_mixRNA_(.+)_(.+)_RNA_(.+)_(.+)_scRNA_(.+)_(.+)_mixMET_(.+)_(.+)_MET_(.+)_(.+)_(.+)_(.+).h5")[2:15]
+
+  # Skip file if regex fails
+  if (any(is.na(components))) return(NULL)
+
+  # Read HDF5 file safely
+  scores <- tryCatch({
+    read_hdf5(score_file)
+  }, error = function(e) return(NULL))
+
+  if (is.null(scores)) return(NULL)
+
+  # Combine metadata and scores
+  cbind(
+    data.frame(
+      dataset = components[1],
+      ref = components[2],
+      preprocessing_mixRNA = components[3],
+      feature_selection_mixRNA = components[4],
+      preprocessing_RNA = components[5],
+      feature_selection_RNA = components[6],
+      preprocessing_scRNA = components[7],
+      feature_selection_scRNA = components[8],
+      preprocessing_mixMET = components[9],
+      feature_selection_mixMET = components[10],
+      preprocessing_MET = components[11],
+      feature_selection_MET = components[12],
+      early_integration = components[13],
+      deconvolution = components[14],
+      stringsAsFactors = FALSE
+    ),
+    scores
+  )
+}
+
+results_list_ei <- future_map(score_files_ei, function(f) {
+  tryCatch(process_file_ei(f), error = function(e) NULL)
+})
+
+all_functions_ei <- c(
+    'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    'preprocessing_RNA', 'feature_selection_RNA',
+    'preprocessing_scRNA', 'feature_selection_scRNA',
+    'preprocessing_mixMET', 'feature_selection_mixMET',
+    'preprocessing_MET', 'feature_selection_MET',
+    'early_integration', 'deconvolution'
+  )
+
+  
+
+if(length(results_list_ei) != 0  ){
+  results_ei <- do.call(rbind, Filter(Negate(is.null), results_list_ei))
+
+  if ("invitro1" %in% results_ei$dataset) {
+    # all_functions_ei <- c(
+    #   'preprocessing_mixRNA', 'feature_selection_mixRNA',
+    #   'preprocessing_RNA', 'feature_selection_RNA',
+    #   'preprocessing_scRNA', 'feature_selection_scRNA',
+    #   'preprocessing_mixMET', 'feature_selection_mixMET',
+    #   'preprocessing_MET', 'feature_selection_MET',
+    #   'early_integration', 'deconvolution'
+    # )
+
+    for (fun in all_functions_ei) {
+      results_ei[[fun]] <- factor(results_ei[[fun]],
+        levels = unique(results_ei[[fun]][order(results_ei$score_aggreg[results_ei$dataset == 'invitro1'], decreasing = TRUE)]))
+    }
+  }
+
+}else{
+  results_ei = all_functions_ei
+}
+
+
+
+
+write.csv(results_ei, file = gzfile("results_ei.csv.gz"), row.names = FALSE)
+
+
+# index_aggreg <- which(names(results_ei) == "score_aggreg")
+
+
+```
+
+```{r display EI table,echo=FALSE,eval=FALSE }
+datatable(
+  results_ei[, c(1:length(all_functions_ei)+2, index_aggreg)],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
+
+
+
+# Execute 08_meta : 
+
+```{r 08_meta,eval=TRUE }
+rmarkdown::render(input ='08_metaanalysis.Rmd',envir = parent.frame());
+```
+
+# Visualisations of the top methods
+
+## top 5 best methods
+
+```{r table_top5best_by_dataset, echo=FALSE, eval=TRUE}
+#if more than 5 ex aequo combination, then taking them all
+if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
+  results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
+} else {
+  results_li_top5best = results_li_arrange[1:5,]
+}
+
+results_li_top5best <- results_li_top5best[complete.cases(results_li_top5best[, 1:13]), ]
+
+
+datatable(
+  results_li_top5best[,-14],
+  extensions = 'Buttons',
+  options = list(
+    pageLength = 10,
+    dom = 'Bfrtip',  # This includes the Buttons extension in the layout
+    buttons = list(
+      list(
+        extend = 'colvis',
+        text = 'Show/Hide Columns',
+        columns = ':not(:first-child)'  # This allows all columns except the first to be toggled
+      )
+    )
+  )
+)
+```
+
+
+```{r test_for_scatter, echo=FALSE, eval=TRUE}
+test_dataset = 'invitro1'
+name_part <- gsub("[0-9]+$", "", test_dataset)
+number_part <- gsub("[^0-9]", "", test_dataset)
+
+ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+# print(ground_truth)
+
+
+prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
+})
+pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred derrière peut être ? 
+
+# print(pred)
+```
+
+
+```{r scatter_plot_top5best_by_dataset,eval=TRUE, warning=FALSE, echo=FALSE, message=FALSE}
+
+test_dataset = 'invitro1'
+name_part <- gsub("[0-9]+$", "", test_dataset)
+number_part <- gsub("[^0-9]", "", test_dataset)
+
+ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+
+
+prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+  paste0("pred-li-",paste(c("invitro1", "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
+})
+pred = lapply(prediction_file, \(path){read_hdf5(path)})  # mettre $pred derrière peut être ? 
+
+
+df_scatter = do.call(
+  what = rbind,
+  args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
+    
+    
+    prediction_file = sapply(1:nrow(results_li_top5best), function(i){
+      paste0("pred-li-",paste(c(data, "ref", results_li_top5best[i,1:13]),collapse = "_") ,".h5")
+    })
+    pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})
+    
+    method_i = 1
+    prediction_data = t(pred[[method_i]])
+    prediction_data = tidyr::pivot_longer(
+      as.data.frame(prediction_data),
+      cols = everything(),
+      names_to = "cell_type",
+      values_to = "pred_prop"
+    )
+    prediction_data[,"method"] = paste0("method top", method_i)
+    # print(prediction_data)
+    
+    for (method_i in 2:nrow(results_li_top5best)) {
+      prediction_data_tmp = t(pred[[method_i]])
+      prediction_data_tmp = tidyr::pivot_longer(
+        as.data.frame(prediction_data_tmp),
+        cols = everything(),
+        names_to = "cell_type",
+        values_to = "pred_prop"
+      )
+      prediction_data_tmp[,"method"] = paste0("method top", method_i)
+      prediction_data = rbind(prediction_data, prediction_data_tmp)
+    }
+
+
+    name_part <- gsub("[0-9]+$", "", data)
+    number_part <- gsub("[^0-9]", "", data)
+    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+    ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
+
+    ground_truth_data = t(ground_truth)
+    ground_truth_data = tidyr::pivot_longer(
+      as.data.frame(ground_truth_data),
+      cols = colnames(ground_truth_data),
+      names_to = "cell_type",
+      values_to = "true_prop"
+    )
+
+    ground_truth_data = rbind(ground_truth_data, ground_truth_data,
+                              ground_truth_data, ground_truth_data, ground_truth_data)
+    
+    if (data == "invivo1" || data == "invivo2") {
+      prediction_data = prediction_data[prediction_data$cell_type == "classic" | prediction_data$cell_type == "basal", ]
+    }
+    # print(prediction_data)
+    # print(ground_truth_data)
+    prop_data = cbind(prediction_data, ground_truth_data[,"true_prop"], Dataset = data)
+  })
+)
+df_scatter$Dataset = factor(df_scatter$Dataset, levels = unique(results_li$dataset))
+df_scatter$cell_type = factor(df_scatter$cell_type, levels = rownames(ground_truth_invitro1))
+df_scatter$method = factor(df_scatter$method)
+
+# print(df_scatter)
+
+scatter_prop = ggplot(df_scatter) +
+  facet_wrap( ~ Dataset) +
+  geom_abline(intercept = 0, slope = 1, linetype = 3, linewidth = 0.25) +
+  geom_point(aes(x = true_prop, y = pred_prop, col = method, shape = cell_type)) +
+  coord_cartesian(
+    xlim = c(0,1),
+    ylim = c(0,1)
+  ) +
+  labs(
+    x = "Ground truth proportion",
+    y = "Prediction",
+    title = paste("Proportions predicted by top 5 method vs true ones for all datasets")
+  ) +
+  scale_x_continuous(
+    labels = scales::percent
+  ) +
+  scale_y_continuous(
+    labels = scales::percent
+  ) +
+  scale_color_discrete(
+    name = "Cell type"
+  ) +
+  theme_light() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+pp = plotly::ggplotly(scatter_prop, width = 900, height = 1000)
+# pp
+pp = plotly::layout(pp, legend = list(orientation = 'h'))
+pp
+# invisible(
+  # lapply(seq_along(pp$x$layout$shapes), \(i){ # ça ne regle pas entierement le pb, ils sont toujours sur les plots du dessus
+# 
+#   # if a strip shape (using the strip color), reduce the height of the strip box
+#   if(isTRUE(pp$x$layout$shapes[[i]]$fillcolor == "rgba(179,179,179,1)")) {
+#    pp$x$layout$shapes[[i]]$y1 <<- 18    # base at 23.379
+#   }
+#   # there are less annotations than shapes
+#   if(i <= length(pp$x$layout$annotations)) {
+#     # reduce the font size of the strip text
+#     if(any(pp$x$layout$annotations[[i]]$text %in% unique(df_metric$metric_name))) {
+#       pp$x$layout$annotations[[i]]$font$size <<- 11   # base at 11.6895
+#     }
+#   }
+# })
+# )
+# pp
+```

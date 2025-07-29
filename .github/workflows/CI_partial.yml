@@ -91,13 +91,15 @@ jobs:
           echo "Nextflow pipeline finished with exit code $EXIT_CODE"
           
           mkdir -p ${{ github.workspace }}/public
-          cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
+          cp 07_prep_metaanalysis.html ${{ github.workspace }}/public/prep_metaanalysis.html
+          cp 08_metaanalysis.html ${{ github.workspace }}/public/prep_metaanalysis.html
+          cp -R 08_metaanalysis_files ${{ github.workspace }}/public/08_metaanalysis_files
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
           cp results_li.csv.gz ${{ github.workspace }}/public/
           cp results_ei.csv.gz ${{ github.workspace }}/public/
-          cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
+          cp -R 07_prep_metaanalysis_files   ${{ github.workspace }}/public/07_prep_metaanalysis_files
           exit $EXIT_CODE
 
       - name : copy report if failure 
@@ -114,7 +116,7 @@ jobs:
       #     # this will still copy the last metaanalysis
       #     mkdir -p ${{ github.workspace }}/public
       #     cp 07_metaanalysis.html ${{ github.workspace }}/public/metaanalysis.html
-      #     cp -R 07_metaanalysis_files   ${{ github.workspace }}/public/07_metaanalysis_files
+      #     cp -R 07_prep_metaanalysis_files   ${{ github.workspace }}/public/07_prep_metaanalysis_files
       #     LATEST_REPORT=$(ls -t report-* | head -n 1)
       #     cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
       #     cp index.html ${{ github.workspace }}/public/
