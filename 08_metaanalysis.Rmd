@@ -188,23 +188,10 @@ if (length(meaningful_pcs) == 0) {
   cat("No meaningful principal components found (explained variance is zero).")
 }
 ```
+```{r}
 
-# Florent's pca 
+pca = pca_result
 
-```{r pca ,eval=TRUE}
-# results_li = read.table("metaanalysis/results_li.csv", sep=",", header=TRUE)
-foo = sapply(colnames(results_li), function(k) {
-  print(paste0(k, " ", is.numeric(results_li[,k])))
-  is.numeric(results_li[,k])
-})
-keys = colnames(results_li)[foo]
-data = as.matrix(results_li[,keys])
-head(data)[,1:10]
-# remove NA
-table(apply(is.na(data), 2, sum))
-data = data[,apply(!is.na(data), 2, all)]
-table(apply(is.na(data), 2, sum))
-pca = prcomp(data, scale=TRUE)
 v = pca$sdev * pca$sdev
 p = v / sum(v) * 100
 names(p) = paste0("PC", 1:length(p))
@@ -225,6 +212,98 @@ for (i in 1:n_pcs) {
   )
 }
 
+```
+
+# PCA to reduce multivariate score
+
+```{r pca ,eval=TRUE}
+# results_li = read.table("metaanalysis/results_li.csv", sep=",", header=TRUE)
+foo = sapply(colnames(results_li), function(k) {
+  print(paste0(k, " ", is.numeric(results_li[,k])))
+  is.numeric(results_li[,k])
+})
+keys = colnames(results_li)[foo]
+data = as.matrix(results_li[,keys])
+head(data)[,1:10]
+# remove NA
+table(apply(is.na(data), 2, sum))
+data = data[,apply(!is.na(data), 2, all)]
+table(apply(is.na(data), 2, sum))
+pca = prcomp(data, scale=TRUE)
+v = pca$sdev * pca$sdev
+p = v / sum(v) * 100
+names(p) = paste0("PC", 1:length(p))
+
+pc_max = length(p)
+cols = as.numeric(as.factor(results_li$dataset))
+
+layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
+barplot(p[1:pc_max], main="% of expl. var.", las=2)
+# i=1
+n_pcs <- min(6, ncol(pca$x) - 1)
+for (i in 1:n_pcs) {
+  j <- i + 1
+  plot(
+    pca$x[, i], pca$x[, j],
+    xlab = paste0("PC", i, " (", signif(p[i], 3), "%)"),
+    ylab = paste0("PC", j, " (", signif(p[j], 3), "%)"),
+    col = adjustcolor(cols, alpha.f = 0.03), pch = 16
+  )
+}
+plot.new()
+legend("top", col=1:length(levels(as.factor(results_li$dataset))), levels(as.factor(results_li$dataset)), pch=16)
+
 # plot.new()
 # legend("topright", levels(s$exp_grp$tissue), pch=16, col=1:length(levels(s$exp_grp$tissue)))
+```
+So we use PC1 as meta score:
+
+```{r echo=TRUE}
+results_li$pc1_score = pca$x[,1]
+```
+
+# Variable selection using step
+
+```{r fig.height=6, fig.width=9}
+df = results_li
+layout(matrix(1:6, 2), respect=TRUE)
+col_types = sapply(names(df), function(k) {
+  print(k)
+  main = k
+  if (is.character(df[,k])) {
+    barplot(table(df[,k], useNA="always"), las=2, main=main)
+    return("char")
+  } else   if (is.factor(df[,k])) {
+    barplot(table(df[,k], useNA="always"), las=2, main=main)
+    return("fact")
+  } else if (is.numeric(df[,k])){
+      plot(density(df[,k], na.rm=TRUE), main=main)
+      print(paste0("#NA: ", sum(is.na(df[,k]))))
+    return("num")
+  } else {
+    stop(paste0("Data type not treated: ", k))
+  }
+})
+
+
+facts = unlist(sapply(names(col_types)[col_types %in% c("fact", "char")], function(k) {
+  print(paste0(k, ": ", length(unique(df[,k]))))
+  if (length(unique(df[,k]))>1) {
+    return(k) 
+  } else {
+    return(NULL)
+  }
+}))
+
+score = "pc1_score"
+f_lo = formula(paste0(score, "~1"))
+f_up = formula(paste0(score, "~."))
+m_lo = lm(f_lo, data=df[,c(facts, score)])
+m_up = lm(f_up, data=df[,c(facts, score)])
+life.lm = step(m_lo, method="both", scope=list(upper=m_up,lower=m_lo))
+
+layout(matrix(1:2, 1), respect=TRUE)
+boxplot(formula(paste0(score, "~dataset")), df[,c(facts, score)])
+boxplot(formula(paste0(score, "~dataset + deconvolution_rna")), df[,c(facts, score)], las=2)
+
 ```
