@@ -82,6 +82,9 @@ if(!exists("results_ei")){
 
 # Nico test visu (GPT...) 
 
+In this step, the factor column is replaced by a contingency table to enable principal component analysis (PCA), with the objective of identifying the factors that influence the scores.
+
+
 ```{r prepare data}
 multi_level_cols <- sapply(results_li[all_functions_li], function(x) nlevels(x) > 1)
 filtered_functions <- all_functions_li[multi_level_cols]
