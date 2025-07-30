@@ -11,7 +11,7 @@
 
 <meta name="author" content="" />
 
-<meta name="date" content="2025-07-29" />
+<meta name="date" content="2025-07-30" />
 
 <title>HADACA3 Framework - Generate data for data challenge hadaca</title>
 
@@ -242,7 +242,7 @@ div.tocify {
 challenge hadaca</h1>
 <h3 class="subtitle">Meta analysis</h3>
 <h4 class="author"></h4>
-<h4 class="date">2025-07-29</h4>
+<h4 class="date">2025-07-30</h4>
 
 </div>
 
@@ -289,6 +289,9 @@ if(!exists(&quot;results_ei&quot;)){
 <div id="nico-test-visu-gpt" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Nico test visu
 (GPT…)</h1>
+<p>In this step, the factor column is replaced by a contingency table to
+enable principal component analysis (PCA), with the objective of
+identifying the factors that influence the scores.</p>
 <pre class="r"><code>multi_level_cols &lt;- sapply(results_li[all_functions_li], function(x) nlevels(x) &gt; 1)
 filtered_functions &lt;- all_functions_li[multi_level_cols]
 dropped_cols &lt;- all_functions_li[!multi_level_cols]
@@ -610,9 +613,35 @@ for (pc in meaningful_pcs) {
 if (length(meaningful_pcs) == 0) {
   cat(&quot;No meaningful principal components found (explained variance is zero).&quot;)
 }</code></pre>
+<pre class="r"><code>
+pca = pca_result
+
+v = pca$sdev * pca$sdev
+p = v / sum(v) * 100
+names(p) = paste0(&quot;PC&quot;, 1:length(p))
+
+pc_max = length(p)
+cols = 1
+layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
+barplot(p[1:pc_max], main=&quot;% of expl. var.&quot;, las=2)
+# i=1
+n_pcs &lt;- min(6, ncol(pca$x) - 1)
+for (i in 1:n_pcs) {
+  j &lt;- i + 1
+  plot(
+    pca$x[, i], pca$x[, j],
+    xlab = paste0(&quot;PC&quot;, i, &quot; (&quot;, signif(p[i], 3), &quot;%)&quot;),
+    ylab = paste0(&quot;PC&quot;, j, &quot; (&quot;, signif(p[j], 3), &quot;%)&quot;),
+    col = adjustcolor(cols, alpha.f = 0.3), pch = 16
+  )
+}
+</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-11-1.png" width="900" /></p>
 </div>
-<div id="florents-pca" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> Florent’s pca</h1>
+<div id="pca-to-reduce-multivariate-score" class="section level1"
+number="3">
+<h1><span class="header-section-number">3</span> PCA to reduce
+multivariate score</h1>
 <pre class="r"><code># results_li = read.table(&quot;metaanalysis/results_li.csv&quot;, sep=&quot;,&quot;, header=TRUE)
 foo = sapply(colnames(results_li), function(k) {
   print(paste0(k, &quot; &quot;, is.numeric(results_li[,k])))
@@ -747,7 +776,8 @@ p = v / sum(v) * 100
 names(p) = paste0(&quot;PC&quot;, 1:length(p))
 
 pc_max = length(p)
-cols = 1
+cols = as.numeric(as.factor(results_li$dataset))
+
 layout(matrix(1:8, 2, byrow=FALSE), respect=TRUE)
 barplot(p[1:pc_max], main=&quot;% of expl. var.&quot;, las=2)
 # i=1
@@ -758,13 +788,318 @@ for (i in 1:n_pcs) {
     pca$x[, i], pca$x[, j],
     xlab = paste0(&quot;PC&quot;, i, &quot; (&quot;, signif(p[i], 3), &quot;%)&quot;),
     ylab = paste0(&quot;PC&quot;, j, &quot; (&quot;, signif(p[j], 3), &quot;%)&quot;),
-    col = adjustcolor(cols, alpha.f = 0.3), pch = 16
+    col = adjustcolor(cols, alpha.f = 0.03), pch = 16
   )
 }
+plot.new()
+legend(&quot;top&quot;, col=1:length(levels(as.factor(results_li$dataset))), levels(as.factor(results_li$dataset)), pch=16)
 
 # plot.new()
 # legend(&quot;topright&quot;, levels(s$exp_grp$tissue), pch=16, col=1:length(levels(s$exp_grp$tissue)))</code></pre>
-<p><img src="08_metaanalysis_files/figure-html/pca%20-1.png" width="900" /></p>
+<p><img src="08_metaanalysis_files/figure-html/pca%20-1.png" width="900" />
+So we use PC1 as meta score:</p>
+<pre class="r"><code>results_li$pc1_score = pca$x[,1]</code></pre>
+</div>
+<div id="variable-selection-using-step" class="section level1"
+number="4">
+<h1><span class="header-section-number">4</span> Variable selection
+using step</h1>
+<pre class="r"><code>df = results_li
+layout(matrix(1:6, 2), respect=TRUE)
+col_types = sapply(names(df), function(k) {
+  print(k)
+  main = k
+  if (is.character(df[,k])) {
+    barplot(table(df[,k], useNA=&quot;always&quot;), las=2, main=main)
+    return(&quot;char&quot;)
+  } else   if (is.factor(df[,k])) {
+    barplot(table(df[,k], useNA=&quot;always&quot;), las=2, main=main)
+    return(&quot;fact&quot;)
+  } else if (is.numeric(df[,k])){
+      plot(density(df[,k], na.rm=TRUE), main=main)
+      print(paste0(&quot;#NA: &quot;, sum(is.na(df[,k]))))
+    return(&quot;num&quot;)
+  } else {
+    stop(paste0(&quot;Data type not treated: &quot;, k))
+  }
+})
+#&gt; [1] &quot;dataset&quot;
+#&gt; [1] &quot;ref&quot;
+#&gt; [1] &quot;preprocessing_mixRNA&quot;
+#&gt; [1] &quot;feature_selection_mixRNA&quot;
+#&gt; [1] &quot;preprocessing_RNA&quot;
+#&gt; [1] &quot;feature_selection_RNA&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-1.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;preprocessing_scRNA&quot;
+#&gt; [1] &quot;feature_selection_scRNA&quot;
+#&gt; [1] &quot;deconvolution_rna&quot;
+#&gt; [1] &quot;preprocessing_mixMET&quot;
+#&gt; [1] &quot;feature_selection_mixMET&quot;
+#&gt; [1] &quot;preprocessing_MET&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-2.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;feature_selection_MET&quot;
+#&gt; [1] &quot;deconvolution_met&quot;
+#&gt; [1] &quot;late_integration&quot;
+#&gt; [1] &quot;aid&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;aid_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;aitchison&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-3.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;aitchison_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;jsd&quot;
+#&gt; [1] &quot;#NA: 57176&quot;
+#&gt; [1] &quot;jsd_norm&quot;
+#&gt; [1] &quot;#NA: 57176&quot;
+#&gt; [1] &quot;mae&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;mae_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;pearson_col&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-4.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;pearson_col_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;pearson_row&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+#&gt; [1] &quot;pearson_row_norm&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+#&gt; [1] &quot;pearson_tot&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;pearson_tot_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;rmse&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-5.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;rmse_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;score_aggreg&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+#&gt; [1] &quot;sdid&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;sdid_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;spearman_col&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;spearman_col_norm&quot;</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-6.png" width="675" /></p>
+<pre><code>#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;spearman_row&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+#&gt; [1] &quot;spearman_row_norm&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+#&gt; [1] &quot;spearman_tot&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;spearman_tot_norm&quot;
+#&gt; [1] &quot;#NA: 28588&quot;
+#&gt; [1] &quot;pc1_score&quot;
+#&gt; [1] &quot;#NA: 0&quot;
+
+
+facts = unlist(sapply(names(col_types)[col_types %in% c(&quot;fact&quot;, &quot;char&quot;)], function(k) {
+  print(paste0(k, &quot;: &quot;, length(unique(df[,k]))))
+  if (length(unique(df[,k]))&gt;1) {
+    return(k) 
+  } else {
+    return(NULL)
+  }
+}))
+#&gt; [1] &quot;dataset: 5&quot;
+#&gt; [1] &quot;ref: 1&quot;
+#&gt; [1] &quot;preprocessing_mixRNA: 5&quot;
+#&gt; [1] &quot;feature_selection_mixRNA: 4&quot;
+#&gt; [1] &quot;preprocessing_RNA: 5&quot;
+#&gt; [1] &quot;feature_selection_RNA: 4&quot;
+#&gt; [1] &quot;preprocessing_scRNA: 10&quot;
+#&gt; [1] &quot;feature_selection_scRNA: 4&quot;
+#&gt; [1] &quot;deconvolution_rna: 8&quot;
+#&gt; [1] &quot;preprocessing_mixMET: 5&quot;
+#&gt; [1] &quot;feature_selection_mixMET: 2&quot;
+#&gt; [1] &quot;preprocessing_MET: 5&quot;
+#&gt; [1] &quot;feature_selection_MET: 2&quot;
+#&gt; [1] &quot;deconvolution_met: 8&quot;
+#&gt; [1] &quot;late_integration: 5&quot;
+
+score = &quot;pc1_score&quot;
+f_lo = formula(paste0(score, &quot;~1&quot;))
+f_up = formula(paste0(score, &quot;~.&quot;))
+m_lo = lm(f_lo, data=df[,c(facts, score)])
+m_up = lm(f_up, data=df[,c(facts, score)])
+life.lm = step(m_lo, method=&quot;both&quot;, scope=list(upper=m_up,lower=m_lo))
+#&gt; Start:  AIC=214537.3
+#&gt; pc1_score ~ 1
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + dataset                   4    252423 388751 143024
+#&gt; + deconvolution_rna         7     67774 573400 198582
+#&gt; + deconvolution_met         7     17373 623801 210625
+#&gt; + preprocessing_scRNA       9     14462 626712 211294
+#&gt; + feature_selection_mixRNA  3     11161 630014 212033
+#&gt; + feature_selection_RNA     3     11161 630014 212033
+#&gt; + feature_selection_scRNA   3      8061 633113 212735
+#&gt; + late_integration          4      4621 636553 213511
+#&gt; + preprocessing_mixRNA      4      4043 637131 213641
+#&gt; + preprocessing_RNA         4      4043 637131 213641
+#&gt; + preprocessing_mixMET      4      2057 639118 214086
+#&gt; + preprocessing_MET         4      2057 639118 214086
+#&gt; + feature_selection_mixMET  1      1791 639384 214140
+#&gt; + feature_selection_MET     1      1791 639384 214140
+#&gt; &lt;none&gt;                                  641174 214537
+#&gt; 
+#&gt; Step:  AIC=143023.6
+#&gt; pc1_score ~ dataset
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + deconvolution_rna         7     67774 320977 115655
+#&gt; + deconvolution_met         7     17373 371378 136503
+#&gt; + preprocessing_scRNA       9     14462 374289 137623
+#&gt; + feature_selection_mixRNA  3     11161 377591 138866
+#&gt; + feature_selection_RNA     3     11161 377591 138866
+#&gt; + feature_selection_scRNA   3      8061 380690 140034
+#&gt; + late_integration          4      4621 384130 141322
+#&gt; + preprocessing_mixRNA      4      4043 384708 141537
+#&gt; + preprocessing_RNA         4      4043 384708 141537
+#&gt; + preprocessing_mixMET      4      2057 386695 142273
+#&gt; + preprocessing_MET         4      2057 386695 142273
+#&gt; + feature_selection_mixMET  1      1791 386961 142366
+#&gt; + feature_selection_MET     1      1791 386961 142366
+#&gt; &lt;none&gt;                                  388751 143024
+#&gt; - dataset                   4    252423 641174 214537
+#&gt; 
+#&gt; Step:  AIC=115654.7
+#&gt; pc1_score ~ dataset + deconvolution_rna
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + deconvolution_met         7     17373 303604 107715
+#&gt; + preprocessing_scRNA       8     14462 306516 109081
+#&gt; + feature_selection_mixRNA  2     11160 309817 110600
+#&gt; + feature_selection_RNA     2     11160 309817 110600
+#&gt; + feature_selection_scRNA   2      8061 312916 112023
+#&gt; + late_integration          3      4621 316356 113588
+#&gt; + preprocessing_mixRNA      3      4043 316934 113849
+#&gt; + preprocessing_RNA         3      4043 316934 113849
+#&gt; + preprocessing_mixMET      4      2057 318921 114744
+#&gt; + preprocessing_MET         4      2057 318921 114744
+#&gt; + feature_selection_mixMET  1      1791 319187 114857
+#&gt; + feature_selection_MET     1      1791 319187 114857
+#&gt; &lt;none&gt;                                  320977 115655
+#&gt; - deconvolution_rna         7     67774 388751 143024
+#&gt; - dataset                   4    252423 573400 198582
+#&gt; 
+#&gt; Step:  AIC=107714.6
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + preprocessing_scRNA       8     14462 289142 100754
+#&gt; + feature_selection_mixRNA  2     11160 292444 102365
+#&gt; + feature_selection_RNA     2     11160 292444 102365
+#&gt; + feature_selection_scRNA   2      8061 295543 103872
+#&gt; + preprocessing_mixRNA      3      4043 299561 105804
+#&gt; + preprocessing_RNA         3      4043 299561 105804
+#&gt; + late_integration          2      2830 300774 106380
+#&gt; + preprocessing_mixMET      3       266 303338 107595
+#&gt; + preprocessing_MET         3       266 303338 107595
+#&gt; &lt;none&gt;                                  303604 107715
+#&gt; - deconvolution_met         7     17373 320977 115655
+#&gt; - deconvolution_rna         7     67774 371378 136503
+#&gt; - dataset                   4    252423 556027 194199
+#&gt; 
+#&gt; Step:  AIC=100754.4
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met + 
+#&gt;     preprocessing_scRNA
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + preprocessing_mixRNA      3      4043 285099  98748
+#&gt; + preprocessing_RNA         3      4043 285099  98748
+#&gt; + feature_selection_mixRNA  1      2837 286305  99347
+#&gt; + feature_selection_RNA     1      2837 286305  99347
+#&gt; + late_integration          2      2830 286312  99352
+#&gt; + preprocessing_mixMET      3       266 288876 100629
+#&gt; + preprocessing_MET         3       266 288876 100629
+#&gt; &lt;none&gt;                                  289142 100754
+#&gt; + feature_selection_scRNA   1         0 289142 100756
+#&gt; - preprocessing_scRNA       8     14462 303604 107715
+#&gt; - deconvolution_met         7     17373 306516 109081
+#&gt; - deconvolution_rna         6     67774 356916 130843
+#&gt; - dataset                   4    252423 541565 190448
+#&gt; 
+#&gt; Step:  AIC=98747.51
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met + 
+#&gt;     preprocessing_scRNA + preprocessing_mixRNA
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + feature_selection_mixRNA  1      2837 282262  97320
+#&gt; + feature_selection_RNA     1      2837 282262  97320
+#&gt; + late_integration          2      2830 282269  97325
+#&gt; + preprocessing_mixMET      3       266 284833  98620
+#&gt; + preprocessing_MET         3       266 284833  98620
+#&gt; &lt;none&gt;                                  285099  98748
+#&gt; + feature_selection_scRNA   1         0 285099  98750
+#&gt; - preprocessing_mixRNA      3      4043 289142 100754
+#&gt; - preprocessing_scRNA       8     14462 299561 105804
+#&gt; - deconvolution_met         7     17373 302473 107189
+#&gt; - deconvolution_rna         6     67774 352873 129220
+#&gt; - dataset                   4    252423 537522 189382
+#&gt; 
+#&gt; Step:  AIC=97320
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met + 
+#&gt;     preprocessing_scRNA + preprocessing_mixRNA + feature_selection_mixRNA
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + late_integration          2      2830 279432  95883
+#&gt; + preprocessing_mixMET      3       266 281996  97191
+#&gt; + preprocessing_MET         3       266 281996  97191
+#&gt; &lt;none&gt;                                  282262  97320
+#&gt; + feature_selection_scRNA   1         0 282262  97322
+#&gt; - feature_selection_mixRNA  1      2837 285099  98748
+#&gt; - preprocessing_mixRNA      3      4043 286305  99347
+#&gt; - preprocessing_scRNA       7      6138 288401 100381
+#&gt; - deconvolution_met         7     17373 299636 105844
+#&gt; - deconvolution_rna         6     67774 350036 128069
+#&gt; - dataset                   4    252423 534685 188628
+#&gt; 
+#&gt; Step:  AIC=95883.47
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met + 
+#&gt;     preprocessing_scRNA + preprocessing_mixRNA + feature_selection_mixRNA + 
+#&gt;     late_integration
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; + preprocessing_mixMET      3       266 279166  95753
+#&gt; + preprocessing_MET         3       266 279166  95753
+#&gt; &lt;none&gt;                                  279432  95883
+#&gt; + feature_selection_scRNA   1         0 279432  95885
+#&gt; - late_integration          2      2830 282262  97320
+#&gt; - feature_selection_mixRNA  1      2837 282269  97325
+#&gt; - preprocessing_mixRNA      3      4043 283475  97931
+#&gt; - preprocessing_scRNA       7      6138 285570  98976
+#&gt; - deconvolution_met         6     15583 295014 103628
+#&gt; - deconvolution_rna         6     67774 347206 126912
+#&gt; - dataset                   4    252423 531855 187873
+#&gt; 
+#&gt; Step:  AIC=95753.39
+#&gt; pc1_score ~ dataset + deconvolution_rna + deconvolution_met + 
+#&gt;     preprocessing_scRNA + preprocessing_mixRNA + feature_selection_mixRNA + 
+#&gt;     late_integration + preprocessing_mixMET
+#&gt; 
+#&gt;                            Df Sum of Sq    RSS    AIC
+#&gt; &lt;none&gt;                                  279166  95753
+#&gt; + feature_selection_scRNA   1         0 279166  95755
+#&gt; - preprocessing_mixMET      3       266 279432  95883
+#&gt; - late_integration          2      2830 281996  97191
+#&gt; - feature_selection_mixRNA  1      2837 282003  97197
+#&gt; - preprocessing_mixRNA      3      4043 283209  97803
+#&gt; - preprocessing_scRNA       7      6138 285304  98848
+#&gt; - deconvolution_met         6     15583 294749 103505
+#&gt; - deconvolution_rna         6     67774 346940 126809
+#&gt; - dataset                   4    252423 531589 187808
+
+layout(matrix(1:2, 1), respect=TRUE)</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-7.png" width="675" /></p>
+<pre class="r"><code>boxplot(formula(paste0(score, &quot;~dataset&quot;)), df[,c(facts, score)])
+boxplot(formula(paste0(score, &quot;~dataset + deconvolution_rna&quot;)), df[,c(facts, score)], las=2)</code></pre>
+<p><img src="08_metaanalysis_files/figure-html/unnamed-chunk-13-8.png" width="675" /></p>
 </div>
 
 
