@@ -38,7 +38,18 @@ Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
-## Getting otiginal data
+## Working on meta-analysis
+
+```
+cd ~/projects/hadaca3_framework/
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_ei.csv.gz
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_li.csv.gz
+# under R :
+Rscript -e 'rmarkdown::render("08_metaanalysis.Rmd")'
+
+```
+
+## Getting original data
 
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
