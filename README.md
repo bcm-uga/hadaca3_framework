@@ -214,11 +214,22 @@ In this code, the omic name RNA, MET, scRNA refers to ref_bulkRNA, ref_MET, and 
 ref_scRNA contains 3 differents datasets, and they are differentiated in the scripts with is.list
 
 
+rna_unit and met_unit used in early integration : 
+
 ```
-ref_scRNA
-├── ref_sc_peng
-├── ref_sc_baron
-└── ref_sc_raghavan
+rna_unit
+├──mix
+├──ref
+└──ref_scRNA
+   ├── ref_sc_peng
+   ├── ref_sc_baron
+   └── ref_sc_raghavan
+```
+
+```
+met_unit
+├──mix
+└──ref
 ```
 
 
