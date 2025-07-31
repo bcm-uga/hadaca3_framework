@@ -18,10 +18,22 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
     colnames(mix_met) = paste0("Sample",seq(ncol(mix_met)))
   }
   mix_rna = mix_rna[,colnames(mix_met)]
+
+
+  common_genes <- intersect(rownames(mix_rna), rownames(ref_rna))
+
+  mix_rna_aligned <- mix_rna[common_genes, ]
+  ref_rna_aligned <- ref_rna[common_genes, ]
   
+  common_meth_probes = intersect(rownames(mix_met), rownames(ref_met))
+  
+  mix_met_aligned <- mix_met[common_meth_probes, ]
+  ref_met_aligned <- ref_met[common_meth_probes, ]
+
+
   # compute kernels
-  kernel_rna <- compute.kernel(t(as.matrix(cbind(mix_rna,ref_rna))), kernel.func = "abundance")
-  kernel_met <- compute.kernel(t(as.matrix(cbind(mix_met,ref_met))), kernel.func = "abundance")
+  kernel_rna <- compute.kernel(t(as.matrix(cbind(mix_rna_aligned,ref_rna_aligned))), kernel.func = "abundance")
+  kernel_met <- compute.kernel(t(as.matrix(cbind(mix_met_aligned,ref_met_aligned))), kernel.func = "abundance")
   kernel_all <- combine.kernels(kernel_rna = kernel_rna, kernel_met = kernel_met)
   kernel_pca <- kernel.pca(kernel_all, ncomp = 10)
   

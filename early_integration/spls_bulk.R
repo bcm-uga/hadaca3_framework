@@ -15,11 +15,24 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
                               keepX = c(100, 100), keepY = c(100, 100))
   mix_rna = mix_rna[rownames(res.spls$loadings$X),]
   mix_met <- mix_met[rownames(res.spls$loadings$Y),]
-  ref_rna <- ref_rna[rownames(mix_rna),]
-  ref_met <- ref_met[rownames(mix_met),]
+
+  common_genes <- intersect(rownames(mix_rna), rownames(ref_rna))
+
+  mix_rna_aligned <- mix_rna[common_genes, ]
+  ref_rna_aligned <- ref_rna[common_genes, ]
   
-  mix = list(rna=mix_rna, met=mix_met)
-  ref = list(rna=ref_rna, met=ref_met)
+  common_meth_probes = intersect(rownames(mix_met), rownames(ref_met))
+  
+  mix_met_aligned <- mix_met[common_meth_probes, ]
+  ref_met_aligned <- ref_met[common_meth_probes, ]
+
+
+
+  # ref_rna <- ref_rna[rownames(mix_rna_aligned),]
+  # ref_met <- ref_met[rownames(mix_met_aligned),]
+  
+  mix = list(rna=mix_rna_aligned, met=mix_met_aligned)
+  ref = list(rna=ref_rna_aligned, met=ref_met_aligned)
   
   res_unit = list(mix=mix, ref = ref  )
   return(res_unit)

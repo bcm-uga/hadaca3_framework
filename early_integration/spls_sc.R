@@ -18,7 +18,11 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
                               keepX = c(100, 100), keepY = c(100, 100))
   mix_rna = mix_rna[rownames(res.spls$loadings$X),]
   mix_met <- mix_met[rownames(res.spls$loadings$Y),]
-  ref_scRNA <- lapply(ref_scRNA, function(x) list(counts=x$counts[rownames(mix_rna),], metadata=x$metadata))
+  ref_scRNA <- lapply(ref_scRNA, function(x) {
+   common_genes <- intersect(rownames(x$counts), rownames(mix_rna))
+   list(counts=x$counts[rownames(common_genes),], metadata=x$metadata)
+  }
+   )
   ref_met <- ref_met[rownames(mix_met),]
   
   mix = list(rna=mix_rna, met=mix_met)
