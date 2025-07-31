@@ -161,8 +161,8 @@ if ("invitro1" %in% results_li$dataset) {
 }
 
 # Write compressed output
-# write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
-results_li = read.csv(file = gzfile("results_li.csv.gz"))
+write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
+# results_li = read.csv(file = gzfile("results_li.csv.gz"))
 
 index_aggreg <- which(names(results_li) == "score_aggreg")
 
