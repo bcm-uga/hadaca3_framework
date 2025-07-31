@@ -1,13 +1,5 @@
 
 
-# concatscale:
-#   path: early_integration/concat_scale.R 
-#   short_name: Consc
-
-# concatnoscale:
-#   path: early_integration/concat_noscale.R 
-#   short_name: Cnosc
-
 # Kernel:
 #   path: early_integration/Kernel.R 
 #   short_name: Kern
@@ -36,7 +28,19 @@
 #   path: early_integration/multimap.py 
 #   short_name: mltmap
 
-# working : 
+
+############### May work : 
+# concatscale:
+#   path: early_integration/concat_scale.R 
+#   short_name: Consc
+
+# concatnoscale:
+#   path: early_integration/concat_noscale.R 
+#   short_name: Cnosc
+
+
+
+############ working : 
 # OnlyMet: 
 #   path: early_integration/only_met.R 
 #   short_name: OMet

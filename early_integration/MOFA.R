@@ -1,8 +1,15 @@
 program_block_EI <- function(rna_unit,met_unit,path_dataset) { 
 
+  mix_rna = rna_unit$mix 
+  ref_rna = rna_unit$ref
+  mix_met = met_unit$mix 
+  ref_met = met_unit$ref
+
+
   if (!("MOFA2" %in% installed.packages())) {
     BiocManager::install("MOFA2")
   }
+  library(MOFA2)
   
   # add samples' names
   if (is.null(colnames(mix_rna))) {
@@ -14,7 +21,6 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix_rna = mix_rna[,colnames(mix_met)]
   
   # MOFA
-  library(MOFA2)
   MOFA <- create_mofa(list("RNA"=as.matrix(cbind(mix_rna,ref_rna)),
                             "DNAm"=as.matrix(cbind(mix_met,ref_met))))
   model_opts <- get_default_model_options(MOFA)
@@ -33,5 +39,6 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix = projection[,colnames(mix_rna)]
   ref = projection[,colnames(ref_rna)]
 
-  return(rna_unit)
+  res_unit = list(mix=mix, ref = ref  )
+  return(res_unit)
 }

@@ -5,6 +5,7 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix_met = met_unit$mix 
   ref_met = met_unit$ref
 
+
   mix = rbind(mix_rna, mix_met)
   ref = rbind(ref_rna, ref_met)
   mix = apply(mix, 2, function(x) {

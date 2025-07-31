@@ -39,7 +39,7 @@ scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_lo
 #   short_name: Mmet
   # omic: [mixMET,MET]
 
-#SCcluster :
+SCcluster :
  path: feature_selection/sc_cluster.R
  short_name: SCCL
  need: [ref_cluster]

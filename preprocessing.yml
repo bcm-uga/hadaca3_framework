@@ -19,10 +19,10 @@ Scale :  #scale with sweep function  #must be a unique ID
   short_name: scal
   omic: [ANY]
 
-normalize :  #must be a unique ID
-  path: preprocessing/normalize.R
-  short_name: norm
-  omic: [mixMET,MET] #,mixRNA,RNA
+# normalize :  #This fonction is the same 
+#   path: preprocessing/normalize.R
+#   short_name: norm
+#   omic: [mixMET,MET] #,mixRNA,RNA
 
 scScale :  #must be a unique ID
   path: preprocessing/sc_scale.R

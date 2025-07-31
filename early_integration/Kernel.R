@@ -1,8 +1,14 @@
 program_block_EI <- function(rna_unit,met_unit,path_dataset) { 
 
+  mix_rna = rna_unit$mix 
+  ref_rna = rna_unit$ref
+  mix_met = met_unit$mix 
+  ref_met = met_unit$ref
+
   if (!("mixKernel" %in% installed.packages())) {
     BiocManager::install("mixKernel")
   }
+  library(mixKernel)
 
   # add columns' names and order in the same way
   if (is.null(colnames(mix_rna))) {
@@ -14,7 +20,6 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix_rna = mix_rna[,colnames(mix_met)]
   
   # compute kernels
-  library(mixKernel)
   kernel_rna <- compute.kernel(t(as.matrix(cbind(mix_rna,ref_rna))), kernel.func = "abundance")
   kernel_met <- compute.kernel(t(as.matrix(cbind(mix_met,ref_met))), kernel.func = "abundance")
   kernel_all <- combine.kernels(kernel_rna = kernel_rna, kernel_met = kernel_met)
@@ -26,5 +31,6 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix = projection[,colnames(mix_rna)]
   ref = projection[,colnames(ref_rna)]
 
-  return(rna_unit)
+  res_unit = list(mix=mix, ref = ref  )
+  return(res_unit)
 }

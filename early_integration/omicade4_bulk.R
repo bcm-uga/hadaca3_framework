@@ -1,5 +1,11 @@
 program_block_EI <- function(rna_unit,met_unit,path_dataset) { 
 
+  mix_rna = rna_unit$mix 
+  ref_rna = rna_unit$ref
+  mix_met = met_unit$mix 
+  ref_met = met_unit$ref
+
+
   if (!("omicade4" %in% installed.packages())) {
     BiocManager::install("omicade4")
   }
@@ -28,5 +34,6 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix = projection[,colnames(mix_rna)]
   ref = projection[,colnames(ref_rna)]
 
-  return(rna_unit)
+  res_unit = list(mix=mix, ref = ref  )
+  return(res_unit)
 }

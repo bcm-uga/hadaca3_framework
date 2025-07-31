@@ -1,6 +1,12 @@
 program_block_EI <- function(rna_unit,met_unit,path_dataset) { 
 
-  
+  mix_rna = rna_unit$mix 
+  ref_rna = rna_unit$ref
+  mix_met = met_unit$mix 
+  ref_met = met_unit$ref
+
+  ref_scRNA= rna_unit$ref_scRNA
+
   warning("not really an integration step, but not really a FS step either")
   if (!("mixOmics" %in% installed.packages())) {
     BiocManager::install("mixOmics")
@@ -18,5 +24,8 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   mix = list(rna=mix_rna, met=mix_met)
   ref = list(rna=ref_scRNA, met=ref_met)
 
-  return(rna_unit)
+
+  res_unit = list(mix=mix, ref = ref  )
+  return(res_unit)
+  # return(rna_unit)
 }
