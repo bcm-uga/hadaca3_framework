@@ -4,6 +4,13 @@ import pandas as pd
 from scipy.sparse import csc_matrix
 import anndata as ad
 
+
+
+import numpy as np
+import h5py
+from scipy.sparse import csc_matrix, issparse
+import pandas as pd
+
 compression_lvl = 6
 compression_type = "gzip"
 
@@ -155,9 +162,9 @@ def read_all_ref_hdf5(path):
 
     return ref_all
 
-file = 'sparse_matrix_R2.h5'
+# file = 'sparse_matrix_R2.h5'
 
-ref = read_all_ref_hdf5(file)
+# ref = read_all_ref_hdf5(file)
 
 
 
@@ -263,7 +270,7 @@ def write_all_ref_hdf5(path, ref_all):
 
 
 
-file = 'ref_sc_peng.h5'
+# file = 'ref_sc_peng.h5'
 # write_all_ref_hdf5(file, ref)
 # meta = ref['ref_scRNA']['ref_sc_baron']['metadata']
 
@@ -272,3 +279,237 @@ file = 'ref_sc_peng.h5'
 #         dtype_list.append((col, np.int32))
 #     else:  # Otherwise, store as a UTF-8 string
 #         dtype_list.append((col, h5py.string_dtype('utf-8')))
+
+
+#############  GPT 
+
+
+
+def write_sparse_matrix(group, f, counts, meta, data=None, scale_data=None,
+                        compression_type="gzip", compression_lvl=6):
+    # counts: scipy.sparse.csc_matrix
+    group = f.create_group(group)
+
+    # Write sparse matrix components
+    group.create_dataset("data", data=counts.data, compression=compression_type, compression_opts=compression_lvl)
+    group.create_dataset("shape", data=counts.shape, compression=compression_type, compression_opts=compression_lvl)
+    group.create_dataset("indices", data=counts.indices, compression=compression_type, compression_opts=compression_lvl)
+    group.create_dataset("indptr", data=counts.indptr, compression=compression_type, compression_opts=compression_lvl)
+
+    if hasattr(counts, 'var_names'):
+        group.create_dataset("genes", data=np.array(counts.var_names, dtype='S'), compression=compression_type)
+    if hasattr(counts, 'obs_names'):
+        group.create_dataset("cell", data=np.array(counts.obs_names, dtype='S'), compression=compression_type)
+
+    # Write metadata
+    dtype_list = []
+    for col in meta.columns:
+        if pd.api.types.is_integer_dtype(meta[col]):
+            dtype_list.append((col, np.int32))
+        else:
+            dtype_list.append((col, h5py.string_dtype('utf-8')))
+    meta_np = np.array(list(meta.itertuples(index=False, name=None)), dtype=dtype_list)
+    group.create_dataset("meta", data=meta_np, compression=compression_type, compression_opts=compression_lvl)
+
+    # Optionally write normalized data
+    if data is not None and issparse(data):
+        group.create_dataset("normalized_data", data=data.data, compression=compression_type, compression_opts=compression_lvl)
+
+    # Optionally write scale.data
+    if scale_data is not None:
+        if issparse(scale_data):
+            group.create_dataset("scale_data", data=scale_data.data, compression=compression_type, compression_opts=compression_lvl)
+        elif isinstance(scale_data, np.ndarray) or isinstance(scale_data, pd.DataFrame):
+            scale_arr = np.array(scale_data, dtype=np.float32)
+            group.create_dataset("scale_data", data=scale_arr.flatten(), compression=compression_type, compression_opts=compression_lvl)
+            group.create_dataset("scale_data_shape", data=scale_arr.shape)
+            if isinstance(scale_data, pd.DataFrame):
+                group.create_dataset("scale_data_genes", data=np.array(scale_data.index, dtype='S'))
+                group.create_dataset("scale_data_cells", data=np.array(scale_data.columns, dtype='S'))
+
+
+def write_global_hdf5(path, data_list, compression_type="gzip", compression_lvl=4):
+    with h5py.File(path, "w") as f:
+        for name in data_list:
+            if name == "ref_scRNA":
+                group_ref = f.create_group("ref_scRNA")
+
+                for dataset in data_list[name]:
+                    group_path = f"ref_scRNA/{dataset}"
+                    group = f.create_group(group_path)
+
+                    seurat_obj = None
+                    seurat_field_name = None
+                    group_seurat_path = group_path
+
+                    # Check if dataset is Seurat-like object (dict with laye        rs)
+                    if "counts" in data_list[name][dataset] and "metadata" in data_list[name][dataset]:
+                        counts = csc_matrix(data_list[name][dataset]["counts"].X.T)
+                        meta = data_list[name][dataset]["metadata"]
+                        data = None
+                        scale_data = None
+
+                        if "data" in data_list[name][dataset]:
+                            data = csc_matrix(data_list[name][dataset]["data"].X.T)
+                        if "scale.data" in data_list[name][dataset]:
+                            scale_data = data_list[name][dataset]["scale.data"]
+
+                        # Write marker that this is a Seurat-like object
+                        group.create_dataset("object_type", data=np.string_("seurat"))
+                        group.create_dataset("seurat_field_name", data=np.string_(dataset))
+
+                        write_sparse_matrix(group_path, f, counts, meta, data=data, scale_data=scale_data,
+                                            compression_type=compression_type, compression_lvl=compression_lvl)
+                    
+                    else:
+                        # If not a Seurat object but still has "counts" and "metadata"
+                        if "counts" in data_list[name][dataset] and "metadata" in data_list[name][dataset]:
+                            counts = csc_matrix(data_list[name][dataset]["counts"].X.T)
+                            meta = data_list[name][dataset]["metadata"]
+                            write_sparse_matrix(group_path, f, counts, meta, compression_type=compression_type, compression_lvl=compression_lvl)
+
+            else:
+                # Fallback: save as flat table
+                df = data_list[name]
+                df_group = f.create_group(name)
+                for col in df.columns:
+                    df_group.create_dataset(col, data=np.array(df[col]), compression=compression_type, compression_opts=compression_lvl)
+
+
+def set_dataframe_index_and_columns(group, group_name, df):
+    def get_string_array(field_name):
+        if field_name in group_name :
+            raw = group[field_name][()]
+            if raw.dtype.kind in {'S', 'O'}:
+                return [x.decode('utf-8') if isinstance(x, bytes) else x for x in raw]
+            return list(raw)
+        return None
+
+    # Assign columns
+    for field in ["samples", "cell_types"]:
+        values = get_string_array(field)
+        if values is not None:
+            df.columns = values
+            break  # Prioritize 'samples' over 'cell_types' like in R
+
+    # Assign rows
+    for field in ["genes", "CpG_sites"]:
+        values = get_string_array(field)
+        if values is not None:
+            df.index = values
+            break  # Prioritize 'genes' over 'CpG_sites'
+    return df
+
+def get_h5_structure(h5group):
+    structure = {}
+    for key in h5group:
+        if isinstance(h5group[key], h5py.Group):
+            structure[key] = get_h5_structure(h5group[key])
+        else:
+            structure[key] = "dataset"
+    return structure
+
+def read_data_frame(path, group_name, file_structure):
+    with h5py.File(path, "r") as f:
+        group = f[group_name]
+        df = pd.DataFrame(group["data"][()]).T
+
+        # df.index = [x.decode('utf-8') for x in group["genes"][()] ]
+        # df.columns = [x.decode('utf-8') for x in group["cell_types"][()]]
+        df = set_dataframe_index_and_columns(group, group_name,  df)
+
+        return df
+    
+
+
+def read_sparse_matrix(group_path, group_structure, h5file):
+    # Load sparse matrix components
+    counts_data = np.array(h5file[f"{group_path}/data"])
+    counts_shape = tuple(h5file[f"{group_path}/shape"])
+    counts_indices = np.array(h5file[f"{group_path}/indices"])
+    counts_indptr = np.array(h5file[f"{group_path}/indptr"])
+
+    gene_names = [g.decode("utf-8") for g in h5file[f"{group_path}/genes"][:]]
+    cell_names = [c.decode("utf-8") for c in h5file[f"{group_path}/cell"][:]]
+
+    # Reconstruct sparse matrix
+    counts = csc_matrix((counts_data, counts_indices, counts_indptr), shape=counts_shape)
+    counts.var_names = gene_names
+    counts.obs_names = cell_names
+
+    # Load metadata
+    meta_data_raw = h5file[f"{group_path}/meta"]
+    meta = pd.DataFrame({key: meta_data_raw[key][:] for key in meta_data_raw.dtype.names})
+    meta.columns = meta_data_raw.dtype.names
+    meta.index = cell_names
+
+    # Check if it was a Seurat object
+    is_seurat = "object_type" in group_structure and h5file[f"{group_path}/object_type"][()].decode("utf-8") == "seurat"
+
+    if is_seurat:
+        # Add normalized data layer
+        normalized_data = None
+        if "normalized_data" in group_structure:
+            normalized_data = csc_matrix((h5file[f"{group_path}/normalized_data"][:], counts_indices, counts_indptr), shape=counts_shape)
+
+        # Add scaled data
+        scale_data = None
+        if "scale_data" in group_structure:
+            scale_data = csc_matrix((h5file[f"{group_path}/scale_data"][:], counts_indices, counts_indptr), shape=counts_shape)
+
+        return {
+            "counts": counts,
+            "metadata": meta,
+            "data": normalized_data,
+            "scale.data": scale_data,
+            "is_seurat": True
+        }
+
+    else:
+        return {
+            "counts": counts,
+            "metadata": meta
+        }
+
+
+
+def read_hdf5(path):
+    data_list = {}
+
+    with h5py.File(path, "r") as f:
+        file_structure = get_h5_structure(f)
+
+        for name in file_structure:
+            if name == "ref_scRNA":
+                ref_scRNA = {}
+                for dataset in file_structure[name]:
+                    group_path = f"{name}/{dataset}"
+                    seurat_data = read_sparse_matrix(group_path, file_structure[name][dataset], f)
+
+                    # Look for nested groups (fields like scaled_data, data, etc.)
+                    expected = {"cell", "data", "genes", "indices", "indptr", "meta", "shape", "object_type", "seurat_field_name", "normalized_data", "scale_data"}
+                    actual = set(file_structure[name][dataset].keys())
+                    nested_fields = actual - expected
+
+                    for field in nested_fields:
+                        sub_group_path = f"{name}/{dataset}/{field}"
+                        seurat_data[field] = read_sparse_matrix(sub_group_path, file_structure[name][dataset][field], f)
+
+                    ref_scRNA[dataset] = seurat_data
+
+                data_list[name] = ref_scRNA
+
+            else:
+                data_list[name] = read_data_frame(path, name, file_structure)
+
+
+    return data_list
+
+
+file= "data/ref.h5"
+
+r =  read_hdf5(file)
+
+test_f = 'tmp.h5'
+
+write_global_hdf5(test_f,r )

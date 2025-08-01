@@ -1,40 +1,25 @@
 
 ############ working : 
-# MOFA: 
-#   path: early_integration/MOFA.R 
-#   short_name: MOFA
+MOFA: 
+  path: early_integration/MOFA.R 
+  short_name: MOFA
 
-# omicade4bulk:
-#   path: early_integration/omicade4_bulk.R 
-#   short_name: Ocablk
+omicade4bulk:
+  path: early_integration/omicade4_bulk.R 
+  short_name: Ocablk
 
-# splsbulk: 
-#   path: early_integration/spls_bulk.R 
-#   short_name: spblk
 
-# splssc:
-#   path: early_integration/spls_sc.R 
-#   short_name: spsc
+concatscale:
+  path: early_integration/concat_scale.R 
+  short_name: Consc
 
-# OT:
-#   path: early_integration/OT.py 
-#   short_name: OT
+concatnoscale:
+  path: early_integration/concat_noscale.R 
+  short_name: Cnosc
 
-# multimap:
-#   path: early_integration/multimap.py 
-#   short_name: mltmap
-
-# concatscale:
-#   path: early_integration/concat_scale.R 
-#   short_name: Consc
-
-# concatnoscale:
-#   path: early_integration/concat_noscale.R 
-#   short_name: Cnosc
-
-# Kernel:
-#   path: early_integration/Kernel.R 
-#   short_name: Kern
+Kernel:
+  path: early_integration/Kernel.R 
+  short_name: Kern
 
 
 

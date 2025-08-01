@@ -18,13 +18,14 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env     
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 bioconductor-mixOmics bioconductor-edgeR r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes r-markdown bioconductor-OmnipathR r-EPIC r-furrr 
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 bioconductor-mixOmics bioconductor-edgeR r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes r-markdown bioconductor-OmnipathR r-EPIC r-furrr bioconda::r-mixkernel bioconda::bioconductor-mofa2 bioconductor-omicade4 
 
 
 Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 ```
-<!-- bioconda::r-mixkernel bioconda::bioconductor-mofa2 bioconductor-omicade4  -->
+<!-- scipy h5py -->
+<!--  -->
 
 <!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
 <!-- bioconductor-ADImpute -->
