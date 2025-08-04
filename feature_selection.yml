@@ -40,10 +40,10 @@ SCcluster :
  omic_need: [scRNA]
  omic: [mixRNA,RNA,scRNA]
 
-# Toastvst :  #must be a unique ID without _
-#  path: feature_selection/TOAST_vst.R
-#  short_name: Tvst
-#  omic: [mixRNA,RNA,scRNA]
+Toastvst :  #must be a unique ID without _
+ path: feature_selection/TOAST_vst.R
+ short_name: Tvst
+ omic: [mixRNA,RNA,scRNA]
 
 Toastbulknbfs : #must be a unique ID without _
   path: feature_selection/TOAST_bulk_nbfs.R
