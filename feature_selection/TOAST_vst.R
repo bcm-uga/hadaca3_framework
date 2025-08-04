@@ -28,7 +28,7 @@ program_block_FS <- function(data, path_og_dataset) {
   if (is.list(data)) {
     data = lapply(data, function(x) convert_and_filter_sparse_matrix(x, top_gene_names))
   } else {
-    data = data[top_genes,]
+    data = data[ intersect(top_gene_names,rownames(data)),]
   }
   
   return(data) 

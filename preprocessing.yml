@@ -37,17 +37,17 @@ sccluster : # seurat created object
   create: [ref_cluster]
   omic: [scRNA]
   
-sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+scbinarypseudobulklog : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
   path: preprocessing/sc_binarypseudobulk_log.R
   short_name: scbpl
   create: [ref_binarypseudobulk_log]
   omic: [mixRNA,RNA,scRNA]
 
-scCCAintegration : # integration of sc datasets with CCA
-  path: preprocessing/sc_CCAintegration.R
-  short_name: CCAi
-  create: [ref_integrated]
-  omic: [scRNA]
+# scCCAintegration : # integration of sc datasets with CCA
+#   path: preprocessing/sc_CCAintegration.R
+#   short_name: CCAi
+#   create: [ref_integrated]
+#   omic: [scRNA]
   
 # scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
 #   path: preprocessing/sc_pseudobulk.R
