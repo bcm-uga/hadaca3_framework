@@ -144,16 +144,16 @@ for (data_used in all_data_used) {
   results_li[[data_used]] <- factor(results_li[[data_used]], levels = unique(results_li[[data_used]]))
 }
 
+all_functions_li <- c(
+  'preprocessing_mixRNA', 'feature_selection_mixRNA',
+  'preprocessing_RNA', 'feature_selection_RNA',
+  'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
+  'preprocessing_mixMET', 'feature_selection_mixMET',
+  'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
+  'late_integration'
+)
 # Optional: order other factors based on performance on 'invitro1'
 if ("invitro1" %in% results_li$dataset) {
-  all_functions_li <- c(
-    'preprocessing_mixRNA', 'feature_selection_mixRNA',
-    'preprocessing_RNA', 'feature_selection_RNA',
-    'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
-    'preprocessing_mixMET', 'feature_selection_mixMET',
-    'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
-    'late_integration'
-  )
   for (fun in all_functions_li) {
     results_li[[fun]] <- factor(results_li[[fun]],
       levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset == 'invitro1'], decreasing = TRUE)]))
