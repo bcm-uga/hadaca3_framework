@@ -50,8 +50,21 @@ jobs:
           cd data
           awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
             echo "$line"
-            eval "$line"
+            filename=$(basename "$line")
+            if [ ! -f "$filename" ]; then
+              echo "Downloading $filename..."
+              eval "$line"
+            else
+              echo "Skipping $filename (already exists)"
+            fi
           done
+          # cd ${{ env.REPO_DIR }}
+          # mkdir -p data
+          # cd data
+          # awk '/```{Automatic CI-data}/{f=1; next} f && /```/{f=0; exit} f && /wget/' ../README.md | while read -r line; do
+          #   echo "$line"
+          #   eval "$line"
+          # done
 
       - name: Run pipeline
         # continue-on-error: true  This will not show an error if the pipeline fail  !
