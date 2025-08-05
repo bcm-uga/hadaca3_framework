@@ -42,7 +42,7 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   train_opts$seed <- 12
   MOFA <- prepare_mofa(MOFA, model_options = model_opts, training_options = train_opts)
   dir.create("tmp_mofa")
-  MOFA <- run_mofa(MOFA, save_data=F, outfile="tmp_mofa/model.hdf5",  use_basilisk=T) # ,  use_basilisk = FALSE)
+  MOFA <- run_mofa(MOFA, save_data=F, outfile="tmp_mofa/model.hdf5",   use_basilisk = FALSE)  #use_basilisk=T) # ,
   
   # Latent space is in MOFA@expectations$Z$group1
   projection = t(MOFA@expectations$Z$group1)
