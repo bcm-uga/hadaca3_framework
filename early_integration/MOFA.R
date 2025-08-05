@@ -9,6 +9,8 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   if (!("MOFA2" %in% installed.packages())) {
     BiocManager::install("MOFA2")
   }
+  library(reticulate)
+  use_condaenv("hadaca3framework_env", required = TRUE)
   library(MOFA2)
   
   # add samples' names
@@ -40,7 +42,7 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   train_opts$seed <- 12
   MOFA <- prepare_mofa(MOFA, model_options = model_opts, training_options = train_opts)
   dir.create("tmp_mofa")
-  MOFA <- run_mofa(MOFA, save_data=F, outfile="tmp_mofa/model.hdf5",  use_basilisk = FALSE)#  use_basilisk=T)
+  MOFA <- run_mofa(MOFA, save_data=F, outfile="tmp_mofa/model.hdf5",  use_basilisk=T) # ,  use_basilisk = FALSE)
   
   # Latent space is in MOFA@expectations$Z$group1
   projection = t(MOFA@expectations$Z$group1)
