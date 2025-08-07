@@ -73,7 +73,12 @@ correlationS_tot = function(A_real, A_pred) {
 correlationP_col = function(A_real, A_pred) {
   res = c()
   for (i in seq(ncol(A_real))) {
-    if (sd(A_pred[, i]) > 0 & sd(A_real[, i]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+
       res[i] = cor(A_real[, i], A_pred[, i], method = "pearson")
     }
   }
@@ -85,7 +90,12 @@ correlationP_col = function(A_real, A_pred) {
 correlationS_col = function(A_real, A_pred) {
   res = c()
   for (i in seq(ncol(A_real))) {
-    if (sd(A_pred[, i]) > 0 & sd(A_real[, i]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+
       res[i] = cor(A_real[, i], A_pred[, i], method = "spearman")
     }
   }
@@ -100,7 +110,11 @@ correlationS_col = function(A_real, A_pred) {
 correlationP_row = function (A_real, A_pred) {
   res = c()
   for (i in seq(nrow(A_real))) {
-    if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
       res[i] = cor(A_real[i, ], A_pred[i, ], method = "pearson")
     }
   }
@@ -112,7 +126,11 @@ correlationP_row = function (A_real, A_pred) {
 correlationS_row = function (A_real, A_pred) {
   res = c()
   for (i in seq(nrow(A_real))) {
-    if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
       res[i] = cor(A_real[i, ], A_pred[i, ], method = "spearman")
     }
   }
