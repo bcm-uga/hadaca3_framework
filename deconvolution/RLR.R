@@ -12,18 +12,18 @@ program_block_DE <- function(uni_data,path_og_dataset='') {
   get_epidish_with_fallback <- function(beta.m, ref.m, cutoff = 0.99) {
     safe_epidish <- function(beta, ref) {
       tryCatch({
-        return(t(EpiDISH:epidish(beta, ref, method = "RPC")$estF))
+        return(t(EpiDISH::epidish(beta, ref, method = "RPC")$estF))
       }, error = function(e) {
         warning("EpiDISH failed, attempting to remove correlated columns...")
 
         cor_matrix <- cor(ref)
-        to_remove <- caret:findCorrelation(cor_matrix, cutoff = cutoff)
+        to_remove <- caret::findCorrelation(cor_matrix, cutoff = cutoff)
         if (length(to_remove) == 0) stop("No columns removed, but EpiDISH still fails.")
 
         message("Removing correlated columns: ", paste(colnames(ref)[to_remove], collapse = ", "))
         ref_clean <- ref[, -to_remove, drop = FALSE]
 
-        return(t(EpiDISH:epidish(beta, ref_clean, method = "RPC")$estF))
+        return(t(EpiDISH::epidish(beta, ref_clean, method = "RPC")$estF))
       })
     }
 
