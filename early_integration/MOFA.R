@@ -20,7 +20,11 @@ program_block_EI <- function(rna_unit,met_unit,path_dataset) {
   if (is.null(colnames(mix_met))) {
     colnames(mix_met) = paste0("Sample",seq(ncol(mix_met)))
   }
-  mix_rna = mix_rna[,colnames(mix_met)]
+
+  common_samples <- intersect(colnames(mix_rna), colnames(mix_met))
+  mix_rna <- mix_rna[, common_samples]
+  mix_met <- mix_met[, common_samples]
+  # mix_rna = mix_rna[,colnames(mix_met)]
 
   common_genes <- intersect(rownames(mix_rna), rownames(ref_rna))
 
