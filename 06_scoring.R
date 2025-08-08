@@ -297,6 +297,22 @@ scoring_function <- function(A_real, A_pred) {
     spearman_row = correlationS_row(A_real, A_pred[rownames(A_real),])
     weights_spec = c(1/2,1/2,rep(0,10))
   }
+  
+else{
+    rmse = NA
+    mae = NA
+    aitchison = NA
+    sdid = NA
+    aid = NA
+    jsd = NA
+    pearson_tot = NA
+    pearson_col = NA
+    pearson_row = 0
+    spearman_tot = NA
+    spearman_col = NA
+    spearman_row = 0
+    weights_spec = 0
+}
   all_judges = data.frame("pearson_row"=pearson_row,
                           "spearman_row"=spearman_row,
                           "pearson_tot"=pearson_tot,
