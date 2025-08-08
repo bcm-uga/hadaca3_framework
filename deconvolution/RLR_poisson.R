@@ -34,8 +34,8 @@ program_block_DE <- function(uni_data,path_og_dataset='') {
 
 # this function remove column if the correlaction is to high for rlm to perform. 
   compute_rlr_weighted <- function(beta.m, ref.m, weights, correlation_cutoff = 0.99) {
-  # library(MASS)
-  # library(caret)
+  library(MASS)
+  library(caret)
 
     est.m <- matrix(nrow = ncol(beta.m), ncol = ncol(ref.m))
     colnames(est.m) <- colnames(ref.m)
@@ -66,7 +66,7 @@ program_block_DE <- function(uni_data,path_og_dataset='') {
 
           # Remove highly correlated columns
           cor_mat <- cor(current_ref)
-          to_remove <- findCorrelation(cor_mat, cutoff = correlation_cutoff)
+          to_remove <- caret::findCorrelation(cor_mat, cutoff = correlation_cutoff)
 
           if (length(to_remove) == 0) {
             stop("RLM failed and no correlated columns left to remove.")
