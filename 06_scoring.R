@@ -204,7 +204,22 @@ eval_MAE = function (A_real, A_pred){
 scoring_function <- function(A_real, A_pred) {
   # pre-treatment of predicted A
   #A_pred = prepare_A(A_real = A_real, A_pred = A_pred)
-  
+    # If A_pred is all NaN, return all-zero scores
+  if (all(is.na(A_pred))) {
+    metric_names <- c("score_aggreg",
+                      rep(c("pearson_row","spearman_row",
+                            "pearson_tot","pearson_col","spearman_tot","spearman_col",
+                            "rmse","mae","aitchison","jsd","sdid","aid"), times = 2))
+    metric_names[(2+length(c("pearson_row","spearman_row",
+                              "pearson_tot","pearson_col","spearman_tot","spearman_col",
+                              "rmse","mae","aitchison","jsd","sdid","aid"))):
+                   length(metric_names)] <-
+      paste0(c("pearson_row","spearman_row",
+               "pearson_tot","pearson_col","spearman_tot","spearman_col",
+               "rmse","mae","aitchison","jsd","sdid","aid"), '_norm')
+    
+    return(setNames(rep(0, length(metric_names)), metric_names))
+  }
   # scoring with different metrics
   if (nrow(A_pred)==nrow(A_real)) {
     
