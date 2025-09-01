@@ -161,13 +161,9 @@ if ("invitro1" %in% results_li$dataset) {
 }
 
 # Write compressed output
-<<<<<<< HEAD
-# write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
-results_li = read.csv(file = gzfile("results_li.csv.gz"))
-=======
 write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
 # results_li = read.csv(file = gzfile("results_li.csv.gz"))
->>>>>>> abcfb98f6fbbe800d0cc50abcd20bdba944316ae
+
 
 
 ```
