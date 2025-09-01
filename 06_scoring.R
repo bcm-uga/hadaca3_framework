@@ -73,7 +73,12 @@ correlationS_tot = function(A_real, A_pred) {
 correlationP_col = function(A_real, A_pred) {
   res = c()
   for (i in seq(ncol(A_real))) {
-    if (sd(A_pred[, i]) > 0 & sd(A_real[, i]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+
       res[i] = cor(A_real[, i], A_pred[, i], method = "pearson")
     }
   }
@@ -85,7 +90,12 @@ correlationP_col = function(A_real, A_pred) {
 correlationS_col = function(A_real, A_pred) {
   res = c()
   for (i in seq(ncol(A_real))) {
-    if (sd(A_pred[, i]) > 0 & sd(A_real[, i]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+
       res[i] = cor(A_real[, i], A_pred[, i], method = "spearman")
     }
   }
@@ -100,7 +110,11 @@ correlationS_col = function(A_real, A_pred) {
 correlationP_row = function (A_real, A_pred) {
   res = c()
   for (i in seq(nrow(A_real))) {
-    if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
       res[i] = cor(A_real[i, ], A_pred[i, ], method = "pearson")
     }
   }
@@ -112,7 +126,11 @@ correlationP_row = function (A_real, A_pred) {
 correlationS_row = function (A_real, A_pred) {
   res = c()
   for (i in seq(nrow(A_real))) {
-    if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
+    sd_pred = sd(A_pred[, i], na.rm = TRUE)
+    sd_real = sd(A_real[, i], na.rm = TRUE)
+    
+    if (!is.na(sd_pred) && !is.na(sd_real) && sd_pred > 0 && sd_real > 0) {
+    # if (sd(A_pred[i, ]) > 0 & sd(A_real[i, ]) > 0) {
       res[i] = cor(A_real[i, ], A_pred[i, ], method = "spearman")
     }
   }
@@ -186,7 +204,22 @@ eval_MAE = function (A_real, A_pred){
 scoring_function <- function(A_real, A_pred) {
   # pre-treatment of predicted A
   #A_pred = prepare_A(A_real = A_real, A_pred = A_pred)
-  
+    # If A_pred is all NaN, return all-zero scores
+  if (all(is.na(A_pred))) {
+    metric_names <- c("score_aggreg",
+                      rep(c("pearson_row","spearman_row",
+                            "pearson_tot","pearson_col","spearman_tot","spearman_col",
+                            "rmse","mae","aitchison","jsd","sdid","aid"), times = 2))
+    metric_names[(2+length(c("pearson_row","spearman_row",
+                              "pearson_tot","pearson_col","spearman_tot","spearman_col",
+                              "rmse","mae","aitchison","jsd","sdid","aid"))):
+                   length(metric_names)] <-
+      paste0(c("pearson_row","spearman_row",
+               "pearson_tot","pearson_col","spearman_tot","spearman_col",
+               "rmse","mae","aitchison","jsd","sdid","aid"), '_norm')
+    
+    return(setNames(rep(0, length(metric_names)), metric_names))
+  }
   # scoring with different metrics
   if (nrow(A_pred)==nrow(A_real)) {
     
@@ -264,6 +297,22 @@ scoring_function <- function(A_real, A_pred) {
     spearman_row = correlationS_row(A_real, A_pred[rownames(A_real),])
     weights_spec = c(1/2,1/2,rep(0,10))
   }
+  
+else{
+    rmse = NA
+    mae = NA
+    aitchison = NA
+    sdid = NA
+    aid = NA
+    jsd = NA
+    pearson_tot = NA
+    pearson_col = NA
+    pearson_row = 0
+    spearman_tot = NA
+    spearman_col = NA
+    spearman_row = 0
+    weights_spec = 0
+}
   all_judges = data.frame("pearson_row"=pearson_row,
                           "spearman_row"=spearman_row,
                           "pearson_tot"=pearson_tot,

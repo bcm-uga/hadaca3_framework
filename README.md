@@ -18,11 +18,14 @@ conda create -y -n hadaca3framework_env
 conda activate hadaca3framework_env     
 
 
-mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 bioconductor-mixOmics bioconductor-edgeR r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes r-markdown bioconductor-OmnipathR r-EPIC r-furrr 
+mamba install -y  -c bioconda -c conda-forge -c r snakemake python r-base r-rmarkdown r-nnls r-seurat bioconductor-rhdf5 bioconductor-mixOmics bioconductor-edgeR r-quadprog r-coda.base r-dt bioconductor-toast  psutil nextflow=24.10.5 r-lubridate r-remotes r-markdown bioconductor-OmnipathR r-EPIC r-furrr bioconda::r-mixkernel bioconda::bioconductor-mofa2 bioconductor-omicade4 bioconda::mofapy2 r-caret
+
 
 Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 ```
+<!-- scipy h5py -->
+<!--  -->
 
 <!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
 <!-- bioconductor-ADImpute -->
@@ -38,7 +41,18 @@ Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 <!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
 
-## Getting otiginal data
+## Working on meta-analysis
+
+```
+cd ~/projects/hadaca3_framework/
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_ei.csv.gz
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_li.csv.gz
+# under R :
+Rscript -e 'rmarkdown::render("08_metaanalysis.Rmd")'
+
+```
+
+## Getting original data
 
 The section describes which data are needed to execute the entire pipeline and provide the code to download it.
 
@@ -214,11 +228,22 @@ In this code, the omic name RNA, MET, scRNA refers to ref_bulkRNA, ref_MET, and 
 ref_scRNA contains 3 differents datasets, and they are differentiated in the scripts with is.list
 
 
+rna_unit and met_unit used in early integration : 
+
 ```
-ref_scRNA
-├── ref_sc_peng
-├── ref_sc_baron
-└── ref_sc_raghavan
+rna_unit
+├──mix
+├──ref
+└──ref_scRNA
+   ├── ref_sc_peng
+   ├── ref_sc_baron
+   └── ref_sc_raghavan
+```
+
+```
+met_unit
+├──mix
+└──ref
 ```
 
 

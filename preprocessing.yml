@@ -9,25 +9,21 @@ LogNorm : #is working
   omic: [ANY]
 
 ##### working
-CPM : # Sequence depth normalization for RNA
-  path: preprocessing/CPM.R
-  short_name: cpm
-  omic: [mixRNA,RNA,scRNA]
+# CPM : # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
+#   omic: [mixRNA,RNA,scRNA]
 
 Scale :  #scale with sweep function  #must be a unique ID
   path: preprocessing/scale.R
   short_name: scal
   omic: [ANY]
 
-normalize :  #must be a unique ID
-  path: preprocessing/normalize.R
-  short_name: norm
-  omic: [mixMET,MET] #,mixRNA,RNA
 
-scScale :  #must be a unique ID
-  path: preprocessing/sc_scale.R
-  short_name: scSc
-  omic: [scRNA]
+# scScale :  #must be a unique ID
+#   path: preprocessing/sc_scale.R
+#   short_name: scSc
+#   omic: [scRNA]
 
 scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
   path: preprocessing/sc_concat.R
@@ -41,30 +37,30 @@ sccluster : # seurat created object
   create: [ref_cluster]
   omic: [scRNA]
   
-sc_binarypseudobulk_log : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+scbinarypseudobulklog : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
   path: preprocessing/sc_binarypseudobulk_log.R
   short_name: scbpl
   create: [ref_binarypseudobulk_log]
   omic: [mixRNA,RNA,scRNA]
 
-scCCAintegration : # integration of sc datasets with CCA
-  path: preprocessing/sc_CCAintegration.R
-  short_name: CCAi
-  create: [ref_integrated]
-  omic: [scRNA]
+# scCCAintegration : # integration of sc datasets with CCA
+#   path: preprocessing/sc_CCAintegration.R
+#   short_name: CCAi
+#   create: [ref_integrated]
+#   omic: [scRNA]
   
-scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
-  path: preprocessing/sc_pseudobulk.R
-  short_name: scp
-  create: [ref_pseudobulk]
-  omic: [scRNA]
+# scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
+#   path: preprocessing/sc_pseudobulk.R
+#   short_name: scp
+#   create: [ref_pseudobulk]
+#   omic: [scRNA]
 
-scteamH :  #return ref_teamH
-  path: preprocessing/sc_teamH.R
-  short_name: tH
-  create: [ref_teamH]
-  dependency: [preprocessing/attachement/teamH_scSignature.csv]
-  omic: [mixRNA,RNA,scRNA]
+# scteamH :  #return ref_teamH
+#   path: preprocessing/sc_teamH.R
+#   short_name: tH
+#   create: [ref_teamH]
+#   dependency: [preprocessing/attachement/teamH_scSignature.csv]
+#   omic: [mixRNA,RNA,scRNA]
 
 ##### Working but need to change further steps and install decoupleR on the CI.
 

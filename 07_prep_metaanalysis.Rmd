@@ -144,16 +144,16 @@ for (data_used in all_data_used) {
   results_li[[data_used]] <- factor(results_li[[data_used]], levels = unique(results_li[[data_used]]))
 }
 
+all_functions_li <- c(
+  'preprocessing_mixRNA', 'feature_selection_mixRNA',
+  'preprocessing_RNA', 'feature_selection_RNA',
+  'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
+  'preprocessing_mixMET', 'feature_selection_mixMET',
+  'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
+  'late_integration'
+)
 # Optional: order other factors based on performance on 'invitro1'
 if ("invitro1" %in% results_li$dataset) {
-  all_functions_li <- c(
-    'preprocessing_mixRNA', 'feature_selection_mixRNA',
-    'preprocessing_RNA', 'feature_selection_RNA',
-    'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
-    'preprocessing_mixMET', 'feature_selection_mixMET',
-    'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
-    'late_integration'
-  )
   for (fun in all_functions_li) {
     results_li[[fun]] <- factor(results_li[[fun]],
       levels = unique(results_li[[fun]][order(results_li$score_aggreg[results_li$dataset == 'invitro1'], decreasing = TRUE)]))
@@ -161,21 +161,29 @@ if ("invitro1" %in% results_li$dataset) {
 }
 
 # Write compressed output
+<<<<<<< HEAD
 # write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
 results_li = read.csv(file = gzfile("results_li.csv.gz"))
+=======
+write.csv(results_li, file = gzfile("results_li.csv.gz"), row.names = FALSE)
+# results_li = read.csv(file = gzfile("results_li.csv.gz"))
+>>>>>>> abcfb98f6fbbe800d0cc50abcd20bdba944316ae
 
-index_aggreg <- which(names(results_li) == "score_aggreg")
 
 ```
 
 
 
 ```{r display LI table,echo=FALSE,eval=TRUE }
+index_aggreg <- which(names(results_li) == "score_aggreg")
+index_dataset <- which(names(results_li) == "dataset")
+
 datatable(
-  results_li[, c(1:length(all_functions_li)+2, index_aggreg)],
+  results_li[, c(index_dataset,1:length(all_functions_li)+2, index_aggreg)],
   extensions = 'Buttons',
+  rownames = FALSE, 
   options = list(
-    pageLength = 10,
+    pageLength = 15,
     dom = 'Bfrtip',  # This includes the Buttons extension in the layout
     buttons = list(
       list(
@@ -293,14 +301,18 @@ if(length(results_list_ei) != 0  ){
 write.csv(results_ei, file = gzfile("results_ei.csv.gz"), row.names = FALSE)
 
 
-# index_aggreg <- which(names(results_ei) == "score_aggreg")
 
 
 ```
 
 ```{r display EI table,echo=FALSE,eval=FALSE }
+index_aggreg_ei <- which(names(results_ei) == "score_aggreg")
+index_dataset_ei <- which(names(results_ei) == "dataset")
+
 datatable(
-  results_ei[, c(1:length(all_functions_ei)+2, index_aggreg)],
+  # results_ei[, c(1:length(all_functions_ei)+2, index_aggreg_ei)],
+  results_ei[, c(index_dataset_ei,1:length(all_functions_ei)+2, index_aggreg_ei)],
+  rownames = FALSE, 
   extensions = 'Buttons',
   options = list(
     pageLength = 10,
