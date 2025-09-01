@@ -12,7 +12,7 @@ output:
     number_sections: true
 ---
 
-# Aggregated and atomic scores per method
+
 
 ```{r, echo=FALSE, eval=TRUE}
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=12, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
@@ -23,16 +23,17 @@ library(yaml)
 library(DT)
 library(stringr)
 library(dplyr)
-# library(ggplot2)
-# theme_set(theme_light())
+library(ggplot2)
+theme_set(theme_light())
 library(plotly)
 library(fs)
+library(GGally)
+
+library(FactoMineR)
 
 library(furrr)
 # library(utils)
 
-
-# okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # if(exists("utils_script")){
 #   source(utils_script)
@@ -45,7 +46,8 @@ library(furrr)
 
 if(!exists("results_li")){
   print("reading reulsts li csv")
-    all_functions_li <- c(
+  
+  all_functions_li <- c(
     'preprocessing_mixRNA', 'feature_selection_mixRNA',
     'preprocessing_RNA', 'feature_selection_RNA',
     'preprocessing_scRNA', 'feature_selection_scRNA', 'deconvolution_rna',
@@ -55,9 +57,11 @@ if(!exists("results_li")){
   )
   results_li = read.csv(file = gzfile("results_li.csv.gz"))
   results_li[all_functions_li] <- lapply(results_li[all_functions_li], as.factor)
-
 }
+
 if(!exists("results_ei")){
+  print("reading reulsts ei csv")
+  
   all_functions_ei <- c(
     'preprocessing_mixRNA', 'feature_selection_mixRNA',
     'preprocessing_RNA', 'feature_selection_RNA',
@@ -66,21 +70,752 @@ if(!exists("results_ei")){
     'preprocessing_MET', 'feature_selection_MET',
     'early_integration', 'deconvolution'
   )
-  print("reading reulsts ei csv")
+  
   results_ei = read.csv(file = gzfile("results_ei.csv.gz"))
-
   if(length(results_ei)>1 ){
     results_ei[all_functions_ei] <- lapply(results_ei[all_functions_ei], as.factor)
-
   }
+}
+```
 
+
+# Top methods
+
+## Overall top 10 method by median of the aggregated score
+
+```{r results_li_top10}
+results_li_top10 = results_li %>%
+  group_by(preprocessing_mixRNA, feature_selection_mixRNA, 
+           preprocessing_RNA, feature_selection_RNA, 
+           preprocessing_scRNA, feature_selection_scRNA, deconvolution_rna, 
+           preprocessing_mixMET,feature_selection_mixMET, 
+           preprocessing_MET, feature_selection_MET, deconvolution_met, 
+           late_integration, .groups = "keep") %>% 
+  summarise(GlobalScore = median(score_aggreg)) %>%
+  arrange(desc(GlobalScore))
+
+datatable(results_li_top10[1:10,-c(14)])
+```
+
+
+## By variables
+
+```{r fun_arranged_boxplot}
+arranged_boxplot = function(data, x_var, score = "score_aggreg"){
+  
+  if (x_var != "early_integration" && x_var != "late_integration") {
+    data = data[data$preprocessing_mixRNA != "nopp",]
+    data = data[data$feature_selection_mixRNA != "nofs",]
+    data = data[data$preprocessing_RNA != "nopp",]
+    data = data[data$feature_selection_RNA != "nofs",]
+    data = data[data$preprocessing_scRNA != "nopp",]
+    data = data[data$feature_selection_scRNA != "nofs",]
+    data = data[data$deconvolution_rna != "node",]
+    data = data[data$preprocessing_mixMET != "nopp",]
+    data = data[data$feature_selection_mixMET != "nofs",]
+    data = data[data$preprocessing_MET != "nopp",]
+    data = data[data$feature_selection_MET != "nofs",]
+    data = data[data$deconvolution_met != "node",]
+  }
+  
+  order_level_x_var = sapply(levels(data[,x_var]), \(level_i){
+    median(data[data[,x_var] == level_i, score])
+  })
+  order_level_x_var = order_level_x_var[order(order_level_x_var, decreasing = TRUE)]
+  data[,x_var] = factor(data[,x_var], levels = names(order_level_x_var))
+  
+  
+  aes_base = aes_string(x = x_var, y = score)
+  ggplot(data[,c(x_var, score)]) +
+    # geom_boxplot(aes_base) +
+    geom_violin(aes_base, draw_quantiles = 0.5) +
+    labs(
+      title = paste("Aggregated score for", x_var),
+      subtitle = "ordered by median of aggregated score (horizontal line)",
+      x = element_blank(),
+      y = "Aggregated score",
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+      plot.title = element_text(hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5),
+      legend.position = "bottom"
+    )
 }
 
 
+arranged_boxplot(data = results_li, x_var = all_functions_li[1])
+arranged_boxplot(data = results_li, x_var = all_functions_li[2])
+arranged_boxplot(data = results_li, x_var = all_functions_li[3])
+arranged_boxplot(data = results_li, x_var = all_functions_li[4])
+arranged_boxplot(data = results_li, x_var = all_functions_li[5])
+arranged_boxplot(data = results_li, x_var = all_functions_li[6])
+arranged_boxplot(data = results_li, x_var = all_functions_li[7])
+arranged_boxplot(data = results_li, x_var = all_functions_li[8])
+arranged_boxplot(data = results_li, x_var = all_functions_li[9])
+arranged_boxplot(data = results_li, x_var = all_functions_li[10])
+arranged_boxplot(data = results_li, x_var = all_functions_li[11])
+arranged_boxplot(data = results_li, x_var = all_functions_li[12])
+arranged_boxplot(data = results_li, x_var = all_functions_li[13])
 
 ```
 
-# Nico test visu (GPT...) 
+
+
+
+
+
+# Correlations of the different metrics
+
+```{r cor_dens_plot, fig.height=9}
+
+# Fonction personnalisée pour corrélations avec couleurs et légende
+cor_fun_colored <- function(data, mapping, method = "pearson", ndp = 2, sz = 4, ...) {
+  x <- eval_data_col(data, mapping$x)
+  y <- eval_data_col(data, mapping$y)
+  corr <- cor(x, y, method = method, use = "complete.obs")
+  
+  # Palette de couleurs continue de -1 à 1
+  # Utilisation d'une palette divergente : bleu (négatif) - blanc (0) - rouge (positif)
+  color_palette <- colorRampPalette(c("#2166AC", "#F7F7F7", "#B2182B"))(100)
+  color_index <- round((corr + 1) * 50) + 1  # Convertit [-1,1] en [1,100]
+  color_index <- pmax(1, pmin(100, color_index))  # Assure que l'index est dans [1,100]
+  col_cor <- color_palette[color_index]
+  
+  ggally_text(label = paste0("Corr ", method, " :\n", round(corr, ndp)), 
+              color = col_cor, 
+              size = sz,
+              fontface = "bold") +
+    theme_void()
+}
+
+density_fun_limited <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    geom_density2d(alpha = 0.6, color = "steelblue", ...) +
+    xlim(0, 1) +
+    ylim(0, 1)
+}
+
+# Version finale optimisée
+ggpairs_final <- ggpairs(
+  results_li,  # Dataset complet
+  columns = c("score_aggreg", "rmse_norm", "pearson_col_norm", "spearman_col_norm", "aid_norm", "jsd_norm"),
+  upper = list(continuous = cor_fun_colored),
+  lower = list(continuous = density_fun_limited),
+  # lower = list(continuous = wrap("density", alpha = 0.6, bins = 10, fill = "steelblue", xlim = c(0,1), ylim = c(0,1))),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.8, fill = "lightblue"))
+) + 
+theme(
+  strip.text = element_text(size = 10, face = "bold"),
+  axis.text = element_text(size = 8)
+)
+
+print(ggpairs_final)
+```
+
+- Corrélations élevées
+- distribution marginales proches
+
+```{r cor_plot, fig.height=9}
+# results_li[results_li=="NaN"] = NA
+row_rm = apply(results_li,1,function(x) any(is.na(x)))
+results_li_rm = results_li[!row_rm,-(1:(length(all_functions_li)+2))]
+
+score_aggreg_order = grep("score_aggreg", colnames(results_li_rm))
+normalised_metrics = grep("norm", colnames(results_li_rm))
+unnormalised_metrics = (1:ncol(results_li_rm))[-c(score_aggreg_order, normalised_metrics)]
+corr_metric = c(grep("pearson", colnames(results_li_rm)), grep("spearman", colnames(results_li_rm)))
+
+correlations = cor(results_li_rm[,c(
+  score_aggreg_order, 
+  normalised_metrics[!(normalised_metrics %in% corr_metric)], 
+  normalised_metrics[normalised_metrics %in% corr_metric], 
+  unnormalised_metrics[!(unnormalised_metrics %in% corr_metric)],
+  unnormalised_metrics[unnormalised_metrics %in% corr_metric]
+)])
+corrplot::corrplot(correlations, method='ellipse', type='full', outline=T, tl.col='black')
+```
+
+- Aitchison et pearson row (type cell) sont les plus différentiables. Le premiers est cependant du à des limites techniques (valeurs exponentielles lorsque proportions proches de 0).
+- corrélations élevées -> metriques d'angles proche de RMSE et MAE
+
+
+# Florent stepwise model
+
+```{r stepwise_model}
+foo = sapply(names(results_li), function(k) {
+  print(k)
+  main = k
+  if (is.character(results_li[,k]) || is.factor(results_li[,k])) {
+    barplot(table(results_li[,k], useNA="always"), las=2, main=main)
+    return("char")
+k  } else if (is.numeric(results_li[,k])){
+      plot(density(results_li[,k], na.rm=TRUE), main=main)
+      print(paste0("#NA: ", sum(is.na(results_li[,k]))))
+    return("num")
+  } else {
+    stop(paste0("Data type not treated: ", k))
+  }
+})
+
+bar = sapply(names(foo)[foo == "char"], function(k) {
+  print(paste0(k, ": ", length(unique(results_li[,k]))))
+  if (length(unique(results_li[,k]))>1) {
+    return(k) 
+  } else {
+    return(NULL)
+  }
+})
+facts = unlist(bar)
+# score = "spearman_tot"
+score = "score_aggreg"
+f_lo = formula(paste0(score, "~1"))
+f_up = formula(paste0(score, "~."))
+m_lo = lm(f_lo, data=results_li[,c(facts, score)])
+m_up = lm(f_up, data=results_li[,c(facts, score)])
+
+any_line_na = sum(apply(results_li[,c(facts, score)], 1, \(ligne_i){any(is.na(ligne_i))}))
+BIC_constant = log(nrow(results_li) - any_line_na)
+life.lm = step(m_lo, method="forward", scope=list(upper=m_up,lower=m_lo), k = BIC_constant)
+# Step:  AIC=-746072.7
+# score_aggreg ~ deconvolution_rna + dataset + deconvolution_met + 
+#     feature_selection_mixRNA + late_integration + preprocessing_mixRNA + 
+#     preprocessing_mixMET + preprocessing_scRNA
+
+life.lm = step(m_lo, method="both", scope=list(upper=m_up,lower=m_lo), k = BIC_constant)
+# Step:  AIC=-746072.7
+# score_aggreg ~ deconvolution_rna + dataset + deconvolution_met + 
+#     feature_selection_mixRNA + late_integration + preprocessing_mixRNA + 
+#     preprocessing_mixMET + preprocessing_scRNA
+
+
+# spearman_tot ~ late_integration + deconvolution_rna + feature_selection_mixRNA + 
+#     dataset + deconvolution_met + preprocessing_mixMET + preprocessing_mixRNA + 
+#     feature_selection_mixMET
+
+
+# boxplot(formula(paste0(score, "~late_integration")), results_li[,c(facts, score)])
+
+# boxplot(formula(paste0(score, "~late_integration + deconvolution_rna")), results_li[,c(facts, score)], las=2)
+
+
+boxplot(formula(paste0(score, "~dataset")), results_li[,c(facts, score)])
+
+boxplot(formula(paste0(score, "~deconvolution_rna")), results_li[,c(facts, score)], las=2, na.rm = TRUE)
+
+boxplot(formula(paste0(score, "~deconvolution_met")), results_li[,c(facts, score)], las=2, na.rm = TRUE)
+
+```
+
+
+# PCA
+
+```{r val_propre_pca, fig.height=9}
+# row_rm = apply(results_li,1,function(x) any(is.na(x)))
+# results_li_rm = results_li[!row_rm,]
+# # code above can be resumed by suppressing invitro and invivo dataset because we can't apply jsd metrics for the first and all non correlation metrics for the second
+
+# Then for the PCA, we remove jsd (which is highly correlated to other metrics) and the in vivo dataset
+results_li_rm = results_li[results_li$dataset != "invivo1", -c(which(colnames(results_li) %in% c("jsd", "jsd_norm")))]
+
+score_aggreg_order = grep("score_aggreg", colnames(results_li_rm))
+normalised_metrics = grep("norm", colnames(results_li_rm))
+unnormalised_metrics = (1:ncol(results_li_rm))[-c(1:(length(all_functions_li)+2), score_aggreg_order, normalised_metrics)]
+corr_metric = c(grep("pearson", colnames(results_li_rm)), grep("spearman", colnames(results_li_rm)))
+stepwise_most_var = which(colnames(results_li_rm) %in% c("dataset", "late_integration", "deconvolution_rna", "deconvolution_met"))
+
+pca_results_li_rm = PCA(results_li_rm[,c(score_aggreg_order, stepwise_most_var, unnormalised_metrics)], quanti.sup = 1, quali.sup = 2:(length(stepwise_most_var)+1), graph = FALSE)
+barplot(pca_results_li_rm$eig[,2])
+```
+
+Les trois premières composantes seront analysées, représentant 96% de la variabilité totale des différentes métriques.
+
+
+```{r var_plot_pca}
+# par(mfrow = c(3,2))
+# plot(pca_results_li_rm, axes = c(1, 2), choix="ind")
+plot(pca_results_li_rm, axes = c(1, 2), choix="var")
+# plot(pca_results_li_rm, axes = c(1, 3), choix="ind")
+plot(pca_results_li_rm, axes = c(1, 3), choix="var")
+# plot(pca_results_li_rm, axes = c(2, 3), choix="ind")
+plot(pca_results_li_rm, axes = c(2, 3), choix="var")
+# par(mfrow = c(1,1))
+```
+
+```{r dim_desc_pca}
+dimdesc(pca_results_li_rm)
+```
+
+- Premier axe construit par l'ensemble des variables, les metriques de corrélation sont corrélé positivement au score aggreg et celle style RMSE négativement de part leur construction (un groupe indique une bonne estimation par 1 et l'autre par 0) 
+- second axe construit par les corrélations en lignes (types cell) et un peu par aitchison, les deux sont anticorrélé sur cet axe
+- troisième axe construit majoritairement par aitchison et un peu par les corrélations en lignes (types cell). Le score aggreg est complétement indépendant de cette dimension
+
+
+```{r new_plot_ellipses}
+# # faire d'abords le svar qui explique le plus score aggreg pour ensuite voir leurs ellipses dans la PCA
+# plotellipses(pca_results_li_stand_rm, axes = c(1, 2), pch = '.')
+# # vraiment moche, il ne faudrait ps afficher tout les points
+
+plot_density_groups <- function(res_pca, axes = c(1,2), alpha = 0.7) {
+  
+  # Extraction des coordonnées individuelles
+  if("PCA" %in% class(res_pca)) {
+    coord_ind <- res_pca$ind$coord[, axes]
+    quali_sup <- res_pca$call$quali.sup
+  } else if("CA" %in% class(res_pca)) {
+    coord_ind <- res_pca$row$coord[, axes]
+    quali_sup <- res_pca$call$quali.sup  
+  } else if("MCA" %in% class(res_pca)) {
+    coord_ind <- res_pca$ind$coord[, axes]
+    quali_sup <- res_pca$call$quali.sup
+  }
+  
+  # Récupération des données originales
+  data_orig <- res_pca$call$X
+  
+  library(ggplot2)
+  library(ggrepel)
+  
+  # Liste pour stocker les graphiques
+  plots_list <- list()
+  
+  # Boucle sur chaque variable qualitative supplémentaire
+  for(i in 1:length(quali_sup$numero)) {
+    var_name <- colnames(quali_sup$quali.sup)[i]
+    quali_var <- data_orig[, quali_sup$numero[i]]
+    
+    # Dataframe pour le graphique
+    df <- data.frame(
+      Dim1 = coord_ind[, 1],
+      Dim2 = coord_ind[, 2],
+      groupe = quali_var
+    )
+    
+    # Calcul des barycentres
+    barycentres <- aggregate(cbind(Dim1, Dim2) ~ groupe, df, mean)
+    
+    # Création du graphique
+    p <- ggplot(df, aes(x = Dim1, y = Dim2, color = groupe)) +
+      geom_density_2d(alpha = alpha) +
+      geom_point(data = barycentres, size = 3) +
+      geom_text_repel(data = barycentres, aes(label = groupe)) +
+      labs(
+        title = var_name, color = var_name, 
+        x = paste0("Dim", axes[1]), y = paste0("Dim", axes[2])
+      ) +
+      theme(legend.position = "bottom")
+    
+    plots_list[[var_name]] <- p
+  }
+  
+  # Affichage du panel
+  if(length(plots_list) > 1) {
+    gridExtra::grid.arrange(grobs = plots_list, ncol = 2)
+  } else {
+    print(plots_list[[1]])
+  }
+}
+
+plot_density_groups(res_pca = pca_results_li_rm, axes = c(1,2))
+plot_density_groups(res_pca = pca_results_li_rm, axes = c(1,3))
+plot_density_groups(res_pca = pca_results_li_rm, axes = c(2,3))
+```
+
+
+
+
+
+# Standardise data by dataset
+
+```{r mean_standardise_results_li_by_dataset}
+results_li_stand <- results_li %>%
+  group_by(dataset) %>%
+  mutate(across(where(is.numeric), ~ .x - mean(.x, na.rm = TRUE))) %>%
+  ungroup() %>% 
+  as.data.frame()
+
+# attributes(results_li[,k])
+
+# # verification
+# results_li_stand %>%
+#   group_by(dataset) %>%
+#   summarise(mean(aitchison))
+# plot(density(results_li$aitchison, na.rm=TRUE))
+# plot(density(results_li$aitchison[results_li$dataset == 'invitro1'], na.rm=TRUE))
+# plot(density(results_li_stand$aitchison, na.rm=TRUE))
+# 
+# results_li_stand %>%
+#   group_by(dataset) %>%
+#   summarise(mean(spearman_row))
+# plot(density(results_li$spearman_row, na.rm=TRUE))
+# plot(density(results_li$spearman_row[results_li$dataset == 'invitro1'], na.rm=TRUE))
+# plot(density(results_li_stand$spearman_row, na.rm=TRUE))
+```
+
+
+## Correlations of the different metrics
+
+```{r cor_dens_plot_standardise, fig.height=9}
+
+# Fonction personnalisée pour corrélations avec couleurs et légende
+cor_fun_colored <- function(data, mapping, method = "pearson", ndp = 2, sz = 4, ...) {
+  x <- eval_data_col(data, mapping$x)
+  y <- eval_data_col(data, mapping$y)
+  corr <- cor(x, y, method = method, use = "complete.obs")
+  
+  # Palette de couleurs continue de -1 à 1
+  # Utilisation d'une palette divergente : bleu (négatif) - blanc (0) - rouge (positif)
+  color_palette <- colorRampPalette(c("#2166AC", "#F7F7F7", "#B2182B"))(100)
+  color_index <- round((corr + 1) * 50) + 1  # Convertit [-1,1] en [1,100]
+  color_index <- pmax(1, pmin(100, color_index))  # Assure que l'index est dans [1,100]
+  col_cor <- color_palette[color_index]
+  
+  ggally_text(label = paste0("Corr ", method, " :\n", round(corr, ndp)), 
+              color = col_cor, 
+              size = sz,
+              fontface = "bold") +
+    theme_void()
+}
+
+density_fun <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    geom_density2d(alpha = 0.6, color = "steelblue", ...)# +
+    # xlim(0, 1) +
+    # ylim(0, 1)
+}
+
+# Version finale optimisée
+ggpairs_final_standardise <- ggpairs(
+  results_li_stand,  # Dataset complet
+  columns = c("score_aggreg", "rmse_norm", "pearson_col_norm", "spearman_col_norm", "aid_norm", "jsd_norm"),
+  upper = list(continuous = cor_fun_colored),
+  lower = list(continuous = density_fun),
+  # lower = list(continuous = wrap("density", alpha = 0.6, bins = 10, fill = "steelblue", xlim = c(0,1), ylim = c(0,1))),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.8, fill = "lightblue"))
+) + 
+theme(
+  strip.text = element_text(size = 10, face = "bold"),
+  axis.text = element_text(size = 8)
+)
+
+print(ggpairs_final_standardise)
+```
+
+- Corrélations proche de celles observées avant standardisation par datasets
+
+
+```{r cor_plot_standardise, fig.height=9}
+# results_li_stand[results_li_stand=="NaN"] = NA
+row_rm = apply(results_li_stand,1,function(x) any(is.na(x)))
+results_li_stand_rm = results_li_stand[!row_rm,-(1:(length(all_functions_li)+2))]
+
+score_aggreg_order = grep("score_aggreg", colnames(results_li_stand_rm))
+normalised_metrics = grep("norm", colnames(results_li_stand_rm))
+unnormalised_metrics = (1:ncol(results_li_stand_rm))[-c(score_aggreg_order, normalised_metrics)]
+corr_metric = c(grep("pearson", colnames(results_li_stand_rm)), grep("spearman", colnames(results_li_stand_rm)))
+
+correlations_standardise = cor(results_li_stand_rm[,c(
+  score_aggreg_order, 
+  normalised_metrics[!(normalised_metrics %in% corr_metric)], 
+  normalised_metrics[normalised_metrics %in% corr_metric], 
+  unnormalised_metrics[!(unnormalised_metrics %in% corr_metric)],
+  unnormalised_metrics[unnormalised_metrics %in% corr_metric]
+)])
+corrplot::corrplot(correlations_standardise, method='ellipse', type='full', outline=T, tl.col='black')
+```
+
+- Aitchison et pearson row (type cell) restent les plus différentiables. 
+- Comme pour le graphique précédent, il y a une augmentation générale légère de la corrélation 
+
+
+## Florent stepwise model
+
+```{r stepwise_model_standardise}
+foo = sapply(names(results_li_stand), function(k) {
+  print(k)
+  main = k
+  if (is.character(results_li_stand[,k]) || is.factor(results_li_stand[,k])) {
+    barplot(table(results_li_stand[,k], useNA="always"), las=2, main=main)
+    return("char")
+k  } else if (is.numeric(results_li_stand[,k])){
+      plot(density(results_li_stand[,k], na.rm=TRUE), main=main)
+      print(paste0("#NA: ", sum(is.na(results_li_stand[,k]))))
+    return("num")
+  } else {
+    stop(paste0("Data type not treated: ", k))
+  }
+})
+
+bar = sapply(names(foo)[foo == "char"], function(k) {
+  print(paste0(k, ": ", length(unique(results_li_stand[,k]))))
+  if (length(unique(results_li_stand[,k]))>1) {
+    return(k) 
+  } else {
+    return(NULL)
+  }
+})
+facts = unlist(bar)
+# score = "spearman_tot"
+score = "score_aggreg"
+f_lo = formula(paste0(score, "~1"))
+f_up = formula(paste0(score, "~."))
+m_lo = lm(f_lo, data=results_li_stand[,c(facts, score)])
+m_up = lm(f_up, data=results_li_stand[,c(facts, score)])
+
+any_line_na = sum(apply(results_li_stand[,c(facts, score)], 1, \(ligne_i){any(is.na(ligne_i))}))
+BIC_constant = log(nrow(results_li_stand) - any_line_na)
+life.lm = step(m_lo, method="forward", scope=list(upper=m_up,lower=m_lo), k = BIC_constant)
+# Step:  AIC=-746072.7
+# score_aggreg ~ deconvolution_rna + dataset + deconvolution_met + 
+#     feature_selection_mixRNA + late_integration + preprocessing_mixRNA + 
+#     preprocessing_mixMET + preprocessing_scRNA
+
+life.lm = step(m_lo, method="both", scope=list(upper=m_up,lower=m_lo), k = BIC_constant)
+# Step:  AIC=-746120.2
+# score_aggreg ~ deconvolution_rna + deconvolution_met + feature_selection_mixRNA + 
+#     late_integration + preprocessing_mixRNA + preprocessing_mixMET + 
+#     preprocessing_scRNA
+
+
+
+# boxplot(formula(paste0(score, "~late_integration")), results_li_stand[,c(facts, score)])
+
+# boxplot(formula(paste0(score, "~late_integration + deconvolution_rna")), results_li_stand[,c(facts, score)], las=2)
+
+
+boxplot(formula(paste0(score, "~dataset")), results_li_stand[,c(facts, score)])
+
+boxplot(formula(paste0(score, "~deconvolution_rna")), results_li_stand[,c(facts, score)], las=2, na.rm = TRUE)
+
+boxplot(formula(paste0(score, "~deconvolution_met")), results_li_stand[,c(facts, score)], las=2, na.rm = TRUE)
+
+boxplot(formula(paste0(score, "~late_integration")), results_li_stand[,c(facts, score)], las=2, na.rm = TRUE)
+
+```
+
+Grâce à la standardisation par dataset, on a un BIC plus faible (donc meilleur) avec exactement les mêmes variables sélectionnées dans le même ordre (ce qui n'est pas si étonnant a posteriori). 
+
+Pour RNA, c'est RLR et RLRpoisson qui sont les meilleurs méthodes de deconvo (suivie par node donc onlyMET). De même pour la deconvo MET, RLR et RLRpoisson sont les meilleurs méthodes.
+
+<!--liCTSens fait bien exactement la même chose que limean et --> OnlyMET est bien la méthode d'integration tardive la plus performante en medianne et la plus constante.  
+
+
+
+
+
+## PCA
+
+```{r val_propre_pca_standardise, fig.height=9}
+# row_rm = apply(results_li_stand,1,function(x) any(is.na(x)))
+# results_li_stand_rm = results_li_stand[!row_rm,]
+# # code above can be resumed by suppressing invitro and invivo dataset because we can't apply jsd metrics for the first and all non correlation metrics for the second
+
+# Then for the PCA, we remove jsd (which is highly correlated to other metrics) and the in vivo dataset
+results_li_stand_rm = results_li_stand[results_li_stand$dataset != "invivo1", -c(which(colnames(results_li_stand) %in% c("jsd", "jsd_norm")))]
+
+
+score_aggreg_order = grep("score_aggreg", colnames(results_li_stand_rm))
+normalised_metrics = grep("norm", colnames(results_li_stand_rm))
+unnormalised_metrics = (1:ncol(results_li_stand_rm))[-c(1:(length(all_functions_li)+2), score_aggreg_order, normalised_metrics)]
+corr_metric = c(grep("pearson", colnames(results_li_stand_rm)), grep("spearman", colnames(results_li_stand_rm)))
+stepwise_most_var = which(colnames(results_li_stand_rm) %in% c("late_integration", "deconvolution_rna", "deconvolution_met"))
+
+pca_results_li_stand_rm = PCA(results_li_stand_rm[,c(score_aggreg_order, stepwise_most_var, unnormalised_metrics)], quanti.sup = 1, quali.sup = 2:(length(stepwise_most_var)+1), graph = FALSE)
+barplot(pca_results_li_stand_rm$eig[,2])
+```
+
+Les trois premières composantes seront analysées, représentant  toujours 96% de la variabilité totale des différentes métriques. La différence est très minime entre données de base et celle standardisé par dataset, la proportion de varance expliquée par la première dimension est plus élevé dans le second cas alors que celles de la deuxième et troisième plus faible.
+
+
+```{r var_plot_pca_standardise}
+# par(mfrow = c(3,2))
+# plot(pca_results_li_stand_rm, axes = c(1, 2), choix="ind")
+plot(pca_results_li_stand_rm, axes = c(1, 2), choix="var")
+# plot(pca_results_li_stand_rm, axes = c(1, 3), choix="ind")
+plot(pca_results_li_stand_rm, axes = c(1, 3), choix="var")
+# plot(pca_results_li_stand_rm, axes = c(2, 3), choix="ind")
+plot(pca_results_li_stand_rm, axes = c(2, 3), choix="var")
+# par(mfrow = c(1,1))
+```
+
+```{r dim_desc_pca_standardise}
+dimdesc(pca_results_li_stand_rm)
+```
+
+On a des axes bien plus séparé 
+- Premier axe construit par l'ensemble des variables (moins aitcison)
+- second axe construit uniquement par les corrélations en lignes (types cell)
+- troisième axe construit uniquement par aitchison
+On voit également que le score aggreg est quasiment parfaitement corrélé au premier axes de cette PCA.
+
+
+```{r new_plot_ellipses_standardise}
+plot_density_groups(res_pca = pca_results_li_stand_rm, axes = c(1,2))
+plot_density_groups(res_pca = pca_results_li_stand_rm, axes = c(1,3))
+plot_density_groups(res_pca = pca_results_li_stand_rm, axes = c(2,3))
+```
+
+Selon le graphique des axes 1 et 2, On retrouve des conclusions que l'on a déjà pu avoir : 
+- pour la deconvolution RNA, c'est RLR, RLRpoisson et node (donc onlyMET) qui ont les valeurs moyennes les plus grandes, donc les meilleurs resultats selon le score aggreg puisqu'il est fortement corrélé à cette axe.
+- pour la deconvolution RNA, on voit bien que node (donc Only RNA) a une valeur faible pour ce premier axe, donc n'a pas de bon résultat pour le score aggreg. On retrouve ces conclusions dans le graphique de late Integration
+
+Pour les dimensions 2 et 3, cela nous donne de nouveau indices concernant certaine méthode :
+- Les méthodes RLR et RLRpoisson ont tendances à plus données des estimation à 0 que lm ou nnls
+- On voit un différence sur la deuxième dimension entre RLR et RLRpoisson, donc la seconde méthode donne des estimations avec un ordre des types cellulaires globalement plus corrélée que la première 
+- La meilleur méthode d'intégration tardive liMeanRMSE a un coefficient faible pour la seconde dimension de l'ACP, donc produit de bonne estimation globale des proportions des types cellulaires mais ne donne pas le bonne ordre de ceux-ci (puisque les corrélation vont de -1 à 1). Paradoxalement, OnlyRNA ne donne pas de bonne estimatio mais le bonne ordre.
+- OnlyRNA est la méthode d'integration tardives a une très forte valeur pour la troisième dimension (cette modalité doit construire à elle seul cet axe), donc OnlyRNA (soit les méthodes de déconvolution sur le transcriptome) a tendance à produire beaucoup d'estimation à 0, puisque c'est cela qui fait explosé la distance d'Aitchison qui est la seul métrique fortement corrélé à cet axe. Cependant, OnlyMET est la seconde valeur la plus forte donc on pourrait donner la même conclusions dans une moindre mesure.
+
+
+<!--
+- Les ACM c'est pour des variables quali, je ne pense pas que ce soit logique de faire ça dans notre ca
+- Les AFP, c'est pour des tableaux de contingences avec des effectifs, donc ce n'est pas notre cas
+--> 
+
+
+## MFA 
+
+```{r, include=FALSE, eval=FALSE}
+test_results_li_stand_rm_dtaCopule = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletCopule1", 2:15]
+rownames(test_results_li_stand_rm_dtaCopule) = 1:nrow(test_results_li_stand_rm_dtaCopule)
+test_results_li_stand_rm_dtaEMFA = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletEMFA1", 2:15]
+rownames(test_results_li_stand_rm_dtaEMFA) = 1:nrow(test_results_li_stand_rm_dtaEMFA)
+test_results_li_stand_rm_dtapseudobulk = results_li_stand_rm[results_li_stand_rm$dataset == "insilicopseudobulk1", 2:15]
+rownames(test_results_li_stand_rm_dtapseudobulk) = 1:nrow(test_results_li_stand_rm_dtapseudobulk)
+test_results_li_stand_rm_dtainvitro = results_li_stand_rm[results_li_stand_rm$dataset == "invitro1", 2:15]
+rownames(test_results_li_stand_rm_dtainvitro) = 1:nrow(test_results_li_stand_rm_dtainvitro)
+
+identical(
+  test_results_li_stand_rm_dtaCopule,
+  test_results_li_stand_rm_dtaEMFA
+) # TRUE
+identical(
+  test_results_li_stand_rm_dtaCopule,
+  test_results_li_stand_rm_dtapseudobulk
+) # TRUE
+identical(
+  test_results_li_stand_rm_dtaCopule,
+  test_results_li_stand_rm_dtainvitro
+) # TRUE
+```
+
+```{r MFA}
+
+score_results_li_rm_dtainvitro = results_li_rm[results_li_rm$dataset == "invitro1", 16:ncol(results_li_rm)]
+score_results_li_rm_dtaCopule = results_li_rm[results_li_rm$dataset == "insilicodirichletCopule1", 16:ncol(results_li_rm)]
+score_results_li_rm_dtaEMFA = results_li_rm[results_li_rm$dataset == "insilicodirichletEMFA1", 16:ncol(results_li_rm)]
+score_results_li_rm_dtapseudobulk = results_li_rm[results_li_rm$dataset == "insilicopseudobulk1", 16:ncol(results_li_rm)]
+
+score_aggreg_order = grep("score_aggreg", colnames(score_results_li_rm_dtainvitro))
+normalised_metrics = grep("norm", colnames(score_results_li_rm_dtainvitro))
+unnormalised_metrics = (1:ncol(score_results_li_rm_dtainvitro))[-c(score_aggreg_order, normalised_metrics)]
+
+unnorm_score_results_li_rm_dtainvitro = score_results_li_rm_dtainvitro[,unnormalised_metrics]
+unnorm_score_results_li_rm_dtaCopule = score_results_li_rm_dtaCopule[,unnormalised_metrics]
+unnorm_score_results_li_rm_dtaEMFA = score_results_li_rm_dtaEMFA[,unnormalised_metrics]
+unnorm_score_results_li_rm_dtapseudobulk = score_results_li_rm_dtapseudobulk[,unnormalised_metrics]
+
+colnames(unnorm_score_results_li_rm_dtainvitro) = paste0(
+  colnames(unnorm_score_results_li_rm_dtainvitro), 
+  "_invitro"
+)
+colnames(unnorm_score_results_li_rm_dtaCopule) = paste0(
+  colnames(unnorm_score_results_li_rm_dtaCopule), 
+  "_Copule"
+)
+colnames(unnorm_score_results_li_rm_dtaEMFA) = paste0(
+  colnames(unnorm_score_results_li_rm_dtaEMFA), 
+  "_EMFA"
+)
+colnames(unnorm_score_results_li_rm_dtapseudobulk) = paste0(
+  colnames(unnorm_score_results_li_rm_dtapseudobulk), 
+  "_pseudobulk"
+)
+
+score_aggreg_results_li_all_dta = cbind(
+  score_aggreg_invitro = score_results_li_rm_dtainvitro[,score_aggreg_order],
+  score_aggreg_Copule = score_results_li_rm_dtaCopule[,score_aggreg_order],
+  score_aggreg_EMFA = score_results_li_rm_dtaEMFA[,score_aggreg_order],
+  score_aggreg_pseudobulk = score_results_li_rm_dtapseudobulk[,score_aggreg_order]
+)
+
+
+results_li_rm_MFA = cbind(
+  results_li_rm[results_li_rm$dataset == "invitro1", 3:15],
+  score_aggreg_results_li_all_dta,
+  unnorm_score_results_li_rm_dtainvitro,
+  unnorm_score_results_li_rm_dtaCopule,
+  unnorm_score_results_li_rm_dtaEMFA,
+  unnorm_score_results_li_rm_dtapseudobulk
+)
+
+mfa_results_li_rm_MFA = MFA(results_li_rm_MFA, group = c(13, 4, rep(11, 4)), type = c("n", "s", rep("s", 4)), name.group = c("method", "score_aggreg", "in vitro", "Copule", "EMFA", "Pseudo bulk"), num.group.sup = 1:2, graph = FALSE)
+barplot(mfa_results_li_rm_MFA$eig[,2])
+mfa_results_li_rm_MFA$eig[1:10,]
+```
+
+Les 4 première composantes seront analysées, représentant 90.4% de la variabilité des données
+
+
+```{r RV_coef}
+round(mfa_results_li_rm_MFA$group$RV, 2)
+```
+
+Ce graphique montre les coefficient RV qui varient entre 0 et 1. Ils signifient le lien entre les groupes et entre l'AFM global. On observe donc que le jeu de donnée le plus différent est "pseudo bulk"; "EMFA", "Copule" et "in vitro" ont quand à eu des représentation similaire, ce qui les amène forcement à avoir une représentation similaire de l'AFM globale. Cela indiquerai que nos simulation sont correct (puisqu'elle reproduise bien le comportement des méthodes de déconv) ? 
+
+Pour score aggreg, ce group à très peu de lien avec method mais de fort lien avec tout les autres (moins avec pseudo bulk) et surtout avec l'AFM global. Cela vas dans le sens que le score aggreg que l'on a construit est proche de la première dimension d'une ACP sur les resulat
+
+
+
+```{r plot_group}
+plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "group")
+plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "group")
+plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "group")
+```
+
+La première dimension de l'AFM est commune au 4 jeu de donnée (la plus grande valeur est pour le groupe des scores aggrégés). Cependant, selon la deuxième dimension seul le dataset pseudo bulk différencie les méthodes de déconvolution. La deuxième dimension de l'AFM est donc plus liée à celle de ce dataset. Les troisième et quatrième dimensions ne sont pas particulièrement liées à un dataset (légèrement pseudo bulk pour la quatrième), mais permet cependant de décrire le groupe methode qui contient les caractéristiques des méthodes de déconvolution multi-omique utilisé, à l'inverse du groupe score aggrégé.
+
+
+```{r plot_var}
+plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "var")
+plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "var")
+plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "var")
+```
+
+On remarque bien pour les deux premier axes que les variables sont quasi superposées pour les datasets "Copule", "EMFA" et "in vitro".
+
+Les score aggreg sont très corrélé à la première dimension de l'AFM (et donc de la première dimension des ACP par groupe) (un peu moins pour le score aggreg de pseudo bulk mais celui si reste cohérent avec les variables de pseudo bulk).
+
+Le troisième axes est construit de manière unanime par la distance d'aitchison, c'est sur le second et le quatrième qu'il y a différence entre pseudo bulk et les autres dataset. Pour pseudo bulk, l'ensemble des variables ne construisent pas que le premier axes mais les deux premire, le troisième par aitchison et le quatrième par les corrélation en lignes.
+
+
+```{r}
+plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "axes")
+plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "axes")
+plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "axes")
+```
+
+On voit bien ma réfléxion du paragraphe précédent sur la représentatin des axes des ACP par groupes sur les axes de l'AFM.
+
+
+```{r}
+plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "ind", invisible = "ind")
+plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "ind", invisible = "ind")
+plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "ind", invisible = "ind")
+```
+
+le point extreme c'est la méthode OnlyRNA (qui se superpose avec les MetnoDE, METnoFS, $\dots$). Je pense que ce point fait gonfler le lien entre les dim 3 et 4 avec le groupe methode. On vois bein dans la matrice du coef RV qu'il n'y a pas de lien.
+
+
+
+## Mulidimensionnal scaling (MDS)
+
+Pour faire une MDS, il faut faire la matrice de distance/dissimilarité entre tout les individus. Cela devient compliquer quand il y en a plus de 100000 comme dans notre cas (objet d'environ 50 Go). 
+
+
+# Old
+
+## Nico test visu (GPT...) 
 
 ```{r prepare data}
 multi_level_cols <- sapply(results_li[all_functions_li], function(x) nlevels(x) > 1)
@@ -92,12 +827,9 @@ cat("Dropped columns (only 1 level):", paste(dropped_cols, collapse = ", "), "\n
 
 ```{r lm model  }
 
-
 # Now run the model
 model <- lm(score_aggreg ~ ., data = results_li[, c(filtered_functions, "score_aggreg")])
 summary(model)
-
-
 
 ```
 
@@ -189,7 +921,7 @@ if (length(meaningful_pcs) == 0) {
 }
 ```
 
-# Florent's pca 
+## Florent's pca 
 
 ```{r pca ,eval=TRUE}
 # results_li = read.table("metaanalysis/results_li.csv", sep=",", header=TRUE)
