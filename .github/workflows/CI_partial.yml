@@ -9,7 +9,7 @@ on:
 jobs:
   Continue_pipeline:
     runs-on: self-hosted
-    timeout-minutes: 5760  #run is allowed for 4 days max  
+    timeout-minutes: 20160  # run for two weeks   , previoulous :  5760  #run is allowed for 4 days max  
 
     env:
       CONDA: "/home/ubuntu/miniconda3/etc/profile.d/conda.sh"
