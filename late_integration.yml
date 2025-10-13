@@ -1,15 +1,15 @@
 
-# limean :  #must be a unique ID without "_" ! 
-#   path: late_integration/avg.R
-#   short_name: avg
+limean :  #must be a unique ID without "_" ! 
+  path: late_integration/avg.R
+  short_name: avg
 
-# TunedJ :  #must be a unique ID  without "_" !
-#   path: late_integration/TunedJ.R 
-#   short_name: TunJ
+TunedJ :  #must be a unique ID  without "_" !
+  path: late_integration/TunedJ.R 
+  short_name: TunJ
 
-# limeanRMSE :  #TO debug #must be a unique ID  without "_" !
-#   path: late_integration/mean_rmse.R
-#   short_name: MRMS
+limeanRMSE :  #TO debug #must be a unique ID  without "_" !
+  path: late_integration/mean_rmse.R
+  short_name: MRMS
 
 # ### with early integration done, we should maybe remove this from here ! 
 OnlyMet: 
