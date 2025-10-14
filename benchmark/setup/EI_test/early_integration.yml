@@ -1,0 +1,64 @@
+
+
+concatscale:
+  path: early_integration/concat_scale.R 
+  short_name: Consc
+  language: R
+
+# concatnoscale:
+#   path: early_integration/concat_noscale.R 
+#   short_name: Cnosc
+#   language: R
+
+# Kernel:
+#   path: early_integration/Kernel.R 
+#   short_name: Kern
+#   language: R
+
+# MOFA: 
+#   path: early_integration/MOFA.R 
+#   short_name: MOFA
+#   language: R
+
+# omicade4bulk:
+#   path: early_integration/omicade4_bulk.R 
+#   short_name: Ocablk
+#   language: R
+
+###### python need to implement.
+
+# PyOnlyRNA:
+#   path: early_integration/only_rna.py 
+#   short_name: pyOR
+#   language: python
+
+# OT:
+#   path: early_integration/OT.py 
+#   short_name: OT
+#   language: python
+
+
+# multimap:
+#   path: early_integration/multimap.py 
+#   short_name: mltmap
+  # language: python
+
+
+
+# working : 
+# OnlyMet: 
+#   path: early_integration/only_met.R 
+#   short_name: OMet
+
+# OnlyRna: 
+#   path: early_integration/only_rna.R 
+#   short_name: ORNA
+
+###### working but are not ei neither fs ... 
+# splsbulk: 
+#   path: early_integration/spls_bulk.R 
+#   short_name: spblk
+
+# splssc:
+#   path: early_integration/spls_sc.R 
+#   short_name: spsc

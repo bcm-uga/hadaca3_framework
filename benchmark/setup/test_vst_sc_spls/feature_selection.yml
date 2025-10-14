@@ -1,0 +1,62 @@
+fsID :  #This is a required function
+  path: feature_selection/ID.R
+  short_name: FSID
+  omic: [ANY]
+
+##### working
+# scpseudobulk :
+#  path: feature_selection/sc_pseudobulk.R
+#  short_name: scpf
+#  need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log] 
+#  omic_need: [scRNA]
+#  omic: [mixRNA,RNA,scRNA]
+
+scSPLSDA : #"ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log"
+ path: feature_selection/sc_SPLS-DA.R
+ short_name: scSD
+ need: [ref_concat,ref_integrated,ref_cluster,ref_binarypseudobulk_log]
+ omic_need: [scRNA]
+ omic: [mixRNA,RNA,scRNA]
+
+# SPLSDA : #must be a unique ID without _
+#   path: feature_selection/SPLS-DA.R
+#   short_name: SPLS
+#   omic: [mixMET,MET]
+
+# maxdiscriminant : # Use original ref_met to get max discriminant #must be a unique ID without _
+#   path: feature_selection/max_discriminant.R
+#   short_name: Mdis
+#   omic: [mixMET,MET]
+
+# mostmethylated : # Use original ref_met to get most methylated #must be a unique ID without _
+#   path: feature_selection/most_methylated.R
+#   short_name: Mmet
+# #   omic: [mixMET,MET]
+
+# SCcluster :
+#  path: feature_selection/sc_cluster.R
+#  short_name: SCCL
+#  need: [ref_cluster]
+#  omic_need: [scRNA]
+#  omic: [mixRNA,RNA,scRNA]
+
+Toastvst :  #must be a unique ID without _
+ path: feature_selection/TOAST_vst.R
+ short_name: Tvst
+ omic: [mixRNA,RNA,scRNA]
+
+# Toastbulknbfs : #must be a unique ID without _
+#   path: feature_selection/TOAST_bulk_nbfs.R
+#   short_name: TNBR
+#   omic: [mixRNA,RNA,scRNA]
+
+
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBM
+#   omic: [mixMET,MET]
+
+# Toastpercent :  #must be a unique ID without _
+#  path: feature_selection/TOAST_percent.R
+#  short_name: Tper
+#  omic: [mixMET,MET]
