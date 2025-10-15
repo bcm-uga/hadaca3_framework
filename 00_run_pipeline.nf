@@ -35,6 +35,7 @@ params.wrapper = [
     script_04_rna : '04_decovolution_RNA_unit_pipA.R',
     script_04_met : '04_decovolution_MET_unit_pipA.R',
     script_04_early : '04_Early_integration_pipB.R',
+    script_04_early_py : '04_Early_integration_pipB_python.py',
     script_05_early_deco : '05_early_decovolution.R',
     script_05 : '05_late_integration_A.R',
     script_06 : '06_scoring.R',
@@ -43,6 +44,7 @@ params.wrapper = [
 ]
 
 params.utils = "utils/data_processing.R"
+params.utils_py = "utils/data_processing.py"
 
 // def get_omic(path) {
 //     return path.split('/')[-2]
@@ -258,9 +260,6 @@ workflow {
         fs_dependency_RNA : true 
     }.set { fs_branch }
 
-    // fs_branch.fs_dependency_RNA.view{v ->  v[0].output  + " fs_branch_dep " }
-    // out_pp_create_filtered.view{v -> v[0].output + " pp " }
-
     // we want to give the needed preprocessing into the original_dataset path... 
     fs_RNA = fs_branch.fs_dependency_RNA
     .combine(out_pp_create_filtered)
@@ -275,20 +274,10 @@ workflow {
         def dup_fs_meta = fs_meta.clone()
         dup_fs_meta["need_used"] = pp_meta.pp_create[0]
 
-        // if( "mixRNA" in  dup_fs_meta.fs_omic_need   ){
-        //     tuple(dup_fs_meta, a,b,c,d,e,pp_file,ref_file )
-        // }
-        // else { 
-            //place the ref in ref of og_path.... 
             tuple(dup_fs_meta, a,b,c,d,e,dataset_file,pp_file )
-        // }
     }
 
 
-    // fs_branch.fs_dependency_RNA
-    // .combine(out_pp_create_filtered).view{v ->   v[0].output }
-    
-    // fs_RNA.view{v ->   v[0].output + v[7] + " fs_RNA "}
 
 
     fs_MET = fs_branch.fs_dependency_MET
@@ -308,33 +297,6 @@ workflow {
     }
 
 
-    // fs_RNA.view()
-    
-    // fs_RNA.count()
-
-
-
-    // fs_branch.fs_dependency_RNA.view{fs_meta, a,b,c,d,e,dataset_file,ref_file, pp_meta,pp_file -> 
-    // println(fs_meta.omic)
-    // println(fs_meta.fs_omic_need)
-    // println(fs_meta.omic !in fs_meta.fs_omic_need   )
-    
-    // }
-    // .filter { fs_meta, a,b,c,d,e, dataset_meta, dataset_file ->
-    //     fs_meta.dataset == dataset_meta.id 
-    // }
-    // .combine(out_cleaned_ref)
-    // .filter {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
-    //     fs_meta.ref == ref_meta.id 
-    // }
-    // .map {fs_meta, a,b,c,d,e, dataset_meta, dataset_file, ref_meta, ref_file ->
-    //     def dup_fs_meta = fs_meta.clone()
-    //     dup_fs_meta.output ="out-fs-"+ [dup_fs_meta.omic,dup_fs_meta.dataset, dup_fs_meta.ref,dup_fs_meta.pp_fun, dup_fs_meta.fs_fun ].join('_')+'.h5'
-    //     tuple(dup_fs_meta, a,b,c,d,e,dataset_file,ref_file )
-    // }
-
-
-    // complete_fs_files.view{ v-> v[0].output } 
 
 
     out_fs =  fs_branch.simple_fs.mix(fs_MET , fs_RNA) | Features_selection
@@ -369,7 +331,6 @@ workflow {
         def  not_in_need = 
         (meta_RNA.need_used == null  && meta_scRNA.pp_create =='none'   )// meta_mix.omic in fs_meta.fs_omic_need )
         
-        // println(meta_RNA.need_used + ' ' + meta_scRNA.pp_create[0] )
 
         def in_need_matching_scRNA = (
             // RNA and mix should match the pp and fs function! 
@@ -436,19 +397,6 @@ workflow {
     .filter{meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file ->
         meta_mix.pp_fun == meta_MET.pp_fun && meta_mix.fs_fun == meta_MET.fs_fun
     }
-    // .filter{ meta_mix, file_input_mix, meta_MET,file_input_MET,dataset_meta, dataset_file, ref_meta, ref_file  ->
-
-    //     def  not_in_need = 
-    //     (meta_RNA.need_used == null  && meta_scRNA.pp_create =='none'   )// meta_mix.omic in fs_meta.fs_omic_need )
-        
-    //     // println(meta_RNA.need_used + ' ' + meta_scRNA.pp_create[0] )
-
-    //     def in_need_matching_scRNA = (
-    //         // RNA and mix should match the pp and fs function! 
-    //         meta_RNA.need_used != null  && meta_RNA.need_used == meta_scRNA.pp_create[0]  
-    //     )
-    //      return (not_in_need  || in_need_matching_scRNA)
-    // }
 
     non_comptible_met_block = 
     pp_filter.pp_met_incompatible.combine(pp_filter.pp_met_incompatible).combine(out_mix).combine(out_cleaned_ref)    
@@ -508,16 +456,11 @@ workflow {
     // out_de_rna_unit.count().view()
     
     li_combinaison = li_channel
-    // .combine(out_de_rna_unit)  // inject none_unit into RNA
-    // .combine(out_de_met_unit) 
+
     .combine(out_de_rna_unit.mix(none_unit))  // inject none_unit into RNA
     .combine(out_de_met_unit.mix(none_unit))  // inject none_unit into MET
     .combine(out_mix)
     .combine(out_cleaned_ref)
-    // .filter{m, li_file, meta_rna, file_rna,    meta_met, file_met,           dataset_meta, dataset_file,   ref_meta, ref_file-> 
-    //     meta_rna.dataset == dataset_meta.id &&         meta_met.dataset == dataset_meta.id && 
-    //     meta_rna.ref == ref_meta.id         &&         meta_met.ref ==ref_meta.id
-    // }
     .filter { m, li_file, meta_rna, file_rna, meta_met, file_met, dataset_meta, dataset_file, ref_meta, ref_file ->
 
         // Keep all valid matches OR explicitly allow 'none_unit'
@@ -584,7 +527,16 @@ workflow {
 
 
     ei_path =  []
-    CONFIG.early_integration.each {ei,eiv -> ei_path.add([ [ei_fun:ei ] , file(eiv.path)])}
+    
+    CONFIG.early_integration.each {ei,eiv ->  
+        def lang = (eiv.language ?: "R").toLowerCase()
+        // print(lang)
+        if(lang == "r"){
+            ei_path.add([ [ei_fun:ei] , file(eiv.path)])
+        }else{
+            ei_path.add([ [ei_fun:ei, language: lang ] , file(eiv.path)])
+            }
+        }
     
 
     ei_channel = Channel.fromList(ei_path)
@@ -630,9 +582,37 @@ workflow {
            file_input_mixMET, file_input_MET,  dataset_file_MET, ref_file_MET
         )
     }
-    .combine(Channel.of(tuple(file(params.wrapper.script_04_early),file(params.utils))))
+    // .combine(Channel.of(tuple(file(params.wrapper.script_04_early),file(params.utils))))
+    .map { 
+        meta_ei, ei_file, file_input_mixRNA, file_input_RNA, file_input_scRNA, 
+     file_input_mixMET, file_input_MET, dataset_file_MET, ref_file_MET ->
 
-    ei_out = ei_combinaison | early_integration
+        def wrapper_path = meta_ei.language == 'python' 
+            ? file(params.wrapper.script_04_early_py)
+            : file(params.wrapper.script_04_early)
+
+        def utils_path = meta_ei.language == 'python' 
+            ? file(params.utils_py)
+            : file(params.utils)
+
+
+    tuple(
+        meta_ei,
+        ei_file,
+        file_input_mixRNA, file_input_RNA, file_input_scRNA,
+        file_input_mixMET, file_input_MET, dataset_file_MET, ref_file_MET,
+        wrapper_path, utils_path
+        )
+    }
+    .branch{meta_ei, ei_file,file_input_mixRNA, file_input_RNA, file_input_scRNA,   file_input_mixMET, file_input_MET, dataset_file_MET, ref_file_MET,  wrapper_path, utils_path ->        
+        Py_ei_combinaison : 'python' in  meta_ei.language 
+        R_ei_combinaison :  true
+    }
+
+    ei_out_r = ei_combinaison.R_ei_combinaison | early_integration
+    ei_out_py = ei_combinaison.Py_ei_combinaison | early_integration_python
+    // ei_out = ei_out_r.concat(ei_out_py)
+    ei_out = ei_out_py.concat(ei_out_r)
 
 // ################## Deconvolution of the early integration. 
 
@@ -709,8 +689,12 @@ workflow {
     v[1] }.set{l_path}
 
     score_input_li.map{ v ->
-    v[1]}.set{ pred_files }
+    v[1]}.set{ pred_files_li }
 
+    score_input_ei.map{ v ->
+    v[1]}.set{ pred_files_ei }
+
+    pred_files = pred_files_li.concat(pred_files_ei)
 
     Channel_groundtruth_files = Channel.fromPath(list_groundtruth_path).collect(flat: false) 
     
@@ -727,6 +711,8 @@ workflow {
     // input_meta.view { v-> v[0] +' \n\n\n' +v[1][0]   }
 
     // input_meta.view { v-> v[0][1] +' ' +v[1][1]   }
+
+    // input_meta.view()
 
     input_meta | Metaanalysis 
 
@@ -961,20 +947,20 @@ process early_integration {
     cpus 1
     
     input:
-    tuple val(meta),
-    path(script_ei),
-    path(file_input_mix_rna),
-    path(file_input_rna),
-    path(file_input_scrna),
-    path(file_input_mix_met),
-    path(file_input_met),
-    path(mix), 
-    path(reference), 
-    path(wrapper04),
-    path(utils)
+        tuple val(meta),
+        path(script_ei),
+        path(file_input_mix_rna),
+        path(file_input_rna),
+        path(file_input_scrna),
+        path(file_input_mix_met),
+        path(file_input_met),
+        path(mix), 
+        path(reference), 
+        path(wrapper04),
+        path(utils)
 
     output:
-    tuple val(meta), path("${meta.output}")
+        tuple val(meta), path("${meta.output}")
 
 
     script:
@@ -1002,6 +988,46 @@ process early_integration {
     source('${wrapper04}');"
     echo \$RCODE
     touch ${meta.output}
+    """
+}
+
+process early_integration_python {
+    cpus 1
+
+    input:
+        tuple val(meta),
+        path(script_ei_py),
+        path(file_input_mix_rna),
+        path(file_input_rna),
+        path(file_input_scrna),
+        path(file_input_mix_met),
+        path(file_input_met),
+        path(mix),
+        path(reference),
+        path(wrapper04_py),
+        path(utils)
+
+    output:
+        tuple val(meta), path("${meta.output}")
+
+    script:
+    """
+        python3 ${wrapper04_py} \
+            --input_mix_rna ${file_input_mix_rna} \
+            --input_rna ${file_input_rna} \
+            --input_scrna ${file_input_scrna} \
+            --input_mix_met ${file_input_mix_met} \
+            --input_met ${file_input_met} \
+            --path_ogmix ${mix} \
+            --path_ogref ${reference} \
+            --output ${meta.output} \
+            --script_file ${script_ei_py} \
+            --utils ${utils}
+    """
+
+    stub:
+    """
+        touch ${meta.output}
     """
 }
 
@@ -1141,18 +1167,13 @@ process Metaanalysis {
     // path(utils))
 
     output:
-    path("07_prep_metaanalysis.html")
-    path("07_prep_metaanalysis_files")
-    path("08_metaanalysis.html")
-    path("08_metaanalysis_files")
-    path("results_li.csv.gz")
-    path("results_ei.csv.gz")
+    path("07_prep_metaanalysis*.html")
+    path("07_prep_metaanalysis*_files")
+    // path("08_metaanalysis*.html")
+    // path("08_metaanalysis*_files")
+    path("results_li*.csv.gz")
+    path("results_ei*.csv.gz")
 
-
-    // score_files = strsplit(trimws('${input_score}'),' ') ; 
-    // pred_files = strsplit(trimws('${pred_files}'),' ');
-    // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
-    // #rmarkdown::render('${meta_script2}');"
     script:
     """
     RCODE="
@@ -1160,12 +1181,7 @@ process Metaanalysis {
     rmarkdown::render('${meta_script}');"
     echo \$RCODE | Rscript -
     """  
-    // file_dataset = '${file_dataset}';
 
-    // score_files = strsplit(trimws('${input_score}'),' ') ;
-    // pred_files = strsplit(trimws('${pred_files}'),' ');
-    // groundtruth_files = strsplit(trimws('${groundtruth_files}'),' ');
-    // #rmarkdown::render('${meta_script2}');"
     stub:
     """
     RCODE="
