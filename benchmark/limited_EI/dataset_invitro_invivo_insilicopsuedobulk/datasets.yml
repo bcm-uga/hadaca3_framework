@@ -18,10 +18,10 @@ invivo1 :
 # # #   groundtruth_file_path : data/groundtruth2_invivo_pdac.h5
 # # #   path : data/mixes2_invivo_pdac.h5
 
-# insilicopseudobulk1 : 
-#   short_name : SBN5
-#   groundtruth_file_path : data/groundtruth1_insilicopseudobulk_pdac.h5
-#   path : data/mixes1_insilicopseudobulk_pdac.h5
+insilicopseudobulk1 : 
+  short_name : SBN5
+  groundtruth_file_path : data/groundtruth1_insilicopseudobulk_pdac.h5
+  path : data/mixes1_insilicopseudobulk_pdac.h5
 
 # # # insilicopseudobulk2 : 
 # # #   short_name : SBN5
