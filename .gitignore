@@ -27,3 +27,5 @@ results_*
 08_metaanalysis_files*
 
 log.txt
+
+*__pycache__*

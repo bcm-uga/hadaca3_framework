@@ -68,7 +68,7 @@ insilicodirichletNoDep6CTsource1 :
   path : data/mixes1_insilicodirichletNoDep6CTsource_pdac.h5 
 
 # insilicodirichletNoDep6CTsource2 : 
-#   short_name : SDN6
+#   short_name : SDN6 
 #   groundtruth_file_path : data/groundtruth2_insilicodirichletNoDep6CTsource_pdac.h5
 #   path : data/mixes2_insilicodirichletNoDep6CTsource_pdac.h5 
 

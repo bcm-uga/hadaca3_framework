@@ -26,9 +26,11 @@ Kernel:
 
 
 ###### python need to implement. 
-# OT:
-#   path: early_integration/OT.py 
-#   short_name: OT
+OT:
+  path: early_integration/OT.py 
+  short_name: OT
+  language: python
+
 
 # multimap:
 #   path: early_integration/multimap.py 
