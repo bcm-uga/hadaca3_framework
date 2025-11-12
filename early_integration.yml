@@ -24,10 +24,10 @@
 #   short_name: Kern
 #   language: R
 
-OT:
-  path: early_integration/OT.py 
-  short_name: OT
-  language: python
+# OT:
+#   path: early_integration/OT.py 
+#   short_name: OT
+#   language: python
 
 
 ###### python need to implement. 

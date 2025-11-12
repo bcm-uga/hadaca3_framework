@@ -212,7 +212,7 @@ datatable(
 
 
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE,eval=TRUE}
+```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
 
 
 list_wd <- strsplit(getwd(), '/')[[1]]
@@ -326,7 +326,7 @@ write.csv(results_ei, file = gzfile(paste0(dynamic_name_ei, ".csv.gz")), row.nam
 
 ```
 
-```{r display EI table,echo=FALSE,eval=TRUE }
+```{r display EI table,echo=FALSE,eval=FALSE }
 index_aggreg_ei <- which(names(results_ei) == "score_aggreg")
 index_dataset_ei <- which(names(results_ei) == "dataset")
 
@@ -357,7 +357,7 @@ if(is.data.frame(results_ei) ){
 
 # Execute 08_meta : 
 
-```{r 08_meta,eval=FALSE }
+```{r 08_meta,eval=TRUE }
 rmarkdown::render(input ='08_metaanalysis.Rmd',envir = parent.frame());
 ```
 
@@ -365,7 +365,7 @@ rmarkdown::render(input ='08_metaanalysis.Rmd',envir = parent.frame());
 
 ## top 5 best methods
 
-```{r table_top5best_by_dataset, echo=FALSE, eval=FALSE}
+```{r table_top5best_by_dataset, echo=FALSE, eval=TRUE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5best = results_li_arrange[which(results_li_arrange$GlobalScore == max(results_li_arrange$GlobalScore)), ]
@@ -414,7 +414,7 @@ pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred de
 ```
 
 
-```{r scatter_plot_top5best_by_dataset,eval=FALSE, warning=FALSE, echo=FALSE, message=FALSE}
+```{r scatter_plot_top5best_by_dataset,eval=TRUE, warning=FALSE, echo=FALSE, message=TRUE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
@@ -546,7 +546,7 @@ pp
 
 ## top 5 worst methods
 
-```{r table_top5worst_by_dataset, echo=FALSE,eval=FALSE}
+```{r table_top5worst_by_dataset, echo=FALSE,eval=TRUE}
 #if more than 5 ex aequo combination, then taking them all
 if (length(which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore))) > 5) {
   results_li_top5worst = results_li_arrange[which(results_li_arrange$GlobalScore == min(results_li_arrange$GlobalScore)), ]
@@ -572,7 +572,7 @@ datatable(
 ```
 
 
-```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=FALSE,eval=FALSE}
+```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=TRUE,eval=TRUE}
 
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
@@ -702,7 +702,7 @@ pp
 
 # Visualisations of the different metrics
 
-```{r plot_FUN, echo=FALSE, message=FALSE,eval=FALSE}
+```{r plot_FUN, echo=FALSE, message=TRUE,eval=TRUE}
 plot_aggregated_score <- function(data, x_var, y_var, title, facet_var = NULL, add_tooltip_text = FALSE) {
   
   # noBLOCK is joint with onlyOMIC late integration
@@ -813,7 +813,7 @@ facet_var = "dataset"
 
 ## Paper figures
 
-```{r paper_figure_FUN, echo=FALSE, message=FALSE,eval=FALSE}
+```{r paper_figure_FUN, echo=FALSE, message=TRUE,eval=TRUE}
 paper_figure <- function(data, x_var, y_var, title) {
   
   # noBLOCK is joint with onlyOMIC late integration
@@ -867,7 +867,7 @@ paper_figure <- function(data, x_var, y_var, title) {
 }
 ```
 
-```{r paper_figure_common_var_score_aggreg, echo=FALSE,eval=FALSE}
+```{r paper_figure_common_var_score_aggreg, echo=FALSE,eval=TRUE}
 metric = "score_aggreg"
 metric_title = "Aggregated score (-> 1), per dataset"
 ```
@@ -875,7 +875,7 @@ metric_title = "Aggregated score (-> 1), per dataset"
 
 ### PP
 
-```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=FALSE, warning = FALSE }
+```{r paper_figure_combinaisons_aggregated_scores_PP, echo=FALSE, eval=TRUE, warning = FALSE }
 #### MET
 paper_figure(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title)
 
@@ -886,7 +886,7 @@ paper_figure(data = results_li, x_var = "preprocessing_mixRNA", y_var = metric, 
 
 ### FS
 
-```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=FALSE}
+```{r paper_figure_combinaisons_aggregated_scores_FS, echo=FALSE, eval=TRUE}
 #### MET
 paper_figure(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title)
 
@@ -896,7 +896,7 @@ paper_figure(data = results_li, x_var = "feature_selection_mixRNA", y_var = metr
 
 ### DE
 
-```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE,eval=FALSE}
+```{r paper_figure_combinaisons_aggregated_scores_DE, echo=FALSE,eval=TRUE}
 #### MET
 paper_figure(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title)
 
@@ -906,7 +906,7 @@ paper_figure(data = results_li, x_var = "deconvolution_rna", y_var = metric, tit
 
 ### LI
 
-```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE,eval=FALSE}
+```{r paper_figure_combinaisons_aggregated_scores_LI, echo=FALSE,eval=TRUE}
 paper_figure(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title)
 ```
 
@@ -921,7 +921,7 @@ metric_title = "Aggregated score (-> 1), per dataset"
 
 ### PP
 
-```{r combinaisons_aggregated_scores_PP, echo=FALSE,eval=FALSE, warning = FALSE }
+```{r combinaisons_aggregated_scores_PP, echo=FALSE,eval=TRUE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -932,7 +932,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_aggregated_scores_FS, echo=FALSE,eval=FALSE}
+```{r combinaisons_aggregated_scores_FS, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -942,7 +942,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_aggregated_scores_DE, echo=FALSE,eval=FALSE}
+```{r combinaisons_aggregated_scores_DE, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -952,14 +952,14 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_aggregated_scores_LI, echo=FALSE,eval=FALSE}
+```{r combinaisons_aggregated_scores_LI, echo=FALSE,eval=TRUE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
 
 ## RMSE
 
-```{r common_var_rmse, echo=FALSE,eval=FALSE}
+```{r common_var_rmse, echo=FALSE,eval=TRUE}
 metric = "rmse"
 metric_title = "RMSE (-> 0), per dataset"
 ```
@@ -967,7 +967,7 @@ metric_title = "RMSE (-> 0), per dataset"
 
 ### PP
 
-```{r combinaisons_rmse_PP, echo=FALSE,eval=FALSE, warning = FALSE }
+```{r combinaisons_rmse_PP, echo=FALSE,eval=TRUE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -978,7 +978,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_rmse_FS, echo=FALSE,eval=FALSE}
+```{r combinaisons_rmse_FS, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -988,7 +988,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_rmse_DE, echo=FALSE,eval=FALSE}
+```{r combinaisons_rmse_DE, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -998,14 +998,14 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_rmse_LI, echo=FALSE,eval=FALSE}
+```{r combinaisons_rmse_LI, echo=FALSE,eval=TRUE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
 
 ## Spearman correlation (row)
 
-```{r common_var_spearman_row, echo=FALSE,eval=FALSE}
+```{r common_var_spearman_row, echo=FALSE,eval=TRUE}
 metric = "spearman_row"
 metric_title = "Spearman correlation (row) (-> 1), per dataset"
 ```
@@ -1013,7 +1013,7 @@ metric_title = "Spearman correlation (row) (-> 1), per dataset"
 
 ### PP
 
-```{r combinaisons_spearman_row_PP, echo=FALSE,eval=FALSE, warning = FALSE }
+```{r combinaisons_spearman_row_PP, echo=FALSE,eval=TRUE, warning = FALSE }
 #### MET
 plot_aggregated_score(data = results_li, x_var = "preprocessing_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1024,7 +1024,7 @@ plot_aggregated_score(data = results_li, x_var = "preprocessing_mixRNA", y_var =
 
 ### FS
 
-```{r combinaisons_spearman_row_FS, echo=FALSE,eval=FALSE}
+```{r combinaisons_spearman_row_FS, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "feature_selection_mixMET", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1034,7 +1034,7 @@ plot_aggregated_score(data = results_li, x_var = "feature_selection_mixRNA", y_v
 
 ### DE
 
-```{r combinaisons_spearman_row_DE, echo=FALSE,eval=FALSE}
+```{r combinaisons_spearman_row_DE, echo=FALSE,eval=TRUE}
 #### MET
 plot_aggregated_score(data = results_li, x_var = "deconvolution_met", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 
@@ -1044,7 +1044,7 @@ plot_aggregated_score(data = results_li, x_var = "deconvolution_rna", y_var = me
 
 ### LI
 
-```{r combinaisons_spearman_row_LI, echo=FALSE,eval=FALSE}
+```{r combinaisons_spearman_row_LI, echo=FALSE,eval=TRUE}
 plot_aggregated_score(data = results_li, x_var = "late_integration", y_var = metric, title = metric_title, facet_var = facet_var, add_tooltip_text = add_tooltip_text)
 ```
 
