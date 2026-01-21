@@ -6,7 +6,8 @@ program_block_FS <- function(data, path_og_dataset='') {
     
     #if (!(any(c("ref_concat","ref_integrated","ref_cluster","ref_binarypseudobulk_log") %in% names(sc)))) {stop("This FS method requires to run the PP set to concat, CCAintegration, cluster or binarypseudobulk_log")}
     ### SPLS-DA on sc
-    sc_data = sc[[1]]
+    # sc_data = sc[[1]]
+    sc_data = sc[[1]][[1]]
     cell_type <- as.factor(sc_data$metadata$cell_type)
     splsda.model <- mixOmics::mint.splsda(t(sc_data$counts), cell_type, 
                                           study = sc_data$metadata$dataset, ncomp = 5,
