@@ -4,10 +4,10 @@
 #   path: early_integration/MOFA.R 
 #   short_name: MOFA
 
-# omicade4bulk:
-#   path: early_integration/omicade4_bulk.R 
-#   short_name: Ocablk
-#   language: R
+omicade4bulk:
+  path: early_integration/omicade4_bulk.R 
+  short_name: Ocablk
+  language: R
 
 # concatscale:
 #   path: early_integration/concat_scale.R 

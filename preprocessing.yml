@@ -25,11 +25,11 @@ Scale :  #scale with sweep function  #must be a unique ID
 #   short_name: scSc
 #   omic: [scRNA]
 
-scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
-  path: preprocessing/sc_concat.R
-  short_name: scCo
-  create: [ref_concat]
-  omic: [scRNA]
+# scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
+#   path: preprocessing/sc_concat.R
+#   short_name: scCo
+#   create: [ref_concat]
+#   omic: [scRNA]
 
 sccluster : # seurat created object
   path: preprocessing/sc_cluster.R
@@ -37,11 +37,13 @@ sccluster : # seurat created object
   create: [ref_cluster]
   omic: [scRNA]
   
-scbinarypseudobulklog : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
-  path: preprocessing/sc_binarypseudobulk_log.R
-  short_name: scbpl
-  create: [ref_binarypseudobulk_log]
-  omic: [mixRNA,RNA,scRNA]
+# scbinarypseudobulklog : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+#   path: preprocessing/sc_binarypseudobulk_log.R
+#   short_name: scbpl
+#   create: [ref_binarypseudobulk_log]
+#   omic: [mixRNA,RNA,scRNA]
+
+
 
 # scCCAintegration : # integration of sc datasets with CCA
 #   path: preprocessing/sc_CCAintegration.R

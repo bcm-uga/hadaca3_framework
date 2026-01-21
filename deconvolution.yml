@@ -7,9 +7,9 @@ nnls :  #must be a unique ID
 #   path: deconvolution/lm.R
 #   short_name: LM
 
-epic :  #must be a unique ID
-  path: deconvolution/EPIC.R
-  short_name: EPIC
+# epic :  #must be a unique ID
+#   path: deconvolution/EPIC.R
+#   short_name: EPIC
 
 ##only with scrna
 # BisqueRNA : #Totest  #must be a unique ID
