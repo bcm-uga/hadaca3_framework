@@ -19,7 +19,12 @@ program_block_FS <- function(data, path_og_dataset='') {
                                      mixOmics::selectVar(splsda.model, comp = 5)$name))
     if (is.list(data)) {
         data = lapply(data, function(x) list(counts = x$counts[choose_markers_scRNA,], metadata = x$metadata))
-    } else {data = data[choose_markers_scRNA,]}
+    } else {
+        common_genes <- intersect(choose_markers_scRNA, rownames(data))
+        # data = data[choose_markers_scRNA,]
+        data = data[common_genes,]
+
+    }
     
     return(data)
 }
