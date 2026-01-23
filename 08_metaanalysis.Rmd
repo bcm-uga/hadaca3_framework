@@ -58,6 +58,9 @@ if(!exists("results_li")){
     'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
     'late_integration'
   )
+  results_li_csv_file <- list.files(
+    pattern = "^results_li.*\\.csv.gz$"
+  )
   results_li = read.csv(file = gzfile(results_li_csv_file )) # "results_li.csv.gz"))
   results_li[all_functions_li] <- lapply(results_li[all_functions_li], as.factor)
 }
@@ -76,7 +79,10 @@ if(!exists("results_ei")){
     'early_integration', 'deconvolution'
   )
   
-  results_ei = read.csv(file = gzfile("results_ei.csv.gz"))
+  file_name_ei_csv <- list.files(
+    pattern = "^results_ei.*\\.csv.gz$"
+  )
+  results_ei = read.csv(file = gzfile(file_name_ei_csv))#"results_ei.csv.gz"))
   if(length(results_ei)>1 ){
     results_ei[all_functions_ei] <- lapply(results_ei[all_functions_ei], as.factor)
   }
@@ -322,7 +328,13 @@ boxplot(formula(paste0(score, "~deconvolution_met")), results_li[,c(facts, score
 # # code above can be resumed by suppressing invitro and invivo dataset because we can't apply jsd metrics for the first and all non correlation metrics for the second
 
 # Then for the PCA, we remove jsd (which is highly correlated to other metrics) and the in vivo dataset
-results_li_rm = results_li[results_li$dataset != "invivo1", -c(which(colnames(results_li) %in% c("jsd", "jsd_norm")))]
+# results_li_rm = results_li[results_li$dataset != "invivo1", -c(which(colnames(results_li) %in% c("jsd", "jsd_norm")))]
+
+results_li_rm <- results_li[
+  !results_li$dataset %in% c("invivo1", "invivo2"),
+  -which(colnames(results_li) %in% c("jsd", "jsd_norm"))
+]
+
 
 score_aggreg_order = grep("score_aggreg", colnames(results_li_rm))
 normalised_metrics = grep("norm", colnames(results_li_rm))
@@ -331,6 +343,7 @@ corr_metric = c(grep("pearson", colnames(results_li_rm)), grep("spearman", colna
 stepwise_most_var = which(colnames(results_li_rm) %in% c("dataset", "late_integration", "deconvolution_rna", "deconvolution_met"))
 
 pca_results_li_rm = PCA(results_li_rm[,c(score_aggreg_order, stepwise_most_var, unnormalised_metrics)], quanti.sup = 1, quali.sup = 2:(length(stepwise_most_var)+1), graph = FALSE)
+
 barplot(pca_results_li_rm$eig[,2])
 ```
 
