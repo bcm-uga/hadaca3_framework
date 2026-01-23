@@ -212,7 +212,7 @@ datatable(
 
 
 # Early integration_table 
-```{r Early_integration pipeline,echo=FALSE,eval=FALSE}
+```{r Early_integration pipeline,echo=FALSE,eval=TRUE}
 
 
 list_wd <- strsplit(getwd(), '/')[[1]]
@@ -326,7 +326,7 @@ write.csv(results_ei, file = gzfile(paste0(dynamic_name_ei, ".csv.gz")), row.nam
 
 ```
 
-```{r display EI table,echo=FALSE,eval=FALSE }
+```{r display EI table,echo=FALSE,eval=TRUE }
 index_aggreg_ei <- which(names(results_ei) == "score_aggreg")
 index_dataset_ei <- which(names(results_ei) == "dataset")
 

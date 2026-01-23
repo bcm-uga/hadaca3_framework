@@ -44,6 +44,9 @@ library(furrr)
 
 ```{r load table if they do not exist }
 
+
+
+# results_li_csv_file = get("results_li")
 if(!exists("results_li")){
   print("reading reulsts li csv")
   
@@ -55,10 +58,12 @@ if(!exists("results_li")){
     'preprocessing_MET', 'feature_selection_MET', 'deconvolution_met',
     'late_integration'
   )
-  results_li = read.csv(file = gzfile("results_li.csv.gz"))
+  results_li = read.csv(file = gzfile(results_li_csv_file )) # "results_li.csv.gz"))
   results_li[all_functions_li] <- lapply(results_li[all_functions_li], as.factor)
 }
 
+
+# results_li_csv_file = get()
 if(!exists("results_ei")){
   print("reading reulsts ei csv")
   
