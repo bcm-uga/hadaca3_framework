@@ -361,7 +361,7 @@ plot(pca_results_li_rm, axes = c(2, 3), choix="var")
 # par(mfrow = c(1,1))
 ```
 
-```{r dim_desc_pca}
+```{r dim_desc_pca, eval=FALSE}
 dimdesc(pca_results_li_rm)
 ```
 
