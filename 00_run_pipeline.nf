@@ -1167,10 +1167,10 @@ process Metaanalysis {
     // path(utils))
 
     output:
+    path("08_metaanalysis.html") //08_metaanalysis.html
+    path("08_metaanalysis_files")
     path("07_prep_metaanalysis*.html")
     path("07_prep_metaanalysis*_files")
-    path("08_metaanalysis*.html")
-    path("08_metaanalysis*_files")
     path("results_li*.csv.gz")
     path("results_ei*.csv.gz")
 
