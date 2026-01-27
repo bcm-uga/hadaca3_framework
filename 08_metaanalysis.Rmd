@@ -370,7 +370,7 @@ dimdesc(pca_results_li_rm)
 - troisième axe construit majoritairement par aitchison et un peu par les corrélations en lignes (types cell). Le score aggreg est complétement indépendant de cette dimension
 
 
-```{r new_plot_ellipses}
+```{r new_plot_ellipses }
 # # faire d'abords le svar qui explique le plus score aggreg pour ensuite voir leurs ellipses dans la PCA
 # plotellipses(pca_results_li_stand_rm, axes = c(1, 2), pch = '.')
 # # vraiment moche, il ne faudrait ps afficher tout les points
@@ -693,7 +693,7 @@ Pour les dimensions 2 et 3, cela nous donne de nouveau indices concernant certai
 
 ## MFA 
 
-```{r, include=FALSE, eval=FALSE}
+```{r, include=FALSE}
 test_results_li_stand_rm_dtaCopule = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletCopule1", 2:15]
 rownames(test_results_li_stand_rm_dtaCopule) = 1:nrow(test_results_li_stand_rm_dtaCopule)
 test_results_li_stand_rm_dtaEMFA = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletEMFA1", 2:15]
@@ -717,7 +717,7 @@ identical(
 ) # TRUE
 ```
 
-```{r MFA}
+```{r MFA, eval = FALSE}
 
 score_results_li_rm_dtainvitro = results_li_rm[results_li_rm$dataset == "invitro1", 16:ncol(results_li_rm)]
 score_results_li_rm_dtaCopule = results_li_rm[results_li_rm$dataset == "insilicodirichletCopule1", 16:ncol(results_li_rm)]
@@ -775,7 +775,7 @@ mfa_results_li_rm_MFA$eig[1:10,]
 Les 4 première composantes seront analysées, représentant 90.4% de la variabilité des données
 
 
-```{r RV_coef}
+```{r RV_coef, eval = FALSE}
 round(mfa_results_li_rm_MFA$group$RV, 2)
 ```
 
@@ -785,7 +785,7 @@ Pour score aggreg, ce group à très peu de lien avec method mais de fort lien a
 
 
 
-```{r plot_group}
+```{r plot_group, eval = FALSE}
 plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "group")
 plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "group")
 plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "group")
@@ -794,7 +794,7 @@ plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "group")
 La première dimension de l'AFM est commune au 4 jeu de donnée (la plus grande valeur est pour le groupe des scores aggrégés). Cependant, selon la deuxième dimension seul le dataset pseudo bulk différencie les méthodes de déconvolution. La deuxième dimension de l'AFM est donc plus liée à celle de ce dataset. Les troisième et quatrième dimensions ne sont pas particulièrement liées à un dataset (légèrement pseudo bulk pour la quatrième), mais permet cependant de décrire le groupe methode qui contient les caractéristiques des méthodes de déconvolution multi-omique utilisé, à l'inverse du groupe score aggrégé.
 
 
-```{r plot_var}
+```{r plot_var, eval = FALSE}
 plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "var")
 plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "var")
 plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "var")
@@ -807,7 +807,7 @@ Les score aggreg sont très corrélé à la première dimension de l'AFM (et don
 Le troisième axes est construit de manière unanime par la distance d'aitchison, c'est sur le second et le quatrième qu'il y a différence entre pseudo bulk et les autres dataset. Pour pseudo bulk, l'ensemble des variables ne construisent pas que le premier axes mais les deux premire, le troisième par aitchison et le quatrième par les corrélation en lignes.
 
 
-```{r}
+```{r, eval = FALSE}
 plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "axes")
 plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "axes")
 plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "axes")
@@ -816,13 +816,13 @@ plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "axes")
 On voit bien ma réfléxion du paragraphe précédent sur la représentatin des axes des ACP par groupes sur les axes de l'AFM.
 
 
-```{r}
+```{r, eval = FALSE}
 plot(mfa_results_li_rm_MFA, axes = c(1,2), choix = "ind", invisible = "ind")
 plot(mfa_results_li_rm_MFA, axes = c(2,3), choix = "ind", invisible = "ind")
 plot(mfa_results_li_rm_MFA, axes = c(3,4), choix = "ind", invisible = "ind")
 ```
 
-le point extreme c'est la méthode OnlyRNA (qui se superpose avec les MetnoDE, METnoFS, $\dots$). Je pense que ce point fait gonfler le lien entre les dim 3 et 4 avec le groupe methode. On vois bein dans la matrice du coef RV qu'il n'y a pas de lien.
+le point extreme c'est la méthode OnlyRNA (qui se superpose avec les MetnoDE, METnoFS, $\dots$). Je pense que ce point fait gonfler le lien entre les dim 3 et 4 avec le groupe methode. On voit bien dans la matrice du coef RV qu'il n'y a pas de lien.
 
 
 
