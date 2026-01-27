@@ -657,7 +657,7 @@ plot(pca_results_li_stand_rm, axes = c(2, 3), choix="var")
 # par(mfrow = c(1,1))
 ```
 
-```{r dim_desc_pca_standardise}
+```{r dim_desc_pca_standardise, eval = FALSE}
 dimdesc(pca_results_li_stand_rm)
 ```
 
@@ -835,7 +835,7 @@ Pour faire une MDS, il faut faire la matrice de distance/dissimilarité entre to
 
 ## Nico test visu (GPT...) 
 
-```{r prepare data}
+```{r prepare data,eval = FALSE}
 multi_level_cols <- sapply(results_li[all_functions_li], function(x) nlevels(x) > 1)
 filtered_functions <- all_functions_li[multi_level_cols]
 dropped_cols <- all_functions_li[!multi_level_cols]
@@ -843,7 +843,7 @@ cat("Dropped columns (only 1 level):", paste(dropped_cols, collapse = ", "), "\n
 
 ```
 
-```{r lm model  }
+```{r lm model,eval = FALSE  }
 
 # Now run the model
 model <- lm(score_aggreg ~ ., data = results_li[, c(filtered_functions, "score_aggreg")])
@@ -851,13 +851,13 @@ summary(model)
 
 ```
 
-```{r anova}
+```{r anova,eval = FALSE}
 anova_results <- anova(model)
 anova_results <- anova_results[order(-anova_results$`Sum Sq`), ]
 print(anova_results)
 ```
 
-```{r}
+```{r,eval = FALSE}
 # Get coefficients sorted by value
 coefs <- coef(model)
 coefs <- coefs[!grepl("(Intercept)", names(coefs))]
@@ -870,7 +870,7 @@ tail(coefs_sorted, 10)  # most negative
 ```
 
 
-```{r Convert function-type columns to dummy variables}
+```{r Convert function-type columns to dummy variables,eval = FALSE}
 # Load required package
 library(fastDummies)
 
@@ -883,7 +883,7 @@ df_pca_encoded <- dummy_cols(df_pca, select_columns = filtered_functions, remove
 ```
 
 
-```{r Run PCA}
+```{r Run PCA,eval = FALSE}
 # Run PCA on all features (excluding score_aggreg)
 pca_result <- prcomp(df_pca_encoded[, !colnames(df_pca_encoded) %in% "score_aggreg"], center = TRUE, scale. = TRUE)
 
@@ -918,7 +918,7 @@ pca_data$score_aggreg <- df_pca_encoded$score_aggreg
 
 
 
-```{r contributing components}
+```{r contributing components,eval = FALSE}
 # Get the proportion of variance explained
 explained_var <- summary(pca_result)$importance["Proportion of Variance", ]
 
