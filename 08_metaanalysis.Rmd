@@ -624,7 +624,7 @@ Pour RNA, c'est RLR et RLRpoisson qui sont les meilleurs méthodes de deconvo (s
 
 ## PCA
 
-```{r val_propre_pca_standardise, fig.height=9,eval=FALSE}
+```{r val_propre_pca_standardise, fig.height=9}
 # row_rm = apply(results_li_stand,1,function(x) any(is.na(x)))
 # results_li_stand_rm = results_li_stand[!row_rm,]
 # # code above can be resumed by suppressing invitro and invivo dataset because we can't apply jsd metrics for the first and all non correlation metrics for the second
