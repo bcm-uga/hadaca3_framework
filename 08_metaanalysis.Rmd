@@ -693,7 +693,7 @@ Pour les dimensions 2 et 3, cela nous donne de nouveau indices concernant certai
 
 ## MFA 
 
-```{r, include=FALSE}
+```{r, include=FALSE, eval = FALSE }
 test_results_li_stand_rm_dtaCopule = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletCopule1", 2:15]
 rownames(test_results_li_stand_rm_dtaCopule) = 1:nrow(test_results_li_stand_rm_dtaCopule)
 test_results_li_stand_rm_dtaEMFA = results_li_stand_rm[results_li_stand_rm$dataset == "insilicodirichletEMFA1", 2:15]
