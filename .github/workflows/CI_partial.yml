@@ -86,6 +86,8 @@ jobs:
           rm -rf 08_metaanalysis.html
           rm -rf 07_metaanalysis_files
           rm -rf 07_metaanalysis.html
+          rm -rf results_li*.csv.gz
+          rm -rf results_ei*.csv.gz
 
           nextflow run 00_run_pipeline.nf -resume -with-report > log.txt 2>&1 &
 
