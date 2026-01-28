@@ -2,13 +2,60 @@
 
 A framework to collectively develop multi-omic deconvolution methods.
 
-## How to start?
+
+## How to Add Your Function to the Pipeline
+
+This project is designed to be **extensible**—you can easily add new functions for the following [block types](#blocks-description):
+- Pre-processing
+- Feature selection
+- Deconvolution
+- Late integration
+- Early integration
+
+**Supported languages:** R and Python.
+*Note:* For now, only **early integration functions** are fully compatible with Python. Python support for other block types can be added—contributions are welcome!
+
+---
+
+### Steps to Add Your Function
+
+#### 1. **Add Function Metadata**
+Edit the **YAML metadata file** corresponding to your function’s block type. The YAML files are named as follows:
+- `datasets.yml`
+- `preprocessing.yml` (pp)
+- `feature_selection.yml` (fs)
+- `deconvolution.yml` (de)
+- `early_integration.yml` (ei)
+- `late_integration.yml` (li)
+
+For a detailed description of the metadata structure, see the [YML Metadata Section](#yml-metadata).
+
+#### 2. **Add Your Function Code**
+- Place your function code in the **appropriate folder** for its block type.
+- **Update the YAML metadata** to include the correct path to your function.
+
+---
+
+### Best Practices
+- **Use the identity function as a template**:
+  Mimic the behavior of the identity function (e.g., `ppID` for pre-processing). These functions act as a baseline and **do not modify the input data**, making them ideal references for consistency.
+
+- **Test locally before submitting**:
+  - Download the datasets and **test your function locally** using a reduced subset of the data.
+  - Run the pipeline with your function by following the instructions in the **[Nextflow section](#nextflow)**.
+  - Refer to the `benchmark/setups/` folder for subset configuration examples.
+
+- **Automated CI evaluation**:
+  Once pushed, your code will **automatically run on the CI**, and the results will be available on the GitHub page.
+
+# How to run locally?
 
 ```
 cd ~/projects
 git clone git@github.com:bcm-uga/hadaca3_framework.git
 cd hadaca3_framework
 ```
+
 ## Conda environement
 
 Set up your conda environement as follow:
@@ -25,33 +72,7 @@ pip install uniport
 Rscript -e 'remotes::install_github("immunogenomics/presto")'
 
 ```
-<!-- scipy h5py -->
-<!--  -->
 
-<!-- Rscript -e "remotes::install_github('saezlab/decoupleR')" -->
-<!-- bioconductor-ADImpute -->
-<!-- bioconductor-viper -->
-<!-- BiocManager::install("ADImpute") -->
- <!-- BiocManager::install("viper") -->
-<!-- install.packages('WGCNA') -->
-<!-- BiocManager::install("WGCNA") -->
-<!-- scanpy=1.11 -->
-
-<!-- h5py   -->
-
-
-<!-- r-clue r-coda.base r-ggpubr bioconductor-complexheatmap bioconductor-mofa2 r-viridis r-magrittr r-dplyr r-nnls graphviz r-tictoc  graphviz python-kaleido tenacity plotly r-bisquerna r-extraDistr r-MASS r-EPIC r-fmsb bioconductor-toast bioconductor-omicade4 r-mixomics r-mixkernel rpy2 scikit-learn keras tensorflow bioconductor-viper bioconductor-ADImpute r-WGCNA r-see r-ggfortify -->
-
-## Working on meta-analysis
-
-```
-cd ~/projects/hadaca3_framework/
-wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_ei.csv.gz
-wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_li.csv.gz
-# under R :
-Rscript -e 'rmarkdown::render("08_metaanalysis.Rmd")'
-
-```
 
 ## Getting original data
 
@@ -143,6 +164,21 @@ wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/dat
 wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/mixes2_insilicodirichletEMFAImmuneLowProp_pdac.h5
 wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/data/ref.h5
 ```
+
+
+## Working on meta-analysis results 
+
+
+```
+cd ~/projects/hadaca3_framework/
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_ei.csv.gz
+wget http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/hadaca3_framework/results_li.csv.gz
+# under R :
+Rscript -e 'rmarkdown::render("08_metaanalysis.Rmd")'
+```
+
+
+
 ## Execute the pipeline: 
 
 
@@ -250,7 +286,7 @@ met_unit
 
 
 
-## Nexflow shenanigan.
+## Yml metadata
 
 The pipeline will create combinaisons between compatible functions from each block. 
 
@@ -316,7 +352,6 @@ The function1 creates the omic ref_concat of the type scRNA. Function2 needs thi
 - When function2 is handling **"scRNA"** omic, and since function2 needs that omic, function2 will only be linked with the output of function1 or any other function that created the omic *ref_cluster* . 
 - When function2 is handling **mixRNA**, function2 will be linked with any previous block that outputs the omic **mixRNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*.
 - When function2 is handling **RNA**, function2 will be linked with any previous block that outputs the omic **RNA**! However the omic *ref_cluster* of the type *scRNA* is passed as path in *og_dataset_path$ref*. 
-
 
 
 
