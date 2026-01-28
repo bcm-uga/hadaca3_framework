@@ -82,10 +82,10 @@ jobs:
 
           # Start nextflow in the background and redirect output to log.txt
           rm -f log.txt
-          rm -r 08_metaanalysis_files
-          rm -r 08_metaanalysis.html
-          rm -r 07_metaanalysis_files
-          rm -r 07_metaanalysis.html
+          rm -rf 08_metaanalysis_files
+          rm -rf 08_metaanalysis.html
+          rm -rf 07_metaanalysis_files
+          rm -rf 07_metaanalysis.html
 
           nextflow run 00_run_pipeline.nf -resume -with-report > log.txt 2>&1 &
 
