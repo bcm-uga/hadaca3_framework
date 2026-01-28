@@ -116,8 +116,8 @@ jobs:
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
-          cp results_li.csv.gz ${{ github.workspace }}/public/
-          cp results_ei.csv.gz ${{ github.workspace }}/public/
+          cp results_li*.csv.gz ${{ github.workspace }}/public/
+          cp results_ei*.csv.gz ${{ github.workspace }}/public/
           exit $EXIT_CODE
 
       - name : copy report if failure 
