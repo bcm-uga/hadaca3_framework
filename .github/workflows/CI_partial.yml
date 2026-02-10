@@ -86,8 +86,8 @@ jobs:
           rm -rf 08_metaanalysis.html
           rm -rf 07_metaanalysis_files
           rm -rf 07_metaanalysis.html
-          rm -rf results_li*.csv.gz
-          rm -rf results_ei*.csv.gz
+          # rm -rf results_li*.csv.gz
+          # rm -rf results_ei*.csv.gz
 
           nextflow run 00_run_pipeline.nf -resume -with-report > log.txt 2>&1 &
 
@@ -118,10 +118,15 @@ jobs:
           LATEST_REPORT=$(ls -t report-* | head -n 1)
           cp $LATEST_REPORT ${{ github.workspace }}/public/nextflow-report.html
           cp index.html ${{ github.workspace }}/public/
+          
+          
+          LATEST_LI=$(ls -t results_li-* | head -n 1)
+          LATEST_EI=$(ls -t results_ei-* | head -n 1)
+          
           # cp results_li*.csv.gz ${{ github.workspace }}/public/
-          cp results_li*.csv.gz ${{ github.workspace }}/public/results_li.csv.gz
+          cp $LATEST_LI ${{ github.workspace }}/public/results_li.csv.gz
           # cp results_ei*.csv.gz ${{ github.workspace }}/public/
-          cp results_ei*.csv.gz ${{ github.workspace }}/public/results_ei.csv.gz
+          cp $LATEST_EI ${{ github.workspace }}/public/results_ei.csv.gz
 
           exit $EXIT_CODE
 
