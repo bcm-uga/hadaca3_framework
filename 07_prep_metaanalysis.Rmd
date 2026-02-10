@@ -397,7 +397,10 @@ datatable(
 ```{r test_for_scatter, echo=FALSE, eval=FALSE}
 test_dataset = 'invitro1'
 name_part <- gsub("[0-9]+$", "", test_dataset)
-number_part <- gsub("[^0-9]", "", test_dataset)
+number_part <- gsub("[^0-9]", "", test_dataset) #problem with mixs with several number number in them. 
+
+number_part = str_sub(str,-1)
+name_aprt = str_sub(str,end=str_length(str)-1)
 
 ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
 ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
@@ -417,8 +420,11 @@ pred = lapply(prediction_file, \(path){read_hdf5(path)$pred})  # mettre $pred de
 ```{r scatter_plot_top5best_by_dataset,eval=TRUE, warning=FALSE, echo=FALSE, message=TRUE}
 
 test_dataset = 'invitro1'
-name_part <- gsub("[0-9]+$", "", test_dataset)
-number_part <- gsub("[^0-9]", "", test_dataset)
+# name_part <- gsub("[0-9]+$", "", test_dataset)
+# number_part <- gsub("[^0-9]", "", test_dataset)
+number_part = str_sub(str,-1)
+name_part = str_sub(str,end=str_length(str)-1)
+
 
 ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
 ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
