@@ -2,6 +2,7 @@
 
 A framework to collectively develop multi-omic deconvolution methods.
 
+The core idea is of this framework is to combine function blocks together to help compare the use of any combination of pre-processing, features selection, deconvolution algorithms and integration of each individual omic type : RNA, Methylation and Single cells. 
 
 ## How to Add Your Function to the Pipeline
 
