@@ -474,7 +474,7 @@ df_scatter = do.call(
     # name_part <- gsub("[0-9]+$", "", data)
     # number_part <- gsub("[^0-9]", "", data)
     number_part = str_sub(data,-1)
-    name_part = str_sub(str,end=str_length(data)-1)
+    name_part = str_sub(data,end=str_length(data)-1)
     ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
     ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 
