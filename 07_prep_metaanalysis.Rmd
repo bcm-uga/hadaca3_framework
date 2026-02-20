@@ -581,8 +581,10 @@ datatable(
 ```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=TRUE,eval=TRUE}
 
 test_dataset = 'invitro1'
-name_part <- gsub("[0-9]+$", "", test_dataset)
-number_part <- gsub("[^0-9]", "", test_dataset)
+# name_part <- gsub("[0-9]+$", "", test_dataset)
+# number_part <- gsub("[^0-9]", "", test_dataset)
+number_part = str_sub(test_dataset,-1)
+name_part = str_sub(test_dataset,end=str_length(test_dataset)-1)
 
 ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
 ground_truth_invitro1 = read_hdf5(paste0(ground_truth_name_file))$groundtruth
@@ -599,6 +601,22 @@ df_scatter = do.call(
   args = lapply(levels(results_li$dataset), function(data) { # we remove in vivo
     
     
+
+    # name_part <- gsub("[0-9]+$", "", data)
+    # number_part <- gsub("[^0-9]", "", data)
+    number_part = str_sub(data,-1)
+    name_part = str_sub(data,end=str_length(data)-1)
+    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
+    A_real = read_hdf5(paste0(A_real_name_file))$groundtruth
+
+    ground_truth_data = t(ground_truth)
+    ground_truth_data = tidyr::pivot_longer(
+      as.data.frame(ground_truth_data),
+      cols = colnames(ground_truth_data),
+      names_to = "cell_type",
+      values_to = "true_prop"
+    )
+
     prediction_file = sapply(1:nrow(results_li_top5worst), function(i){
       paste0("pred-li-",paste(c(data, "ref", as.character(unlist(results_li_top5worst[i, 1:13]))),collapse = "_") ,".h5")
     })
@@ -640,18 +658,6 @@ df_scatter = do.call(
     }
 
 
-    name_part <- gsub("[0-9]+$", "", data)
-    number_part <- gsub("[^0-9]", "", data)
-    ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
-    ground_truth = read_hdf5(paste0(ground_truth_name_file))$groundtruth
-
-    ground_truth_data = t(ground_truth)
-    ground_truth_data = tidyr::pivot_longer(
-      as.data.frame(ground_truth_data),
-      cols = colnames(ground_truth_data),
-      names_to = "cell_type",
-      values_to = "true_prop"
-    )
 
     ground_truth_data = rbind(ground_truth_data, ground_truth_data,
                               ground_truth_data, ground_truth_data, ground_truth_data)
