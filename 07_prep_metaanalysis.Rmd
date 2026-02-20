@@ -578,7 +578,7 @@ datatable(
 ```
 
 
-```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=TRUE,eval=TRUE}
+```{r scatter_plot_top5worst_by_dataset, warning=FALSE, echo=FALSE, message=TRUE,eval=FALSE}
 
 test_dataset = 'invitro1'
 # name_part <- gsub("[0-9]+$", "", test_dataset)
