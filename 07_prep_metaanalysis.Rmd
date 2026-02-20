@@ -607,9 +607,9 @@ df_scatter = do.call(
     number_part = str_sub(data,-1)
     name_part = str_sub(data,end=str_length(data)-1)
     ground_truth_name_file = paste0("groundtruth",number_part,'_',name_part,"_pdac.h5")
-    A_real = read_hdf5(paste0(A_real_name_file))$groundtruth
+    A_real = read_hdf5(paste0(ground_truth_name_file))$groundtruth
 
-    ground_truth_data = t(ground_truth)
+    ground_truth_data = t(A_real)
     ground_truth_data = tidyr::pivot_longer(
       as.data.frame(ground_truth_data),
       cols = colnames(ground_truth_data),
