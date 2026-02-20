@@ -120,8 +120,8 @@ jobs:
           cp index.html ${{ github.workspace }}/public/
           
           
-          LATEST_LI=$(ls -t results_li-* | head -n 1)
-          LATEST_EI=$(ls -t results_ei-* | head -n 1)
+          LATEST_LI=$(ls -t results_li* | head -n 1)
+          LATEST_EI=$(ls -t results_ei* | head -n 1)
           
           # cp results_li*.csv.gz ${{ github.workspace }}/public/
           cp $LATEST_LI ${{ github.workspace }}/public/results_li.csv.gz
