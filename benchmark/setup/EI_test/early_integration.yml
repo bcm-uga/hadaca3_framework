@@ -1,9 +1,9 @@
 
 
-concatscale:
-  path: early_integration/concat_scale.R 
-  short_name: Consc
-  language: R
+# concatscale:
+#   path: early_integration/concat_scale.R 
+#   short_name: Consc
+#   language: R
 
 # concatnoscale:
 #   path: early_integration/concat_noscale.R 
@@ -32,16 +32,16 @@ concatscale:
 #   short_name: pyOR
 #   language: python
 
-# OT:
-#   path: early_integration/OT.py 
-#   short_name: OT
-#   language: python
+OT:
+  path: early_integration/OT.py 
+  short_name: OT
+  language: python
 
 
-# multimap:
-#   path: early_integration/multimap.py 
-#   short_name: mltmap
-  # language: python
+multimap:
+  path: early_integration/multimap.py 
+  short_name: mltmap
+  language: python
 
 
 

@@ -19,9 +19,9 @@
 #   path: late_integration/only_met.R 
 #   short_name: OMet
 
-OnlyRna: 
-  path: late_integration/only_rna.R 
-  short_name: ORNA
+# OnlyRna: 
+#   path: late_integration/only_rna.R 
+#   short_name: ORNA
 
 
 

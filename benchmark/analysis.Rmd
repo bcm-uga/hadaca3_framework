@@ -111,6 +111,56 @@ ggplot(data, aes(x = setup, y = count, fill = job)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+## log scale v2
+
+```{r}
+library(tidytext) 
+data2 <- data %>%
+  group_by(setup) %>%
+  mutate(job_ordered = reorder_within(job, count, setup)) %>%
+  ungroup()
+
+ggplot(data2, aes(x = job_ordered, y = count, fill = job)) +
+  geom_col() +
+  scale_y_log10(labels = comma) +
+  scale_fill_brewer(palette = "Paired", name = "Job type") +
+  facet_wrap(~ setup, nrow = 1, scales = "free_x") +
+  scale_x_reordered() +      # <–– *** this fixes the issue ***
+  labs(
+    title = "Job Counts by Setup",
+    # subtitle = "Each setup shows jobs ordered by their count",
+    x = "Setup",
+    y = "Count (log scale)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+        # Remove job labels
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+
+    # Zoom axis labels
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    # axis.text.x = element_text(angle = 45, hjust = 1),
+
+    plot.title = element_text(face = "bold", size = 24),
+    plot.subtitle = element_text(size = 18),
+    legend.position = "right"
+  )
+  # Save the last plot
+ggsave(
+  filename = "job_counts_by_setup.pdf",  # file name
+  plot = last_plot(),                    # current plot
+  device = "pdf",                        # file type
+  width = 14,                            # width in inches
+  height = 6,                            # height in inches
+  units = "in"                           # units for width/height
+)
+
+```
+
+
+
 #  Analyse the results
 ##  Parse result 
 
@@ -135,8 +185,44 @@ parsed_data <- data.frame(
     workflow= sub("\\d+","",workflow)
   ) %>%
   select(setup, workflow, time, memory)
+
+
 ```
 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+data2 <- data %>%
+  group_by(job) %>%
+  summarise(total = sum(count), .groups = "drop") %>%
+  arrange(total) %>%
+  mutate(job = factor(job, levels = job)) %>%
+  right_join(data, by = "job")
+
+ggplot(data2, aes(x = job, y = count, fill = job)) +
+  geom_col() +
+  scale_y_log10(labels = comma) +      # <-- only one function with log scale
+  scale_fill_brewer(palette = "Paired", name = "Job type") +
+  facet_wrap(~ setup, nrow = 1, scales = "free_x") +
+  labs(
+    title = "Job Counts by Setup",
+    x = "Job type",
+    y = "Count (log scale)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_blank(),      # hide job labels
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    plot.title = element_text(face = "bold", size = 24),
+    plot.subtitle = element_text(size = 18),
+    legend.position = "right"
+  )
+```
 
 ## plot Time 
 
@@ -171,6 +257,10 @@ plot_df <- parsed_data %>%
   left_join(axis_labs, by = "setup") %>%
   mutate(time_hms = sec_to_hms_pretty(time))%>%
    mutate(memory_lbl = comma(round(memory, 0))) 
+
+# remove snakeme_dry_dep
+plot_df <- plot_df %>%
+  filter(workflow != "snakemake_dep_dry")
 ```
 
 
@@ -194,10 +284,88 @@ ggplot(plot_df,
        x       = "Setup (total jobs)",
        y       = "Time (seconds, log scale)",
        colour  = "Workflow") +
+
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(
+
+    # Zoom axis labels
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+
+    plot.title = element_text(face = "bold", size = 24),
+    plot.subtitle = element_text(size = 18),
+    legend.position = "right"
+  )
+  # ggsave(
+  # filename = "jobs_time.pdf",  # file name
+  # plot = last_plot(),                    # current plot
+  # device = "pdf",                        # file type
+  # width = 14,                            # width in inches
+  # height = 6,                            # height in inches
+  # units = "in"                           # units for width/height
+  # )
 ```
 
+## plot time V2
+```{r}
+
+ggplot(plot_df,
+       aes(x = factor(label, levels = axis_labs$label),
+           y = time,
+           colour = workflow,
+           group  = workflow)) +
+
+  # Lines and points
+  geom_line(size = 1.5) +
+  geom_point(size = 4) +
+
+  # Labels
+  geom_text_repel(aes(label = time_hms),
+                  nudge_y  = 0.05,     
+                  nudge_x = 0, 
+                  min.segment.length = 0,  
+                  size = 3.5,
+                  box.padding = 0.5,
+                  max.overlaps = Inf) +
+
+  # Log scale with nice breaks
+  scale_y_log10(labels = comma,
+                breaks = scales::trans_breaks("log10", function(x) 10^x),
+                minor_breaks = NULL,
+                expand = expansion(mult = c(0.05, 0.15))) +
+
+  # Color palette
+  scale_colour_brewer(palette = "Dark2", name = "Workflow") +
+
+  # Labels
+  labs(title   = "Execution Time by Workflow and Setup",
+       x       = "Setup (total jobs)",
+       y       = "Time (seconds, log scale)") +
+
+  # Theme
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 18, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    axis.text.y = element_text(size = 12),
+    plot.title = element_text(face = "bold", size = 22),
+    plot.subtitle = element_text(size = 16),
+    legend.position = "right",
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 12),
+    panel.grid.major = element_line(color = "gray90")
+  )
+    ggsave(
+  filename = "jobs_time.pdf",  # file name
+  plot = last_plot(),                    # current plot
+  device = "pdf",                        # file type
+  width = 20,                            # width in inches
+  height = 10,                            # height in inches
+  units = "in"                           # units for width/height
+  )
+```
 
 ## plot memory usage
 
@@ -223,10 +391,94 @@ ggplot(plot_df, aes(x = factor(label, levels = axis_labs$label), y = memory, gro
 
 
 
+# Submissions  Graph and comits. 
+## data 
+```{r}
+
+submissions <- data.frame(
+  category = c("Phase 1 submissions", "Phase 2 submissions", "Total submissions \n(including failed submissions):"),
+  count    = c(109, 518, 847)
+)
+
+commits <- data.frame(
+  repository = c("Private repo commits", "Public repo commits","Hadaca3 Framework repo commits"),
+  count      = c(800, 200, 400)
+)
 
 
+```
+
+## plot submissions
+```{r}
+
+p1 <- ggplot(submissions, aes(x = category, y = count, fill = category)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = comma(count)), vjust = -0.5, size = 5, fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Submissions by Phase",
+    x = "",
+    y = "Number of submissions"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 18, face = "bold"),
+
+    # axis.text.y = element_text(size = 12),
+    # plot.title = element_text(face = "bold", size = 22),
+    # plot.subtitle = element_text(size = 16),
+    # legend.position = "right",
+    # legend.title = element_text(size = 14, face = "bold"),
+    # legend.text = element_text(size = 12),
+    # panel.grid.major = element_line(color = "gray90")
+    
+    # )
+    axis.text.x = element_text(angle = 20, hjust = 1, face = "bold"),
+    legend.position = "none",
+    plot.title = element_text(size = 24, face = "bold")
+  )
 
 
+  ggsave(
+  filename = "Submission_per_phase.pdf",  # file name
+  plot = last_plot(),                    # current plot
+  device = "pdf",                        # file type
+  width = 10,                            # width in inches
+  height = 5,                            # height in inches
+  units = "in"                           # units for width/height
+  )
+p1
+```
+## plot commits
+```{r}
 
-
-
+p2 <- ggplot(commits, aes(x = repository, y = count, fill = repository)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = comma(count)), vjust = -0.5, size = 5, fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(
+    title = "Repository Commit Counts",
+    x = "",
+    y = "Number of commits"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 18, face = "bold"),
+    axis.text.x = element_text(angle = 20, hjust = 1, face = "bold"),
+    legend.position = "none",
+    plot.title = element_text(size = 24, face = "bold")
+  )
+  ggsave(
+  filename = "commit_per_repo_hadaca3_framework.pdf",  # file name
+  plot = last_plot(),                    # current plot
+  device = "pdf",                        # file type
+  width = 10,                            # width in inches
+  height = 5,                            # height in inches
+  units = "in"                           # units for width/height
+  )
+p2
+```

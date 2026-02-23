@@ -1,0 +1,72 @@
+ppID :  #must be a unique ID
+  path: preprocessing/ID.R
+  short_name: ID
+  omic: [ANY]
+
+LogNorm : #is working
+  path: preprocessing/LogNorm.R
+  short_name: LogN
+  omic: [ANY]
+
+##### working
+# CPM : # Sequence depth normalization for RNA
+#   path: preprocessing/CPM.R
+#   short_name: cpm
+#   omic: [mixRNA,RNA,scRNA]
+
+Scale :  #scale with sweep function  #must be a unique ID
+  path: preprocessing/scale.R
+  short_name: scal
+  omic: [ANY]
+
+
+# scScale :  #must be a unique ID
+#   path: preprocessing/sc_scale.R
+#   short_name: scSc
+#   omic: [scRNA]
+
+scConcat :  #must be a unique ID  #should be sample-normalized  ?! how to add this ? 
+  path: preprocessing/sc_concat.R
+  short_name: scCo
+  create: [ref_concat]
+  omic: [scRNA]
+
+sccluster : # seurat created object
+  path: preprocessing/sc_cluster.R
+  short_name: sccl
+  create: [ref_cluster]
+  omic: [scRNA]
+  
+scbinarypseudobulklog : # maybe move to intermediate or early integration because it should change both scRNA and RNA (rescale)
+  path: preprocessing/sc_binarypseudobulk_log.R
+  short_name: scbpl
+  create: [ref_binarypseudobulk_log]
+  omic: [mixRNA,RNA,scRNA]
+
+# scCCAintegration : # integration of sc datasets with CCA
+#   path: preprocessing/sc_CCAintegration.R
+#   short_name: CCAi
+#   create: [ref_integrated]
+#   omic: [scRNA]
+  
+# scpseudobulk : # maybe move to intermediate or early integration because it should change both scRNA and RNA (if I want to rescale)
+#   path: preprocessing/sc_pseudobulk.R
+#   short_name: scp
+#   create: [ref_pseudobulk]
+#   omic: [scRNA]
+
+# scteamH :  #return ref_teamH
+#   path: preprocessing/sc_teamH.R
+#   short_name: tH
+#   create: [ref_teamH]
+#   dependency: [preprocessing/attachement/teamH_scSignature.csv]
+#   omic: [mixRNA,RNA,scRNA]
+
+##### Working but need to change further steps and install decoupleR on the CI.
+
+# TF: #to deal with, it  changes genes list so they are only compatible  mix, bulk rna and scRNA from the same fs fonction = run in a separate setup
+#  path: preprocessing/TF.R
+#  short_name: TF
+#  not_intercompatible : true
+#  dependency : [preprocessing/attachement/teamHtfrna_network_modules.rds,preprocessing/attachement/teamHtfrna_ref_modules.rds]
+#  omic: [mixRNA,RNA,scRNA]

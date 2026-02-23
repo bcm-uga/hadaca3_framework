@@ -37,6 +37,9 @@ library(furrr)
 
 source(utils_script)
 # source("utils/data_processing.R")
+
+
+mamximum_dataset_name = 6
 ```
 
 
@@ -166,7 +169,7 @@ results_li = all_functions_li
 if (is.data.frame(results_li)) {
   dynamic_name_li <- paste0("results_li_",paste(unique(results_li$dataset), collapse = "_") )
   nb_datasets = length(unique(results_li$dataset))
-  if( nb_datasets > 6  ){
+  if( nb_datasets > mamximum_dataset_name ){
     dynamic_name_li = paste0("results_li_",paste0(nb_datasets,"-datasets"))
   }
     
@@ -320,7 +323,7 @@ if (is.data.frame(results_ei)) {
   dynamic_name_ei <- paste0("results_ei_",paste(unique(results_ei$dataset), collapse = "_") )
   nb_datasets_ei = length(unique(results_ei$dataset))
 
-    if( nb_datasets_ei > 6  ){
+    if( nb_datasets_ei > mamximum_dataset_name  ){
     dynamic_name_ei = paste0("results_ei_",paste0(nb_datasets_ei,"-datasets"))
   }
 }else{
