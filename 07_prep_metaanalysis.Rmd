@@ -192,9 +192,9 @@ write.csv(results_li, file = gzfile(paste0(dynamic_name_li, ".csv.gz")), row.nam
 index_aggreg <- which(names(results_li) == "score_aggreg")
 index_dataset <- which(names(results_li) == "dataset")
 
+max_rows = 4000
 
-
-if(is.data.frame(results_li)){
+if(is.data.frame(results_li) & (nrow(results_li) < max_rows)) {
 
 datatable(
   results_li[, c(index_dataset,1:length(all_functions_li)+2, index_aggreg)],
@@ -341,7 +341,9 @@ write.csv(results_ei, file = gzfile(paste0(dynamic_name_ei, ".csv.gz")), row.nam
 index_aggreg_ei <- which(names(results_ei) == "score_aggreg")
 index_dataset_ei <- which(names(results_ei) == "dataset")
 
-if(is.data.frame(results_ei) ){
+max_rows = 4000
+
+if(is.data.frame(results_ei) & (nrow(results_ei) < max_rows)) {
 
   datatable(
     # results_ei[, c(1:length(all_functions_ei)+2, index_aggreg_ei)],
