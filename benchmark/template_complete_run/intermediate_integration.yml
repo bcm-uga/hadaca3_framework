@@ -1,0 +1,14 @@
+# uniqueID :  #must be a unique ID
+#   path: feature_selection/fs.R
+#   short_name: FS01
+#   input:
+#     RNA: 0
+#     MET: 0
+#   output:
+#     RNA: 0
+#     MET: 0
+#     scRNA: 0
+
+
+## spls_sc in Earli_integration elise bloc is a good canditate ?  and spls_bulk
+
