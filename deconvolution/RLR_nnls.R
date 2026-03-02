@@ -23,7 +23,8 @@ program_block_DE <- function(uni_data,path_og_dataset='') {
   rmse_nnls = sqrt(mean(((as.matrix(reconstructed_nnls)) - as.matrix(real))^2))
     
   # Choose the best method based on RMSE
-  if (rmse_rlr < rmse_nnls) {
+  # if (rmse_rlr < rmse_nnls) {
+  if(is.finite(rmse_rlr) && rmse_rlr < rmse_nnls) {
     prop = prop_rlr
   } else {
     prop = prop_nnls

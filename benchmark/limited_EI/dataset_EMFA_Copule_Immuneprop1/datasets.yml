@@ -33,20 +33,20 @@ insilicodirichletEMFA1 :
   groundtruth_file_path : data/groundtruth1_insilicodirichletEMFA_pdac.h5
   path : data/mixes1_insilicodirichletEMFA_pdac.h5
 
-insilicodirichletEMFA2 : 
-  short_name : SDE52
-  groundtruth_file_path : data/groundtruth2_insilicodirichletEMFA_pdac.h5
-  path : data/mixes2_insilicodirichletEMFA_pdac.h5
+# insilicodirichletEMFA2 : 
+#   short_name : SDE52
+#   groundtruth_file_path : data/groundtruth2_insilicodirichletEMFA_pdac.h5
+#   path : data/mixes2_insilicodirichletEMFA_pdac.h5
 
 insilicodirichletCopule1 : 
   short_name : SDC51
   groundtruth_file_path : data/groundtruth1_insilicodirichletCopule_pdac.h5
   path : data/mixes1_insilicodirichletCopule_pdac.h5 
 
-insilicodirichletCopule2 : 
-  short_name : SDC52
-  groundtruth_file_path : data/groundtruth2_insilicodirichletCopule_pdac.h5
-  path : data/mixes2_insilicodirichletCopule_pdac.h5 
+# insilicodirichletCopule2 : 
+#   short_name : SDC52
+#   groundtruth_file_path : data/groundtruth2_insilicodirichletCopule_pdac.h5
+#   path : data/mixes2_insilicodirichletCopule_pdac.h5 
 
 
 
@@ -55,10 +55,10 @@ insilicodirichletEMFAImmuneLowProp1 :
   groundtruth_file_path : data/groundtruth1_insilicodirichletEMFAImmuneLowProp_pdac.h5
   path : data/mixes1_insilicodirichletEMFAImmuneLowProp_pdac.h5 
 
-insilicodirichletEMFAImmuneLowProp2 : 
-  short_name : SDEL2
-  groundtruth_file_path : data/groundtruth2_insilicodirichletEMFAImmuneLowProp_pdac.h5
-  path : data/mixes2_insilicodirichletEMFAImmuneLowProp_pdac.h5 
+# insilicodirichletEMFAImmuneLowProp2 : 
+#   short_name : SDEL2
+#   groundtruth_file_path : data/groundtruth2_insilicodirichletEMFAImmuneLowProp_pdac.h5
+#   path : data/mixes2_insilicodirichletEMFAImmuneLowProp_pdac.h5 
 
 
 
