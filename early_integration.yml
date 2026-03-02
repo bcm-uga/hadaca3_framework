@@ -19,10 +19,10 @@ omicade4bulk:
 #   short_name: Cnosc
 #   language: R
 
-# Kernel:
-#   path: early_integration/Kernel.R 
-#   short_name: Kern
-#   language: R
+Kernel:
+  path: early_integration/Kernel.R 
+  short_name: Kern
+  language: R
 
 # OT:
 #   path: early_integration/OT.py 
