@@ -11,12 +11,12 @@
     - **LogNorm**: Normalized and log-transformed data with Seurat.
   - **Single cell**
     - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
-	  - **Scale**: Divide each column of each matrix by its sum.
+	- **Scale**: Divide each column of each matrix by its sum.
     - **LogNorm**: Normalized and log-transformed data with Seurat.
-	  - **SCcluster**: Finds markers (differentially expressed genes) of each cell types from a Wilcoxon Rank Sum test.
-	  - **SCconcat**: concatenate shared genes among all references. 
-	  - **SC_binary_pseudobulk_log**: select shared genes among all references then normalise and do a log_2 plus one transformation.
-	  - **SCCCAintegration**: Clusterise genes with a nearest-neighbor strategie based on coordinates of a PCA, then integrate all references with a canonical-correlation analysis (CCA), which infer cross-covariance matrices.
+	- **SCcluster**: Finds markers (differentially expressed genes) of each cell types from a Wilcoxon Rank Sum test.
+	- **SCconcat**: concatenate shared genes among all references. 
+	- **SC_binary_pseudobulk_log**: select shared genes among all references then normalise and do a log_2 plus one transformation.
+	- **SCCCAintegration**: Clusterise genes with a nearest-neighbor strategie based on coordinates of a PCA, then integrate all references with a canonical-correlation analysis (CCA), which infer cross-covariance matrices.
 - **Feature selection**
   - **RNA**
     - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
