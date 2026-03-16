@@ -18,11 +18,11 @@ JOBS="${3:-4}"
 
 HEADER='"dataset","ref","preprocessing_mixRNA","feature_selection_mixRNA","preprocessing_RNA","feature_selection_RNA","preprocessing_scRNA","feature_selection_scRNA","preprocessing_mixMET","feature_selection_mixMET","preprocessing_MET","feature_selection_MET","early_integration","deconvolution","aid","aid_norm","aitchison","aitchison_norm","jsd","jsd_norm","mae","mae_norm","pearson_col","pearson_col_norm","pearson_row","pearson_row_norm","pearson_tot","pearson_tot_norm","rmse","rmse_norm","score_aggreg","sdid","sdid_norm","spearman_col","spearman_col_norm","spearman_row","spearman_row_norm","spearman_tot","spearman_tot_norm"'
  
-METRIC_COLS="aid aid_norm aitchison aitchison_norm jsd jsd_norm mae mae_norm pearson_col pearson_col_norm pearson_row pearson_row_norm pearson_tot pearson_tot_norm rmse rmse_norm score_aggreg sdid sdid_norm spearman_col spearman_col_norm spearman_row spearman_row_norm spearman_tot spearman_tot_norm"
 
 # ── process one file ──────────────────────────────────────────────────────────
 process_file() {
     local file="$1"
+    local METRIC_COLS="aid aid_norm aitchison aitchison_norm jsd jsd_norm mae mae_norm pearson_col pearson_col_norm pearson_row pearson_row_norm pearson_tot pearson_tot_norm rmse rmse_norm score_aggreg sdid sdid_norm spearman_col spearman_col_norm spearman_row spearman_row_norm spearman_tot spearman_tot_norm"
 
     # echo $PATH >&2 
     # echo $(which h5dump) >&2
@@ -138,7 +138,7 @@ fi
     if command -v parallel &>/dev/null; then
         # GNU parallel: best for 1M+ files, progress bar included
         printf '%s\n' "${FILES[@]}" \
-            | parallel -j "$JOBS" -env METRIC_COLS --env PATH --bar --line-buffer  process_file {}
+            | parallel -j "$JOBS" --env PATH --bar --line-buffer  process_file {}
             
     else
         # Fallback: xargs -P (no progress bar)
