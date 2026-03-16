@@ -1,0 +1,61 @@
+- **Pre-processing**
+  - **RNA**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+    - **CPM** : Divide each column of each matrix by its sum, then multiply by 10^6.
+    - **Scale**: Divide each column of each matrix by its sum.
+    - **LogNorm**: Normalized and log-transformed data with Seurat.
+  - **meth**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+    - **normalize**: divide each column of each matrix by its sum (so same as scale.
+    - **Scale**: divide each column of each matrix by its sum.
+    - **LogNorm**: Normalized and log-transformed data with Seurat.
+  - **Single cell**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+	- **Scale**: Divide each column of each matrix by its sum.
+    - **LogNorm**: Normalized and log-transformed data with Seurat.
+	- **SCcluster**: Finds markers (differentially expressed genes) of each cell types from a Wilcoxon Rank Sum test.
+	- **SCconcat**: concatenate shared genes among all references. 
+	- **SC_binary_pseudobulk_log**: select shared genes among all references then normalise and do a log_2 plus one transformation.
+	- **SCCCAintegration**: Clusterise genes with a nearest-neighbor strategie based on coordinates of a PCA, then integrate all references with a canonical-correlation analysis (CCA), which infer cross-covariance matrices.
+- **Feature selection**
+  - **RNA**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+    - **SCcluster**: Finds markers (differentially expressed genes) of each cell types from a Wilcoxon Rank Sum test.
+    - **Toastbulknbfs**: top 1000 most log1p variable genes.
+    - **Toastvst**: Do a Variance Stabilizing Transformation before applying Toastbulknbfs.
+    - **scSPLSDA**: Apply a mint Sparse Partial Least Squares Discriminant Analysis on all single cell counts to select important genes via the five first components.
+    - **scpseudobulk**: Select markers genes based on t statistic on single cell data.
+  - **meth**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+    - **SPLSDA**: first, select top 10000 probes most log1p variable, even if i don't see the point of log1p Methylation data, because sortBy arg wasn't change. Then, apply on the logit top 1000 probes a Sparse Partial Least Squares Discriminant Analysis to select important genes via the two first components.
+    - **Toastnbfs**: Lots of pb (tldr: same as ID). First, select top probes most log1p variable, even if i don't see the point of log1p Methylation data, because sortBy arg wasn't change. Then the number of top probes selected is nrow(ref) so all probes.
+    - **Toastpercent**: top 80% most log1p variable probes, even if i don't see the point of log1p Methylation data, because sortBy arg wasn't change.
+    - **maxdiscriminant**: select the union (no overlapping here) of the top 100 most discriminant of each cell population. A discriminant probe have a high absolute difference between the probe's methylation level in a cell type versus the global average in the matrix.
+    - **mostmethylated**: select the union of the top 25% most methylated probes of each cell population
+  - **Single cell**
+    - **ID**: apply the identity function f(x)=x, a.k.a. doesn't change anything
+  	- **SCcluster**: Finds markers (differentially expressed genes) of each cell types from a Wilcoxon Rank Sum test.
+    - **Toastbulknbfs**: top 1000 most log1p variable genes.
+    - **Toastvst**: Do a Variance Stabilizing Transformation before applying Toastbulknbfs.
+  	- **scSPLSDA**: Apply a mint Sparse Partial Least Squares Discriminant Analysis on all single cell counts to select important genes via the five first components.
+    - **scpseudobulk**: Select markers genes based on t statistic on single cell data.
+- **Deconvolution**
+  - **RLR**: Robust Linear Regression done by iterated re-weighted least squares, also referred as Robust Partial Correlations (RPCs) in EpiDISH package.
+  - **RLRpoisson**: RLR done without intercept and with prior weights for each genes/probes, defined as the inverse of reference mean for each genes/probes. 
+  - **EPIC**: EPIC deconvolution algorithm based on constrained least square.
+  - **lm**: Ordinary Least Squares algorithm with *a posteriori* sum to one constrained (as in all currently present algorithm but explicitly written only for lm and NNLS).
+  - **NNLS**: Non-Negative Least Squares algorithm with *a posteriori* sum to one constrained (as in all currently present algorithm but explicitly written only for lm and NNLS).
+  - **RLR-NNLS**: Chose to return NNLS or RLR estimation based on the lowest reconstruction RMSE, however the reconstruction for RLR doesn't take into account the weights deduced. (not sure about the last part)
+  - **NNLS largeref**: NNLS applied on the whole mix matrix as well with all possible mix matrices with minus one cell type population. The best model and associated estimation is the one minimising the RMSE of reconstruction.
+- **Early integration**
+  - **Kernel**: Kernel PCA on concatenate mix and ref and return the projection.
+  - **omicade4bulk**: multiple CO-inertia analysis on concatenate mix and ref and return the projection.
+  - **concatnoscale**: concatenate mix and ref of both omics.
+  - **concatscale**: concatenate mix and ref of both omics then do normal score/probabilities transformation.
+- **Late integration**
+  - **Only RNA**: Uni-omic strategie.
+  - **Only meth**: Uni-omic strategie.
+  - **limean**: Mean of RNA and Methylation estimation.
+  - **limeanRMSE**: Weighted mean of RNA and Methylation estimation, weigths being the respective normalise RMSE of reconstruction.
+  - **tunedJ**: Mean of RNA and Methylation estimation, except for cancerous cell populations where only Methylation estimation are taken.
+  - **CTS-ENS**: Quadratic programming and reweighting of both estimation. However, we think that some control check prevent any change because return always the same estimation as limean.
