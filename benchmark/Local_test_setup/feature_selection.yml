@@ -1,0 +1,37 @@
+
+fsID :  #must be a unique ID without _
+  path: feature_selection/ID.R
+  short_name: FSID
+  omic: [ANY]
+
+# Toastnbfs :  #must be a unique ID without _
+#   path: feature_selection/TOAST_nbfs.R
+#   short_name: TNBF
+#   omic: [mixMET,MET]
+
+# Toastpercent :  #must be a unique ID without _
+#   path: feature_selection/TOAST_percent.R
+#   short_name: Tper
+#   omic: [mixMET,MET]
+
+# Toastvst :  #must be a unique ID without _
+#   path: feature_selection/TOAST_vst.R
+#   short_name: Tvst
+#   omic: [mixRNA,RNA,scRNA]
+
+# Toastbulknbfs : #TOTEST  #must be a unique ID withou
+#   path: feature_selection/TOAST_bulk_nbfs.R
+#   short_name: Tbnf
+#   omic: [mixRNA,RNA,scRNA]
+
+# SCcluster: #TODO
+#   path: feature_selection/TOAST_vst.R
+#   short_name: SCCL
+#   dependances: "ref_cluster"
+#   omic: [mixRNA,RNA,scRNA]
+
+# top100 :  #must be a unique ID without _
+#   path: feature_selection/top100.R
+#   # dependence : teamH_scSignature.csv top100.
+#   short_name: T100
+#   omic: [mixNA,RNA,scRNA]

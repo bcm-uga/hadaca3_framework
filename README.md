@@ -196,9 +196,9 @@ To create a a full report of the pipeline these options could be passed:
 nextflow run 00_run_pipeline.nf -with-dag -with-report -with-trace -with-timeline 
 ```
 
-Run with another setup: 
+Run with minimal setup to debug fonction. 
 ```
-nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/setup/1/
+nextflow run 00_run_pipeline.nf -resume --setup_folder benchmark/Local_test_setup/
 ```
 
 ### Continuous Integration description 
