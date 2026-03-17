@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 # Usage: bash parse_scores_li.sh [output_file] [score_dir] [n_jobs]
 # Requires: gawk, h5dump, GNU parallel (or xargs)
-#
-# Parses files matching:
-#   score-li-{dataset}_{ref}_mixRNA_{pp_mRNA}_{fs_mRNA}_RNA_{pp_RNA}_{fs_RNA}
-#             _scRNA_{pp_scRNA}_{fs_scRNA}_{deconv_rna}
-#             _mixMET_{pp_mixMET}_{fs_mixMET}_MET_{pp_MET}_{fs_MET}_{deconv_met}
-#             _{late_integration}.h5
+# Resumable: if output file exists, already-processed files are skipped.
 
 set -euo pipefail
 
@@ -24,10 +19,6 @@ process_file() {
     local name="${base#score-li-}"
     name="${name%.h5}"
 
-    # 15 components:
-    # {dataset}_{ref}_mixRNA_{pp_mRNA}_{fs_mRNA}_RNA_{pp_RNA}_{fs_RNA}
-    # _scRNA_{pp_scRNA}_{fs_scRNA}_{deconv_rna}
-    # _mixMET_{pp_mixMET}_{fs_mixMET}_MET_{pp_MET}_{fs_MET}_{deconv_met}_{late_int}
     local pattern='^([^_]+)_([^_]+)_mixRNA_([^_]+)_([^_]+)_RNA_([^_]+)_([^_]+)_scRNA_([^_]+)_([^_]+)_([^_]+)_mixMET_([^_]+)_([^_]+)_MET_([^_]+)_([^_]+)_([^_]+)_([^_]+)$'
 
     if [[ ! "$name" =~ $pattern ]]; then
@@ -47,7 +38,7 @@ process_file() {
     local METRIC_COLS="aid aid_norm aitchison aitchison_norm jsd jsd_norm mae mae_norm pearson_col pearson_col_norm pearson_row pearson_row_norm pearson_tot pearson_tot_norm rmse rmse_norm score_aggreg sdid sdid_norm spearman_col spearman_col_norm spearman_row spearman_row_norm spearman_tot spearman_tot_norm"
 
     local metrics
-    metrics=$(h5dump "$file" 2>/dev/null | gawk -v cols="$METRIC_COLS" '
+    metrics=$(h5dump -m "%.15g" "$file" 2>/dev/null | gawk -v cols="$METRIC_COLS" '
     BEGIN {
         split(cols, col_order, " ")
         current_group = ""
@@ -102,19 +93,70 @@ process_file() {
 
 export -f process_file
 
-# ── find files ────────────────────────────────────────────────────────────────
+# ── find all files ────────────────────────────────────────────────────────────
 echo "Scanning $SCORE_DIR for score-li-*.h5 ..." >&2
-mapfile -t FILES < <(find "$SCORE_DIR" -maxdepth 1 -name 'score-li-*.h5'  | sort)
-TOTAL=${#FILES[@]}
-echo "Found $TOTAL files — processing with $JOBS parallel jobs..." >&2
+mapfile -t ALL_FILES < <(find "$SCORE_DIR" -maxdepth 1 -name 'score-li-*.h5' | sort)
+TOTAL=${#ALL_FILES[@]}
+echo "Found $TOTAL files total." >&2
 
 if [[ $TOTAL -eq 0 ]]; then
     echo "No files found. Exiting." >&2
     exit 1
 fi
 
+# ── resume: find already-done files ──────────────────────────────────────────
+TEMP_NEW=$(mktemp /tmp/results_li_new.XXXXXX.csv.gz)
+trap 'rm -f "$TEMP_NEW"' EXIT
+
+if [[ -f "$OUTPUT" ]]; then
+    echo "Existing output found: $OUTPUT — checking already-processed files..." >&2
+
+    # Reconstruct expected basenames from the CSV columns and match back to filenames.
+    # Each row encodes the full pipeline, so we rebuild the stem and check against ALL_FILES.
+    # Simpler and more robust: store processed stems in a hash set via awk.
+    declare -A DONE
+    while IFS= read -r stem; do
+        DONE["$stem"]=1
+    done < <(zcat "$OUTPUT" | tail -n +2 | gawk -F',' '
+    {
+        # Strip quotes from all string fields
+        for (i=1; i<=NF; i++) gsub(/"/, "", $i)
+        # Reconstruct the filename stem from the 15 metadata columns
+        # score-li-{1}_{2}_mixRNA_{3}_{4}_RNA_{5}_{6}_scRNA_{7}_{8}_{9}_mixMET_{10}_{11}_MET_{12}_{13}_{14}_{15}
+        printf "score-li-%s_%s_mixRNA_%s_%s_RNA_%s_%s_scRNA_%s_%s_%s_mixMET_%s_%s_MET_%s_%s_%s_%s\n",
+            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+    }')
+
+    ALREADY=${#DONE[@]}
+    echo "Already processed: $ALREADY files." >&2
+
+    # Filter to only unprocessed files
+    FILES=()
+    for f in "${ALL_FILES[@]}"; do
+        stem=$(basename "$f" .h5)
+        if [[ -z "${DONE[$stem]+x}" ]]; then
+            FILES+=("$f")
+        fi
+    done
+else
+    FILES=("${ALL_FILES[@]}")
+fi
+
+TODO=${#FILES[@]}
+echo "To process: $TODO files — using $JOBS parallel jobs..." >&2
+
+if [[ $TODO -eq 0 ]]; then
+    echo "Nothing to do. Output is already complete." >&2
+    exit 0
+fi
+
+# ── process new files ─────────────────────────────────────────────────────────
 {
-    echo "$HEADER"
+    # Write header only if starting fresh
+    if [[ ! -f "$OUTPUT" ]]; then
+        echo "$HEADER"
+    fi
+
     if command -v parallel &>/dev/null; then
         printf '%s\n' "${FILES[@]}" \
             | parallel -j "$JOBS" --env PATH --bar --line-buffer process_file {}
@@ -123,6 +165,18 @@ fi
         printf '%s\0' "${FILES[@]}" \
             | xargs -0 -P "$JOBS" -I{} bash -c 'process_file "$@"' _ {}
     fi
-} | gzip -c > "$OUTPUT"
+} | gzip -c > "$TEMP_NEW"
+
+# ── merge old + new ───────────────────────────────────────────────────────────
+if [[ -f "$OUTPUT" ]]; then
+    echo "Merging with existing output..." >&2
+    TEMP_MERGE=$(mktemp /tmp/results_li_merge.XXXXXX.csv.gz)
+    trap 'rm -f "$TEMP_NEW" "$TEMP_MERGE"' EXIT
+    # Concatenate: old (with header) + new (without header, skip first line)
+    { zcat "$OUTPUT"; zcat "$TEMP_NEW" | tail -n +2; } | gzip -c > "$TEMP_MERGE"
+    mv "$TEMP_MERGE" "$OUTPUT"
+else
+    mv "$TEMP_NEW" "$OUTPUT"
+fi
 
 echo "Done → $OUTPUT" >&2
