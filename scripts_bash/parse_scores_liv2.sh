@@ -113,50 +113,50 @@ if [[ $TOTAL -eq 0 ]]; then
 fi
 
 # ── resume: validate and load existing CSV ────────────────────────────────────
-declare -A DONE
+# DONE_FILE is a plain text file of already-processed stems — no associative arrays needed
+DONE_FILE=$(mktemp /tmp/done_stems.XXXXXX)
+trap 'rm -f "$DONE_FILE"' EXIT
 
 if [[ -f "$CSV_WORK" ]]; then
     echo "Existing CSV found: $CSV_WORK — validating trailing lines..." >&2
 
-    # Count total lines before any trimming
-    TOTAL_LINES=$(wc -l < "$CSV_WORK")
+    LINES_BEFORE=$(wc -l < "$CSV_WORK")
+    echo "  CSV has $LINES_BEFORE lines — scanning tail for corrupt rows..." >&2
 
-    # Scan from the bottom up and remove any incomplete/corrupt lines.
-    # A valid data line must have exactly EXPECTED_COLS comma-separated fields.
-    # The header line (line 1) is always kept.
-    LINES_REMOVED=0
-    while [[ "$(wc -l < "$CSV_WORK")" -gt 1 ]]; do
-        last_line=$(tail -1 "$CSV_WORK")
-        col_count=$(echo "$last_line" | gawk -F',' '{print NF}')
+    # Trim corrupt trailing lines in one awk pass — rewrites file only if needed
+    TRIMMED_FILE=$(mktemp /tmp/csv_trimmed.XXXXXX)
+    trap 'rm -f "$DONE_FILE" "$TRIMMED_FILE"' EXIT
 
-        if [[ "$col_count" -eq "$EXPECTED_COLS" ]]; then
-            break   # Last line looks valid — stop trimming
-        else
-            echo "  Removing corrupt/incomplete line ($col_count cols): ${last_line:0:80}..." >&2
-            # Remove the last line in-place
-            sed -i '$ d' "$CSV_WORK"
-            (( LINES_REMOVED++ ))
-        fi
-    done
+    gawk -F',' -v expected="$EXPECTED_COLS" '
+    { lines[NR] = $0; cols[NR] = NF }
+    END {
+        last = NR
+        while (last > 1 && cols[last] != expected) last--
+        for (i = 1; i <= last; i++) print lines[i]
+    }' "$CSV_WORK" > "$TRIMMED_FILE"
+
+    LINES_AFTER=$(wc -l < "$TRIMMED_FILE")
+    LINES_REMOVED=$(( LINES_BEFORE - LINES_AFTER ))
 
     if [[ $LINES_REMOVED -gt 0 ]]; then
-        echo "  Trimmed $LINES_REMOVED incomplete line(s) from the end of the CSV." >&2
+        echo "  Trimmed $LINES_REMOVED corrupt/incomplete line(s) from the end." >&2
+        mv "$TRIMMED_FILE" "$CSV_WORK"
     else
         echo "  Trailing lines look valid — no trimming needed." >&2
+        rm -f "$TRIMMED_FILE"
     fi
 
-    # Build DONE set from the now-validated CSV (skip header on line 1)
-    while IFS= read -r stem; do
-        DONE["$stem"]=1
-    done < <(tail -n +2 "$CSV_WORK" | gawk -F',' '
+    # Extract already-processed stems into DONE_FILE (skip header line 1)
+    echo "  Building resume index from CSV..." >&2
+    tail -n +2 "$CSV_WORK" | gawk -F',' '
     {
         for (i=1; i<=NF; i++) gsub(/"/, "", $i)
         printf "score-li-%s_%s_mixRNA_%s_%s_RNA_%s_%s_scRNA_%s_%s_%s_mixMET_%s_%s_MET_%s_%s_%s_%s\n",
             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
-    }')
+    }' > "$DONE_FILE"
 
-    ALREADY=${#DONE[@]}
-    echo "Already processed: $ALREADY valid rows — resuming." >&2
+    ALREADY=$(wc -l < "$DONE_FILE")
+    echo "  Already processed: $ALREADY valid rows — resuming." >&2
 
 elif [[ -f "$OUTPUT" ]]; then
     # No plain CSV but a .gz exists — decompress it to resume from
@@ -166,18 +166,26 @@ elif [[ -f "$OUTPUT" ]]; then
         exit 1
     fi
     gzip -dk "$OUTPUT"   # produces $CSV_WORK, keeps $OUTPUT intact
-    # Recurse: re-run the validation block above by restarting the script
-    exec "$0" "$@"
+    exec "$0" "$@"       # restart so validation block runs on the CSV
 fi
 
 # ── filter to unprocessed files ───────────────────────────────────────────────
-FILES=()
-for f in "${ALL_FILES[@]}"; do
-    stem=$(basename "$f" .h5)
-    if [[ -z "${DONE[$stem]+x}" ]]; then
-        FILES+=("$f")
-    fi
-done
+echo "Filtering already-processed files..." >&2
+
+# Use awk to diff ALL_FILES against DONE_FILE — no bash loops, no associative arrays
+mapfile -t FILES < <(
+    printf '%s\n' "${ALL_FILES[@]}" | gawk -v donefile="$DONE_FILE" '
+    BEGIN {
+        while ((getline line < donefile) > 0) done[line] = 1
+    }
+    {
+        # Extract stem: strip leading ./ and trailing .h5
+        path = $0
+        sub(/^.*\//, "", path)   # basename
+        sub(/\.h5$/, "", path)   # strip extension
+        if (!(path in done)) print $0
+    }'
+)
 
 TODO=${#FILES[@]}
 echo "To process: $TODO files — using $JOBS parallel jobs..." >&2
