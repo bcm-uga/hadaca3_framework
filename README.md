@@ -218,24 +218,6 @@ Also it is possible to skip the execution of the partial CI by adding one of the
 - [actions skip]
 
 
-### snakemake  DEPRECATED not dealing with dependencies...
-
-```
-cd ~/projects/hadaca3_framework
-snakemake --cores 1 -s 00_run_pipeline.smk -p clean  # keep it clean, keep it green!
-snakemake --cores 4 -s 00_run_pipeline.smk -pn       # dry-run
-```
-
-This pipeline can be visualised by generating its DAG:
-```
-snakemake --forceall --dag -s 00_run_pipeline.smk | dot -Tpdf > dag.pdf
-```
-
-Run with another setup: 
-```
-snakemake -s 00_run_pipeline.smk  --cores 4  --config setup_folder='benchmark/setup/1/' 
-```
-
 
 
 
